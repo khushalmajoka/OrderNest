@@ -34,6 +34,9 @@ const Login = () => {
               placeholder="••••••••"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
+            <div className="text-right text-xs text-orange-600 hover:underline cursor-pointer mt-1">
+              Forgot password?
+            </div>
           </div>
           <button
             type="submit"

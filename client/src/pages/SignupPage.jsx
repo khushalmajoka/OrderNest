@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import OrderNestLogo from "../assets/OrderNestLogo.png";
+import OrderNestLogo from "../assets/OrderNestLogoWithoutBg.png";
 
 const SignupPage = () => {
   const [form, setForm] = useState({
@@ -21,19 +21,15 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gradient-to-r from-white to-orange-100 px-4">
-      <img
-        src={OrderNestLogo}
-        alt="OrderNest Logo"
-        className="w-24 mb-4"
-      />
-      <h2 className="text-2xl font-semibold mb-6 text-gray-700">
-        Create an Account
-      </h2>
+    <div className="min-h-screen flex justify-evenly items-center bg-gradient-to-br from-orange-100 to-gray-100 px-4 font-poppins">
+      <img src={OrderNestLogo} alt="OrderNest Logo" className="" />
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm"
+        className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm flex flex-col items-center"
       >
+        <h2 className="text-2xl font-semibold mb-6 text-gray-700">
+          Create an Account
+        </h2>
         <input
           type="text"
           name="name"

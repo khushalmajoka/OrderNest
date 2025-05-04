@@ -6,9 +6,12 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-evenly bg-gradient-to-br from-orange-100 to-gray-100 px-4 font-poppins">
       <img src={OrderNestLogo} alt="OrderNest Logo" className="" />
       <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-md">
-        <div className="flex flex-col items-center ">
-          <h1 className="text-2xl font-semibold text-gray-800">Welcome to OrderNest</h1>
-          <p className="text-sm text-gray-500 mt-1">Login to your store dashboard</p>
+        <div className="flex flex-col items-center mb-6">
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Welcome to OrderNest
+          </h1>
+          {/* <p className="text-sm text-gray-500">Login to your store dashboard</p> */}
+          <p className="text-sm text-gray-500">Simplify Orders. Amplify Growth.</p>
         </div>
 
         <form className="space-y-5">

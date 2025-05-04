@@ -1,17 +1,15 @@
 import React from "react";
-import logo from "../assets/OrderNestLogo.png";
+import OrderNestLogo from "../assets/OrderNestLogoWithoutBg.png";
 
 const Login = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-100 to-gray-100 px-4">
+    <div className="min-h-screen flex items-center justify-evenly bg-gradient-to-br from-orange-100 to-gray-100 px-4 font-poppins">
+      <img src={OrderNestLogo} alt="OrderNest Logo" className="" />
       <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-md">
         <div className="flex flex-col items-center mb-6">
-          <img
-            src={logo}
-            alt="OrderNest Logo"
-            className="h-20 w-20 mb-2"
-          />
-          <h1 className="text-3xl font-bold text-gray-800">Welcome to OrderNest</h1>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+            Welcome to OrderNest
+          </h1>
           <p className="text-sm text-gray-500">Login to your store dashboard</p>
         </div>
 
@@ -26,7 +24,7 @@ const Login = () => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
           </div>
-          <div>
+          <div className="">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>

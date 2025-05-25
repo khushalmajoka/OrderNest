@@ -1,8 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import OrderNestLogo from "../assets/OrderNestLogoWithoutBg.png";
 
 const SignupPage = () => {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -14,15 +16,44 @@ const SignupPage = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Add validation & API call here
-    console.log("Signup data", form);
+
+    if (form.password !== form.confirmPassword) {
+      alert("Passwords do not match!");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        alert("Registration successful!");
+        navigate("/");
+      } else {
+        alert(data.message || "Registration failed!");
+      }
+    } catch (error) {
+      console.error("Error during registration:", error);
+      alert("Something went wrong. Please try again.");
+    }
   };
 
   return (
     <div className="min-h-screen flex justify-evenly items-center bg-gradient-to-br from-orange-100 to-gray-100 px-4 font-poppins">
-      <img src={OrderNestLogo} alt="OrderNest Logo" className="" />
+      <img src={OrderNestLogo} alt="OrderNest Logo" />
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm flex flex-col items-center"

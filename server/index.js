@@ -1,18 +1,37 @@
-import express from 'express';
-import mongoose from 'mongoose';
-import cors from 'cors';
-import dotenv from 'dotenv';
+const express = require('express');
+const dotenv = require('dotenv');
+const connectDB = require('./config/db');
+const authRoutes = require('./routes/authRoutes');
+const shopRoutes = require("./routes/shopRoutes");
+const cors = require('cors');
 
 dotenv.config();
+
+// Connect to DB
+connectDB();
+
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
+// Routes
+app.use('/api/auth', authRoutes);
+app.use("/api/shop", shopRoutes);
+
+
+// Default route (optional)
 app.get('/', (req, res) => {
-  res.send('OrderNest API running!');
+  res.send('API is running...');
 });
 
+// Error handling middleware (optional)
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
+});
+
+// Start server
 const PORT = process.env.PORT || 5000;
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => app.listen(PORT, () => console.log(`Server running on ${PORT}`)))
-  .catch((err) => console.log(err));
+app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OrderNestLogo from "../assets/OrderNestLogoWithoutBg.png";
+import toast from "react-hot-toast";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ const SignupPage = () => {
     e.preventDefault();
 
     if (form.password !== form.confirmPassword) {
-      alert("Passwords do not match!");
+      toast.error("Passwords do not match!");
       return;
     }
 
@@ -40,14 +41,14 @@ const SignupPage = () => {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Registration successful!");
+        toast.success("Registration successful!")
         navigate("/");
       } else {
-        alert(data.message || "Registration failed!");
+        toast.error(data.message || "Registration failed!");
       }
     } catch (error) {
       console.error("Error during registration:", error);
-      alert("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     }
   };
 

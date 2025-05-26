@@ -1,3 +1,4 @@
+// authenticate.js
 const jwt = require("jsonwebtoken");
 
 const authenticate = (req, res, next) => {
@@ -11,7 +12,7 @@ const authenticate = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: decoded.id };
+    req.user = { id: decoded.userId };
     next();
   } catch (err) {
     console.error("JWT verification failed:", err);

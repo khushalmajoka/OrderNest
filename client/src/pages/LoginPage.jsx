@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import OrderNestLogo from "../assets/OrderNestLogoWithoutBg.png";
+import toast from "react-hot-toast";
 
 const Login = () => {
   const [form, setForm] = useState({
@@ -35,12 +36,13 @@ const Login = () => {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Login successful!");
+        toast.success("Login successful!");
 
         const user = data.user;
 
         localStorage.setItem("userId", user._id);
         localStorage.setItem("token", data.token);
+        localStorage.setItem("shopId", user.shopId);
 
         if (!user.shopId) {
           navigate("/onboarding");
@@ -48,11 +50,11 @@ const Login = () => {
           navigate("/dashboard");
         }
       } else {
-        alert(data.message || "Login failed");
+        toast.error(data.message || "Login failed");
       }
     } catch (err) {
       console.error(err);
-      alert("Something went wrong");
+      toast.error("Something went wrong");
     }
   };
 

@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const shopRoutes = require("./routes/shopRoutes");
+const orderRoutes = require("./routes/orderRoutes");
 const cors = require('cors');
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use("/api/shop", shopRoutes);
+app.use("/api/orders", orderRoutes);
 
 
 // Default route (optional)

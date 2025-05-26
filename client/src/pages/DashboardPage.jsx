@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import OrderList from "../components/OrderList";
+import EditOrderModal from "../components/EditOrderModal";
+import toast from "react-hot-toast";
 
 const Dashboard = () => {
   const [shop, setShop] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [editOrder, setEditOrder] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchShopDetails = async () => {
+    const fetchDashboardData = async () => {
       const token = localStorage.getItem("token");
       const userId = localStorage.getItem("userId");
 
@@ -17,28 +22,72 @@ const Dashboard = () => {
       }
 
       try {
-        const res = await axios.get(`http://localhost:5000/api/shop/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const headers = { Authorization: `Bearer ${token}` };
 
-        setShop(res.data.shop);
+        const [shopRes, ordersRes] = await Promise.all([
+          axios.get(`http://localhost:5000/api/shop/${userId}`, { headers }),
+          axios.get(`http://localhost:5000/api/orders/${userId}`, { headers }),
+        ]);
+
+        setShop(shopRes.data.shop);
+        setOrders(ordersRes.data.orders);
       } catch (err) {
-        console.error("Failed to fetch shop details:", err);
-        alert("Session expired or invalid token. Please login again.");
+        console.error("Failed to fetch dashboard data:", err);
+        toast.error("Session expired or invalid token. Please login again.");
         localStorage.clear();
         navigate("/");
       }
     };
 
-    fetchShopDetails();
+    fetchDashboardData();
   }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
-    navigate("/login");
+    localStorage.removeItem("shopId");
+    navigate("/");
+  };
+
+  const handleDeleteOrder = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.delete(`http://localhost:5000/api/orders/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setOrders((prev) => prev.filter((order) => order._id !== id));
+    } catch (err) {
+      console.error("Failed to delete order:", err);
+      toast.error("Failed to delete order. Try again.");
+    }
+  };
+
+  const handleUpdateOrder = async (updatedOrder) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.put(
+        `http://localhost:5000/api/orders/${updatedOrder._id}`,
+        updatedOrder,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const updated = res.data.order;
+
+      // Replace in UI
+      setOrders((prev) =>
+        prev.map((order) => (order._id === updated._id ? updated : order))
+      );
+
+      setEditOrder(null); // Close modal
+    } catch (err) {
+      console.error("Failed to update order:", err);
+      toast.error("Failed to update order. Try again.");
+    }
   };
 
   if (!shop)
@@ -71,10 +120,31 @@ const Dashboard = () => {
         </button>
       </nav>
 
-      {/* Main Content Placeholder */}
+      {/* Main Content */}
       <div className="p-8">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">Welcome to your dashboard</h2>
-        <p className="text-gray-600">Orders, stats and everything else will be displayed here soon 🚀</p>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-gray-700">Orders</h2>
+          <button
+            onClick={() => navigate("/create-order")}
+            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+          >
+            + Create Order
+          </button>
+        </div>
+
+        <OrderList
+          orders={orders}
+          onEdit={(order) => setEditOrder(order)}
+          onDelete={handleDeleteOrder}
+        />
+
+        {editOrder && (
+          <EditOrderModal
+            order={editOrder}
+            onClose={() => setEditOrder(null)}
+            onSave={handleUpdateOrder}
+          />
+        )}
       </div>
     </div>
   );

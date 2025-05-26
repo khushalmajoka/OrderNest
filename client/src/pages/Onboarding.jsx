@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const Onboarding = () => {
   const [formData, setFormData] = useState({
@@ -18,23 +19,6 @@ const Onboarding = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const res = await axios.post("http://localhost:5000/api/shop/setup", {
-        ...formData,
-        userId,
-      });
-
-      if (res.status === 201) {
-        navigate("/dashboard");
-      }
-    } catch (err) {
-      alert("Failed to setup shop");
-      console.error(err);
-    }
-  };
-
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     const reader = new FileReader();
@@ -48,14 +32,43 @@ const Onboarding = () => {
     }
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.post(
+        "http://localhost:5000/api/shop/setup",
+        {
+          ...formData,
+          userId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (res.status === 201) {
+        const shopId = res.data.shop._id;
+        localStorage.setItem("shopId", shopId);
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      toast.error("Failed to setup shop");
+      console.error(err);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-orange-50 font-poppins">
+    <div className="min-h-screen flex items-center justify-center bg-orange-50 font-poppins px-4">
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded-xl p-8 w-full max-w-md space-y-5"
+        className="bg-white shadow-xl rounded-xl p-8 w-full max-w-md space-y-5"
       >
-        <h2 className="text-2xl font-bold text-center text-gray-800">
-          Setup Your Shop
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
+          🛍️ Setup Your Shop
         </h2>
 
         <input
@@ -68,14 +81,27 @@ const Onboarding = () => {
           className="w-full px-4 py-2 border rounded-md"
         />
 
-        <input
-          type="file"
-          name="logo"
-          accept="image/*"
-          onChange={(e) => handleImageUpload(e)}
-          required
-          className="w-full px-4 py-2 border rounded-md"
-        />
+        {/* Logo Upload */}
+        <div className="space-y-2">
+          <label className="block text-gray-700 font-medium">
+            Shop Logo <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="w-full px-3 py-2 border rounded-md bg-white"
+            required
+          />
+
+          {formData.logo && (
+            <img
+              src={formData.logo}
+              alt="Logo Preview"
+              className="w-24 h-24 object-cover rounded-full border mx-auto"
+            />
+          )}
+        </div>
 
         <select
           name="category"

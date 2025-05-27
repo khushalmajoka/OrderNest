@@ -38,7 +38,7 @@ const Onboarding = () => {
       const token = localStorage.getItem("token");
 
       const res = await axios.post(
-        "http://localhost:5000/api/shop/setup",
+        `${process.env.REACT_APP_BASE_URL}/api/shop/setup`,
         {
           ...formData,
           userId,

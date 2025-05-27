@@ -31,7 +31,7 @@ const CreateOrder = () => {
 
     try {
       await axios.post(
-        "http://localhost:5000/api/orders/create",
+        `${process.env.REACT_APP_BASE_URL}/api/orders/create`,
         { ...formData, shopId, userId, balance },
         {
           headers: {

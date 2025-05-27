@@ -25,8 +25,8 @@ const Dashboard = () => {
         const headers = { Authorization: `Bearer ${token}` };
 
         const [shopRes, ordersRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/shop/${userId}`, { headers }),
-          axios.get(`http://localhost:5000/api/orders/${userId}`, { headers }),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/api/shop/${userId}`, { headers }),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/api/orders/${userId}`, { headers }),
         ]);
 
         setShop(shopRes.data.shop);
@@ -53,7 +53,7 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem("token");
 
-      await axios.delete(`http://localhost:5000/api/orders/${id}`, {
+      await axios.delete(`${process.env.REACT_APP_BASE_URL}/api/orders/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -69,7 +69,7 @@ const Dashboard = () => {
       const token = localStorage.getItem("token");
 
       const res = await axios.put(
-        `http://localhost:5000/api/orders/${updatedOrder._id}`,
+        `${process.env.REACT_APP_BASE_URL}/api/orders/${updatedOrder._id}`,
         updatedOrder,
         {
           headers: { Authorization: `Bearer ${token}` },

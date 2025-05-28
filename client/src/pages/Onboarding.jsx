@@ -12,6 +12,7 @@ const Onboarding = () => {
     address: "",
   });
 
+  const [loading, setLoading] = useState(false); // 🔁 loading state
   const navigate = useNavigate();
   const userId = localStorage.getItem("userId");
 
@@ -34,6 +35,8 @@ const Onboarding = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // start loading
+
     try {
       const token = localStorage.getItem("token");
 
@@ -53,11 +56,14 @@ const Onboarding = () => {
       if (res.status === 201) {
         const shopId = res.data.shop._id;
         localStorage.setItem("shopId", shopId);
+        toast.success("Shop setup successful! 🚀");
         navigate("/dashboard");
       }
     } catch (err) {
       toast.error("Failed to setup shop");
       console.error(err);
+    } finally {
+      setLoading(false); // stop loading
     }
   };
 
@@ -138,9 +144,14 @@ const Onboarding = () => {
 
         <button
           type="submit"
-          className="w-full bg-orange-500 text-white py-2 rounded-md hover:bg-orange-600"
+          disabled={loading}
+          className={`w-full text-white py-2 rounded-md ${
+            loading
+              ? "bg-orange-300 cursor-not-allowed"
+              : "bg-orange-500 hover:bg-orange-600"
+          }`}
         >
-          Complete Setup
+          {loading ? "Submitting..." : "Complete Setup"}
         </button>
       </form>
     </div>

@@ -13,6 +13,8 @@ const SignupPage = () => {
     confirmPassword: "",
   });
 
+  const [loading, setLoading] = useState(false); // <-- loading state
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -25,23 +27,28 @@ const SignupPage = () => {
       return;
     }
 
+    setLoading(true); // Start loading
+
     try {
-      const res = await fetch(`${process.env.REACT_APP_BASE_URL}/api/auth/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: form.name,
-          email: form.email,
-          password: form.password,
-        }),
-      });
+      const res = await fetch(
+        `${process.env.REACT_APP_BASE_URL}/api/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: form.name,
+            email: form.email,
+            password: form.password,
+          }),
+        }
+      );
 
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("Registration successful!")
+        toast.success("Registration successful!");
         navigate("/");
       } else {
         toast.error(data.message || "Registration failed!");
@@ -49,6 +56,8 @@ const SignupPage = () => {
     } catch (error) {
       console.error("Error during registration:", error);
       toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -100,9 +109,14 @@ const SignupPage = () => {
         />
         <button
           type="submit"
-          className="w-full bg-orange-500 text-white py-2 rounded-md hover:bg-orange-600 transition"
+          disabled={loading}
+          className={`w-full py-2 rounded-md transition text-white ${
+            loading
+              ? "bg-orange-300 cursor-not-allowed"
+              : "bg-orange-500 hover:bg-orange-600"
+          }`}
         >
-          Sign Up
+          {loading ? "Creating Account..." : "Sign Up"}
         </button>
         <p className="text-sm text-gray-600 mt-4 text-center">
           Already have an account?{" "}

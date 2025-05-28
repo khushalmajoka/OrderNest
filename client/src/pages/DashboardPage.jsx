@@ -107,21 +107,27 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-orange-50 font-poppins">
       {/* Navbar */}
-      <nav className="flex items-center justify-between px-8 py-4 bg-white shadow-md">
-        <div className="flex items-center space-x-4">
-          {shop.logo && (
+      <nav className="flex items-center justify-between px-6 py-4 bg-white shadow-md border-b font-poppins">
+        <div className="flex items-center gap-3">
+          {shop.logo ? (
             <img
               src={shop.logo}
               alt="Shop Logo"
-              className="w-12 h-12 rounded-full object-cover border"
+              className="w-9 h-9 rounded-full object-cover border border-orange-400 hover:scale-105 transition-transform duration-200"
             />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-gray-200 border border-dashed border-gray-400 flex items-center justify-center text-gray-500 text-sm">
+              🏪
+            </div>
           )}
-          <h1 className="text-2xl font-semibold text-gray-800">{shop.name}</h1>
+          <h1 className="text-lg font-bold text-gray-800">
+            {shop.name || "Your Shop"}
+          </h1>
         </div>
 
         <button
           onClick={handleLogout}
-          className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+          className="px-3 py-1.5 bg-orange-500 text-white rounded hover:bg-orange-600 transition"
         >
           Logout
         </button>
@@ -133,7 +139,7 @@ const Dashboard = () => {
           <h2 className="text-xl font-semibold text-gray-700">Orders</h2>
           <button
             onClick={() => setShowCreateModal(true)}
-            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+            className="px-3 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
           >
             + Create Order
           </button>

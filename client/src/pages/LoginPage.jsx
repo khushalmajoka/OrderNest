@@ -47,7 +47,7 @@ const Login = () => {
 
         localStorage.setItem("userId", user._id);
         localStorage.setItem("token", data.token);
-        localStorage.setItem("shopId", user.shopId);
+        if(user.shopId) localStorage.setItem("shopId", user.shopId);
 
         if (!user.shopId) {
           navigate("/onboarding");

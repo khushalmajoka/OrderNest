@@ -125,6 +125,8 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
           <option value="Pending">Pending</option>
           <option value="In Progress">In Progress</option>
           <option value="Completed">Completed</option>
+          <option value="Delivered">Delivered</option>
+          <option value="Cancelled">Cancelled</option>
         </select>
 
         <div className="flex justify-end gap-2 pt-2">

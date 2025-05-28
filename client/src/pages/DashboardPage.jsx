@@ -155,7 +155,7 @@ const Dashboard = () => {
           <CreateOrderModal
             onClose={() => setShowCreateModal(false)}
             onOrderCreated={(newOrder) => {
-              setOrders((prev) => [...prev, newOrder]);
+              setOrders((prev) => [newOrder, ...prev]);
             }}
           />
         )}

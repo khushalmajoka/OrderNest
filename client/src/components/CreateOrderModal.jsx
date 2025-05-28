@@ -1,10 +1,9 @@
-// src/pages/CreateOrder.jsx
-import React, { useState } from "react";
+// src/components/CreateOrderModal.jsx
+import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
-const CreateOrder = () => {
+const CreateOrderModal = ({ onClose, onOrderCreated }) => {
   const [formData, setFormData] = useState({
     item: "",
     customerName: "",
@@ -14,7 +13,18 @@ const CreateOrder = () => {
     status: "Pending",
   });
 
-  const navigate = useNavigate();
+  const modalRef = useRef();
+
+  // Close modal on outside click
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (modalRef.current && !modalRef.current.contains(e.target)) {
+        onClose();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [onClose]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -27,10 +37,11 @@ const CreateOrder = () => {
     const userId = localStorage.getItem("userId");
     const shopId = localStorage.getItem("shopId");
 
-    const balance = parseFloat(formData.total || 0) - parseFloat(formData.advance || 0);
+    const balance =
+      parseFloat(formData.total || 0) - parseFloat(formData.advance || 0);
 
     try {
-      await axios.post(
+      const res = await axios.post(
         `${process.env.REACT_APP_BASE_URL}/api/orders/create`,
         { ...formData, shopId, userId, balance },
         {
@@ -39,8 +50,10 @@ const CreateOrder = () => {
           },
         }
       );
+
       toast.success("Order created successfully!");
-      navigate("/dashboard");
+      onOrderCreated(res.data.order);
+      onClose();
     } catch (error) {
       console.error("Order creation failed:", error);
       toast.error("Failed to create order. Try again.");
@@ -48,12 +61,22 @@ const CreateOrder = () => {
   };
 
   return (
-    <div className="min-h-screen bg-orange-50 flex items-center justify-center p-6">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <form
+        ref={modalRef}
         onSubmit={handleSubmit}
-        className="bg-white shadow-md rounded p-8 w-full max-w-lg space-y-4"
+        className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md space-y-4 relative"
       >
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Create New Order</h2>
+        <h2 className="text-xl font-bold text-center text-gray-800">
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute left-7 text-gray-600 hover:text-black"
+          >
+            ←
+          </button>
+          Create New Order
+        </h2>
 
         <input
           type="text"
@@ -114,15 +137,24 @@ const CreateOrder = () => {
           <option value="Completed">Completed</option>
         </select>
 
-        <button
-          type="submit"
-          className="w-full bg-orange-500 text-white py-2 rounded hover:bg-orange-600"
-        >
-          Create Order
-        </button>
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 border rounded hover:bg-gray-100"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+          >
+            Create
+          </button>
+        </div>
       </form>
     </div>
   );
 };
 
-export default CreateOrder;
+export default CreateOrderModal;

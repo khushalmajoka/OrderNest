@@ -4,7 +4,6 @@ import DashboardPage from "./pages/DashboardPage";
 // import LandingPage from "./pages/LandingPage";
 import SignupPage from "./pages/SignupPage";
 import Onboarding from "./pages/Onboarding";
-import CreateOrder from "./pages/CreateOrder";
 import { Toaster } from "react-hot-toast";
 
 function App() {
@@ -17,7 +16,7 @@ function App() {
         <Route path="/signup" element={<SignupPage/>} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/onboarding" element={<Onboarding />} />
-        <Route path="/create-order" element={<CreateOrder />} />
+        {/* <Route path="/create-order" element={<CreateOrder />} /> */}
       </Routes>
     </Router>
   );

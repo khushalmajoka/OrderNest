@@ -4,11 +4,14 @@ import axios from "axios";
 import OrderList from "../components/OrderList";
 import EditOrderModal from "../components/EditOrderModal";
 import toast from "react-hot-toast";
+import CreateOrderModal from "../components/CreateOrderModal";
 
 const Dashboard = () => {
   const [shop, setShop] = useState(null);
   const [orders, setOrders] = useState([]);
   const [editOrder, setEditOrder] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -25,8 +28,12 @@ const Dashboard = () => {
         const headers = { Authorization: `Bearer ${token}` };
 
         const [shopRes, ordersRes] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_BASE_URL}/api/shop/${userId}`, { headers }),
-          axios.get(`${process.env.REACT_APP_BASE_URL}/api/orders/${userId}`, { headers }),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/api/shop/${userId}`, {
+            headers,
+          }),
+          axios.get(`${process.env.REACT_APP_BASE_URL}/api/orders/${userId}`, {
+            headers,
+          }),
         ]);
 
         setShop(shopRes.data.shop);
@@ -125,7 +132,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-700">Orders</h2>
           <button
-            onClick={() => navigate("/create-order")}
+            onClick={() => setShowCreateModal(true)}
             className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
           >
             + Create Order
@@ -137,6 +144,15 @@ const Dashboard = () => {
           onEdit={(order) => setEditOrder(order)}
           onDelete={handleDeleteOrder}
         />
+
+        {showCreateModal && (
+          <CreateOrderModal
+            onClose={() => setShowCreateModal(false)}
+            onOrderCreated={(newOrder) => {
+              setOrders((prev) => [...prev, newOrder]);
+            }}
+          />
+        )}
 
         {editOrder && (
           <EditOrderModal

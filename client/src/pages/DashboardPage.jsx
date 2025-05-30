@@ -11,6 +11,7 @@ const Dashboard = () => {
   const [orders, setOrders] = useState([]);
   const [editOrder, setEditOrder] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const navigate = useNavigate();
 
@@ -97,6 +98,16 @@ const Dashboard = () => {
     }
   };
 
+  const filteredOrders = orders.filter((order) => {
+    const query = searchQuery.toLowerCase();
+    return (
+      order.customerName?.toLowerCase().includes(query) ||
+      order.orderId?.toLowerCase().includes(query) ||
+      order.item?.toLowerCase().includes(query) ||
+      order.phone?.toLowerCase().includes(query)
+    );
+  });
+
   if (!shop)
     return (
       <div className="text-center mt-10 text-gray-600 text-lg animate-pulse">
@@ -135,18 +146,29 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div className="p-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
           <h2 className="text-xl font-semibold text-gray-700">Orders</h2>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="px-3 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
-          >
-            + Create Order
-          </button>
+
+          <div className="flex gap-3 w-full md:w-auto">
+            <input
+              type="text"
+              placeholder="Search orders..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
+            />
+
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-3 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+            >
+              + Create Order
+            </button>
+          </div>
         </div>
 
         <OrderList
-          orders={orders}
+          orders={filteredOrders}
           onEdit={(order) => setEditOrder(order)}
           onDelete={handleDeleteOrder}
         />

@@ -11,6 +11,7 @@ exports.createOrder = async (req, res) => {
       advance,
       balance,
       status,
+      expectedDeliveryDate,
       userId,
       shopId,
     } = req.body;
@@ -48,6 +49,7 @@ exports.createOrder = async (req, res) => {
       advance,
       balance,
       status,
+      expectedDeliveryDate
     });
 
     await newOrder.save();
@@ -73,7 +75,7 @@ exports.getOrdersByUser = async (req, res) => {
 // @desc Update Order
 exports.updateOrder = async (req, res) => {
   try {
-    const { customerName, item, phone, total, advance, status } = req.body;
+    const { customerName, item, phone, total, advance, status, expectedDeliveryDate } = req.body;
     const balance = total - advance;
 
     const updatedOrder = await Order.findByIdAndUpdate(
@@ -86,6 +88,7 @@ exports.updateOrder = async (req, res) => {
         advance,
         balance,
         status,
+        expectedDeliveryDate, // Added this line to update delivery date
       },
       { new: true }
     );
@@ -100,6 +103,7 @@ exports.updateOrder = async (req, res) => {
     res.status(500).json({ message: "Something went wrong" });
   }
 };
+
 
 // @desc Delete Order
 exports.deleteOrder = async (req, res) => {

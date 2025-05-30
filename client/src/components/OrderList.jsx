@@ -38,10 +38,10 @@ const OrderList = ({ orders, onEdit, onDelete }) => {
 
   return (
     <>
-      <div className="overflow-x-auto">
-        <table className="min-w-full bg-white rounded-lg shadow-md overflow-hidden">
-          <thead>
-            <tr className="bg-orange-100 text-left text-gray-700">
+      <div className="overflow-x-auto max-h-[599px] overflow-y-auto border rounded shadow">
+        <table className="min-w-full bg-white rounded-lg shadow-md text-left">
+          <thead className="sticky top-0 bg-orange-100 z-10">
+            <tr className="text-left text-gray-700">
               {/* Order ID */}
               <th
                 className="px-4 py-3 cursor-pointer select-none"
@@ -266,6 +266,39 @@ const OrderList = ({ orders, onEdit, onDelete }) => {
                 </div>
               </th>
 
+              {/* Expected Delivery */}
+              <th
+                className="px-4 py-3 cursor-pointer select-none"
+                onClick={() => handleSort("expectedDeliveryDate")}
+              >
+                <div className="flex items-center gap-2">
+                  <span>Expected Delivery</span>
+                  <div className="flex flex-col leading-[0.75rem]">
+                    <ChevronUp
+                      size={14}
+                      className={
+                        sortField === "expectedDeliveryDate" &&
+                        sortOrder === "asc"
+                          ? "text-gray-900"
+                          : "text-gray-400"
+                      }
+                    />
+                    <ChevronDown
+                      size={14}
+                      className={
+                        sortField === "expectedDeliveryDate" &&
+                        sortOrder === "desc"
+                          ? "text-gray-900"
+                          : "text-gray-400"
+                      }
+                    />
+                  </div>
+                </div>
+              </th>
+
+              {/* Days Remaining */}
+              <th className="px-4 py-3">Days Remaining</th>
+
               {/* Created */}
               <th
                 className="px-4 py-3 cursor-pointer select-none"
@@ -342,6 +375,26 @@ const OrderList = ({ orders, onEdit, onDelete }) => {
                 <td className="px-4 py-2">₹{order.advance}</td>
                 <td className="px-4 py-2">₹{order.balance}</td>
                 <td className="px-4 py-2">{order.status}</td>
+                {/* Expected Delivery */}
+                <td className="px-4 py-2">
+                  {order.expectedDeliveryDate
+                    ? moment(order.expectedDeliveryDate).format("DD MMM YYYY")
+                    : "-"}
+                </td>
+
+                {/* Days Remaining */}
+                <td className="px-4 py-2">
+                  {order.expectedDeliveryDate
+                    ? Math.max(
+                        moment(order.expectedDeliveryDate).diff(
+                          moment(),
+                          "days"
+                        ),
+                        0
+                      ) + " days"
+                    : "-"}
+                </td>
+
                 <td className="px-4 py-2">
                   {moment(order.createdAt).format("DD MMM, hh:mm A")}
                 </td>

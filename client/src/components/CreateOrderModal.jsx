@@ -1,7 +1,9 @@
 // src/components/CreateOrderModal.jsx
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import TextField from "@mui/material/TextField";
 
 const CreateOrderModal = ({ onClose, onOrderCreated }) => {
   const [formData, setFormData] = useState({
@@ -11,7 +13,9 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
     total: "",
     advance: "",
     status: "Pending",
+    expectedDeliveryDate: "",
   });
+
   const [loading, setLoading] = useState(false);
 
   const modalRef = useRef();
@@ -19,10 +23,23 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
   // Close modal on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (modalRef.current && !modalRef.current.contains(e.target)) {
+      const path = e.composedPath?.() || [];
+
+      const clickedInsideModal = path.includes(modalRef.current);
+      const clickedInsideDatePicker = path.some((el) => {
+        return (
+          el?.classList &&
+          [...el.classList].some(
+            (cls) => cls.startsWith("MuiPickers") || cls.startsWith("MuiModal")
+          )
+        );
+      });
+
+      if (!clickedInsideModal && !clickedInsideDatePicker) {
         onClose();
       }
     };
+
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [onClose]);
@@ -140,6 +157,33 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
           value={formData.advance}
           onChange={handleChange}
           className="w-full border p-2 rounded"
+        />
+
+        <DatePicker
+          label="Expected Delivery Date"
+          value={
+            formData.expectedDeliveryDate
+              ? new Date(formData.expectedDeliveryDate)
+              : null
+          }
+          onChange={(date) => {
+            if (date) {
+              setFormData((prev) => ({
+                ...prev,
+                expectedDeliveryDate: date.toISOString().split("T")[0],
+              }));
+            }
+          }}
+          disablePast
+          renderInput={(params) => (
+            <TextField
+              fullWidth
+              {...params}
+              name="expectedDeliveryDate"
+              variant="outlined"
+              size="small"
+            />
+          )}
         />
 
         <div className="flex justify-end gap-2 pt-2">

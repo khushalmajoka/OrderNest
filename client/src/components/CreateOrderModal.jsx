@@ -12,6 +12,7 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
     advance: "",
     status: "Pending",
   });
+  const [loading, setLoading] = useState(false);
 
   const modalRef = useRef();
 
@@ -32,6 +33,9 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (loading) return;
+    setLoading(true);
 
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
@@ -57,6 +61,8 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
     } catch (error) {
       console.error("Order creation failed:", error);
       toast.error("Failed to create order. Try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -147,9 +153,14 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600"
+            disabled={loading}
+            className={`px-4 py-2 rounded text-white transition ${
+              loading
+                ? "bg-orange-300 cursor-not-allowed"
+                : "bg-orange-500 hover:bg-orange-600"
+            }`}
           >
-            Create
+            {loading ? "Creating..." : "Create"}
           </button>
         </div>
       </form>

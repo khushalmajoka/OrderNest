@@ -38,8 +38,8 @@ const OrderList = ({ orders, onEdit, onDelete }) => {
 
   return (
     <>
-      <div className="overflow-x-auto max-h-[599px] overflow-y-auto border rounded shadow">
-        <table className="min-w-full bg-white rounded-lg shadow-md text-left">
+      <div className="overflow-x-auto max-h-[599px] overflow-y-auto border rounded shadow w-full">
+        <table className="min-w-max bg-white rounded-lg shadow-md text-left">
           <thead className="sticky top-0 bg-orange-100 z-10">
             <tr className="text-left text-gray-700">
               {/* Order ID */}
@@ -273,7 +273,7 @@ const OrderList = ({ orders, onEdit, onDelete }) => {
               >
                 <div className="flex items-center gap-2">
                   <span>Expected Delivery</span>
-                  <div className="flex flex-col leading-[0.75rem]">
+                  {/* <div className="flex flex-col leading-[0.75rem]">
                     <ChevronUp
                       size={14}
                       className={
@@ -292,7 +292,7 @@ const OrderList = ({ orders, onEdit, onDelete }) => {
                           : "text-gray-400"
                       }
                     />
-                  </div>
+                  </div> */}
                 </div>
               </th>
 

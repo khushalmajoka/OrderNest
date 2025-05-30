@@ -28,7 +28,14 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
   }, [onClose]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    if (name === "phone") {
+      const numericValue = value.replace(/\D/g, "").slice(0, 10);
+      setFormData((prev) => ({ ...prev, phone: numericValue }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -105,11 +112,14 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
         />
 
         <input
-          type="text"
+          type="tel"
           name="phone"
           placeholder="WhatsApp/Phone"
           value={formData.phone}
           onChange={handleChange}
+          pattern="[6-9]{1}[0-9]{9}"
+          title="Enter a valid 10-digit Mobile Number"
+          required
           className="w-full border p-2 rounded"
         />
 
@@ -131,17 +141,6 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
           onChange={handleChange}
           className="w-full border p-2 rounded"
         />
-
-        <select
-          name="status"
-          value={formData.status}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        >
-          <option value="Pending">Pending</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Completed">Completed</option>
-        </select>
 
         <div className="flex justify-end gap-2 pt-2">
           <button

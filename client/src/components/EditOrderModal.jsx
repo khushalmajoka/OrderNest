@@ -9,7 +9,7 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
     phone: "",
     total: 0,
     advance: 0,
-    status: "Pending",
+    status: "Order Received",
     expectedDeliveryDate: "",
   });
 
@@ -23,7 +23,7 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
         phone: order.phone || "",
         total: order.total || 0,
         advance: order.advance || 0,
-        status: order.status || "Pending",
+        status: order.status || "Order Received",
         expectedDeliveryDate: order.expectedDeliveryDate || "",
       });
     }
@@ -138,9 +138,12 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
           onChange={handleChange}
           className="w-full border p-2 rounded"
         >
+          <option value="Order Received">Order Received</option>
           <option value="Pending">Pending</option>
           <option value="In Progress">In Progress</option>
           <option value="Completed">Completed</option>
+          <option value="Ready to Dispatch/Pick-Up">Ready to Dispatch/Pick-Up</option>
+          <option value="Dispatched">Dispatched</option>
           <option value="Delivered">Delivered</option>
           <option value="Cancelled">Cancelled</option>
         </select>

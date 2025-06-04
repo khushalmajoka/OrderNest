@@ -88,7 +88,7 @@ exports.updateOrder = async (req, res) => {
         advance,
         balance,
         status,
-        expectedDeliveryDate, // Added this line to update delivery date
+        expectedDeliveryDate,
       },
       { new: true }
     );

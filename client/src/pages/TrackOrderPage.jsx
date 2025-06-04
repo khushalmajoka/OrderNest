@@ -36,10 +36,10 @@ const TrackOrderPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 to-white flex justify-evenly px-4 py-10">
       {orders.length > 0 && searched && (
-        <div className="mt-10 w-1/3 max-w-2xl max-h-[600px] overflow-auto scrollbar-hide">
+        <div className="mt-10 w-1/3 max-w-2xl max-h-[600px] overflow-auto" style={{scrollbarWidth: "none", msOverflowStyle: "none"}}>
           {loading && <p className="text-center text-gray-500">Searching...</p>}
           {!loading && searched && (
-            <div className="space-y-4">
+            <div className="space-y-4 overflow-auto scrollbar-hidden">
               {orders.map((order) => (
                 <div
                   key={order._id}

@@ -22,7 +22,7 @@ const Dashboard = () => {
       const userId = localStorage.getItem("userId");
 
       if (!token || !userId) {
-        navigate("/");
+        navigate("/shop");
         return;
       }
 
@@ -44,7 +44,7 @@ const Dashboard = () => {
         console.error("Failed to fetch dashboard data:", err);
         toast.error("Session expired or invalid token. Please login again.");
         localStorage.clear();
-        navigate("/");
+        navigate("/shop");
       }
     };
 
@@ -55,7 +55,7 @@ const Dashboard = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("shopId");
-    navigate("/");
+    navigate("/shop");
   };
 
   const handleDeleteOrder = async (id) => {

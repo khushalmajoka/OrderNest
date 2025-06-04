@@ -1,6 +1,29 @@
 const Order = require("../models/Order");
 const Shop = require("../models/Shop");
 
+// @desc Public Track Order by Order ID or Phone
+exports.trackOrder = async (req, res) => {
+  const { query } = req.query;
+
+  if (!query) {
+    return res.status(400).json({ message: "Query parameter is required" });
+  }
+
+  try {
+    const isPhone = /^\d{10}$/.test(query);
+    const filter = isPhone
+      ? { phone: query }
+      : { orderId: query.toUpperCase() };
+
+    const orders = await Order.find(filter).sort({ createdAt: -1 });
+
+    res.status(200).json({ orders });
+  } catch (err) {
+    console.error("Track Order Error:", err);
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 exports.createOrder = async (req, res) => {
   try {
     const {

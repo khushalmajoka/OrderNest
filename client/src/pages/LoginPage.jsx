@@ -14,7 +14,7 @@ const Login = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
-      navigate("/dashboard");
+      navigate("/shop/dashboard");
     }
   }, [navigate]);
 
@@ -50,9 +50,9 @@ const Login = () => {
         if(user.shopId) localStorage.setItem("shopId", user.shopId);
 
         if (!user.shopId) {
-          navigate("/onboarding");
+          navigate("/shop/onboarding");
         } else {
-          navigate("/dashboard");
+          navigate("/shop/dashboard");
         }
       } else {
         toast.error(data.message || "Login failed");

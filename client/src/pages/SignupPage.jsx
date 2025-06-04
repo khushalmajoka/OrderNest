@@ -49,7 +49,7 @@ const SignupPage = () => {
 
       if (res.ok) {
         toast.success("Registration successful!");
-        navigate("/");
+        navigate("/shop");
       } else {
         toast.error(data.message || "Registration failed!");
       }
@@ -57,7 +57,7 @@ const SignupPage = () => {
       console.error("Error during registration:", error);
       toast.error("Something went wrong. Please try again.");
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 

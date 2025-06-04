@@ -39,7 +39,7 @@ const CreateOrder = () => {
         }
       );
       toast.success("Order created successfully!");
-      navigate("/dashboard");
+      navigate("/shop/dashboard");
     } catch (error) {
       console.error("Order creation failed:", error);
       toast.error("Failed to create order. Try again.");

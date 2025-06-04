@@ -57,13 +57,13 @@ const Onboarding = () => {
         const shopId = res.data.shop._id;
         localStorage.setItem("shopId", shopId);
         toast.success("Shop setup successful! 🚀");
-        navigate("/dashboard");
+        navigate("/shop/dashboard");
       }
     } catch (err) {
       toast.error("Failed to setup shop");
       console.error(err);
     } finally {
-      setLoading(false); // stop loading
+      setLoading(false);
     }
   };
 

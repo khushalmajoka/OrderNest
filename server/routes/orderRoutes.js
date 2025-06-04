@@ -1,9 +1,11 @@
 // routes/orderRoutes.js
 const express = require("express");
-const { createOrder, getOrdersByUser, updateOrder, deleteOrder} = require("../controllers/orderController");
+const { createOrder, getOrdersByUser, updateOrder, deleteOrder, trackOrder} = require("../controllers/orderController");
 const authenticate = require("../middlewares/authenticate");
 
 const router = express.Router();
+
+router.get("/track", trackOrder);
 
 // Create Order
 router.post("/create", authenticate, createOrder);

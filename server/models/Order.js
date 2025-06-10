@@ -16,11 +16,11 @@ const orderSchema = new mongoose.Schema(
     shop: { type: mongoose.Schema.Types.ObjectId, ref: "Shop", required: true },
     item: {
       type: String,
-      required: true,
+      required: false,
     },
     customerName: {
       type: String,
-      required: true,
+      required: false,
     },
     phone: {
       type: String,
@@ -49,7 +49,7 @@ const orderSchema = new mongoose.Schema(
         "Delivered",
         "Cancelled" 
       ],
-      default: "Pending",
+      default: "Order Received",
     },
     expectedDeliveryDate: {
       type: Date,

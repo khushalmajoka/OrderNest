@@ -12,7 +12,7 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
     phone: "",
     total: "",
     advance: "",
-    status: "Pending",
+    status: "Order Received",
     expectedDeliveryDate: "",
   });
 

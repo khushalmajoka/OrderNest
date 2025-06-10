@@ -6,15 +6,29 @@ import EditOrderModal from "../components/EditOrderModal";
 import toast from "react-hot-toast";
 import CreateOrderModal from "../components/CreateOrderModal";
 import { Plus } from "lucide-react";
+import * as XLSX from "xlsx";
+import MappingModal from "../components/MappingModal";
 
 const Dashboard = () => {
   const [shop, setShop] = useState(null);
-  const [orders, setOrders] = useState([]);
   const [editOrder, setEditOrder] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const [excelHeaders, setExcelHeaders] = useState([]);
+  const [excelData, setExcelData] = useState([]);
+  const [showMappingModal, setShowMappingModal] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [ordersPerPage, setOrdersPerPage] = useState(100);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchOrders();
+  }, [currentPage, ordersPerPage]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -29,17 +43,12 @@ const Dashboard = () => {
       try {
         const headers = { Authorization: `Bearer ${token}` };
 
-        const [shopRes, ordersRes] = await Promise.all([
-          axios.get(`${process.env.REACT_APP_BASE_URL}/api/shop/${userId}`, {
-            headers,
-          }),
-          axios.get(`${process.env.REACT_APP_BASE_URL}/api/orders/${userId}`, {
-            headers,
-          }),
-        ]);
+        const shopRes = await axios.get(
+          `${process.env.REACT_APP_BASE_URL}/api/shop/${userId}`,
+          { headers }
+        );
 
         setShop(shopRes.data.shop);
-        setOrders(ordersRes.data.orders);
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err);
         toast.error("Session expired or invalid token. Please login again.");
@@ -109,6 +118,106 @@ const Dashboard = () => {
     );
   });
 
+  const handleBulkUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const binaryStr = event.target.result;
+        const workbook = XLSX.read(binaryStr, { type: "binary" });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const data = XLSX.utils.sheet_to_json(sheet);
+
+        if (!Array.isArray(data) || data.length === 0) {
+          return toast.error("Excel sheet is empty or invalid.");
+        }
+
+        const headers = Object.keys(data[0]);
+
+        setExcelHeaders(headers);
+        setExcelData(data);
+        setShowMappingModal(true);
+      };
+
+      reader.readAsBinaryString(file);
+    } catch (err) {
+      console.error("File parse failed", err);
+      toast.error("Failed to read file.");
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const userId = localStorage.getItem("userId");
+
+      const response = await axios.get(
+        `${process.env.REACT_APP_BASE_URL}/api/orders/${userId}?page=${currentPage}&limit=${ordersPerPage}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      setOrders(response.data.orders);
+      setTotalOrders(response.data.totalCount);
+    } catch (err) {
+      console.error("Error fetching orders:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMappingConfirm = async (fieldMap) => {
+    setShowMappingModal(false);
+    setBulkUploading(true);
+
+    try {
+      const mappedOrders = excelData.map((row) => {
+        const mapped = {};
+        for (const [excelKey, orderField] of Object.entries(fieldMap)) {
+          if (orderField) {
+            let value = row[excelKey];
+
+            // Clean commas and convert to number if it's a numeric field
+            if (
+              ["advance", "balance", "price", "quantity"].includes(orderField)
+            ) {
+              value =
+                typeof value === "string" ? value.replace(/,/g, "") : value;
+              value = Number(value);
+            }
+
+            mapped[orderField] = value;
+          }
+        }
+        return mapped;
+      });
+
+      const token = localStorage.getItem("token");
+      const shopId = localStorage.getItem("shopId");
+
+      const res = await axios.post(
+        `${process.env.REACT_APP_BASE_URL}/api/orders/bulk-upload`,
+        { orders: mappedOrders, shopId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setOrders((prev) => [...res.data.insertedOrders, ...prev]);
+      toast.success(`${res.data.insertedOrders.length} orders uploaded.`);
+    } catch (err) {
+      console.error("Bulk upload failed", err);
+      toast.error("Failed to upload orders.");
+    } finally {
+      setBulkUploading(false);
+    }
+  };
+
   if (!shop)
     return (
       <div className="text-center mt-10 text-gray-600 text-lg animate-pulse">
@@ -119,7 +228,7 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-orange-50 font-poppins">
       {/* Navbar */}
-      <nav className="backdrop-blur-lg bg-white/30 border-b border-orange-200 shadow-md px-6 py-3 flex justify-between items-center">
+      <nav className="sticky top-0 z-10 backdrop-blur-lg bg-white/30 border-b border-orange-200 shadow-md px-6 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <img
             src={shop.logo}
@@ -158,20 +267,40 @@ const Dashboard = () => {
               <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
             </div>
 
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center gap-1 px-4 py-2 bg-orange-500 text-white rounded-md shadow hover:bg-orange-600 transition"
-            >
-              <Plus /> Create Order
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-1 px-4 py-2 bg-orange-500 text-white rounded-md shadow hover:bg-orange-600 transition"
+              >
+                <Plus /> Create Order
+              </button>
+
+              <label className="cursor-pointer px-4 py-2 bg-orange-500 text-white rounded-md shadow hover:bg-orange-600 transition">
+                📥 Bulk Upload
+                <input
+                  type="file"
+                  accept=".xlsx, .xls, .csv"
+                  onChange={handleBulkUpload}
+                  className="hidden"
+                />
+              </label>
+            </div>
           </div>
         </div>
 
-        <OrderList
-          orders={filteredOrders}
-          onEdit={(order) => setEditOrder(order)}
-          onDelete={handleDeleteOrder}
-        />
+        {loading ? (
+          <div className="flex justify-center py-10">
+            <div className="w-8 h-8 border-4 border-orange-500 border-dashed rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <OrderList
+            orders={filteredOrders}
+            onEdit={(order) => setEditOrder(order)}
+            onDelete={handleDeleteOrder}
+            onPageChange={fetchOrders}
+            totalOrders={totalOrders}
+          />
+        )}
 
         {showCreateModal && (
           <CreateOrderModal
@@ -187,6 +316,14 @@ const Dashboard = () => {
             order={editOrder}
             onClose={() => setEditOrder(null)}
             onSave={handleUpdateOrder}
+          />
+        )}
+
+        {showMappingModal && (
+          <MappingModal
+            headers={excelHeaders}
+            onConfirm={handleMappingConfirm}
+            onClose={() => setShowMappingModal(false)}
           />
         )}
       </div>

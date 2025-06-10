@@ -10,7 +10,7 @@ const CreateOrder = () => {
     phone: "",
     total: "",
     advance: "",
-    status: "Pending",
+    status: "Order Received",
   });
 
   const navigate = useNavigate();

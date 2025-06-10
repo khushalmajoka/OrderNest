@@ -5,6 +5,9 @@ import { Pencil, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 
 const OrderList = ({ orders, onEdit, onDelete }) => {
   const [deleteId, setDeleteId] = useState(null);
+  const [ordersPerPage, setOrdersPerPage] = useState(50);
+  const [currentPage, setCurrentPage] = useState(0);
+
   const [sortField, setSortField] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
 
@@ -36,11 +39,41 @@ const OrderList = ({ orders, onEdit, onDelete }) => {
     return valA < valB ? 1 : -1;
   });
 
+  const getPageNumbers = () => {
+    const totalPages = Math.ceil(sortedOrders.length / ordersPerPage);
+    const maxVisible = 5;
+    const pages = [];
+
+    if (totalPages <= maxVisible) {
+      for (let i = 0; i < totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const start = Math.max(0, currentPage - 2);
+      const end = Math.min(totalPages, start + maxVisible);
+
+      if (start > 0) pages.push("start-ellipsis");
+
+      for (let i = start; i < end; i++) {
+        pages.push(i);
+      }
+
+      if (end < totalPages) pages.push("end-ellipsis");
+    }
+
+    return pages;
+  };
+
+  const paginatedOrders = sortedOrders.slice(
+    currentPage * ordersPerPage,
+    currentPage * ordersPerPage + ordersPerPage
+  );
+
   return (
     <>
-      <div className="overflow-x-auto max-h-[599px] overflow-y-auto border rounded shadow w-full">
+      <div className="overflow-auto border rounded shadow w-full">
         <table className="min-w-max bg-white rounded-lg shadow-md text-left">
-          <thead className="sticky top-0 bg-orange-100 z-10">
+          <thead className="sticky top-0 bg-orange-100">
             <tr className="text-left text-gray-700">
               {/* Order ID */}
               <th
@@ -360,7 +393,7 @@ const OrderList = ({ orders, onEdit, onDelete }) => {
             </tr>
           </thead>
           <tbody>
-            {sortedOrders.map((order) => (
+            {paginatedOrders.map((order) => (
               <tr
                 key={order._id}
                 className="group border-t text-sm hover:bg-orange-50 transition-all"
@@ -423,6 +456,77 @@ const OrderList = ({ orders, onEdit, onDelete }) => {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="flex justify-between items-center">
+        <div className="flex justify-end items-center mt-4 gap-2 text-sm">
+          <label htmlFor="pageSize">Orders per page: </label>
+          <select
+            id="pageSize"
+            value={ordersPerPage}
+            onChange={(e) => {
+              setOrdersPerPage(Number(e.target.value));
+              setCurrentPage(0); // reset to first page
+            }}
+            className="border px-2 py-1 rounded"
+          >
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+            <option value={200}>200</option>
+          </select>
+        </div>
+        <div className="flex justify-center items-center flex-wrap gap-2 mt-4">
+          {/* Previous Button */}
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
+            disabled={currentPage === 0}
+            className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+          >
+            Prev
+          </button>
+
+          {/* Page Number Buttons with Ellipsis */}
+          {getPageNumbers().map((page, idx) => {
+            if (page === "start-ellipsis" || page === "end-ellipsis") {
+              return (
+                <span key={idx} className="px-2 text-gray-500 select-none">
+                  ...
+                </span>
+              );
+            }
+
+            return (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-1 border rounded text-sm ${
+                  currentPage === page
+                    ? "bg-orange-500 text-white"
+                    : "hover:bg-gray-100"
+                }`}
+              >
+                {page + 1}
+              </button>
+            );
+          })}
+
+          {/* Next Button */}
+          <button
+            onClick={() =>
+              setCurrentPage((prev) =>
+                Math.min(
+                  prev + 1,
+                  Math.ceil(sortedOrders.length / ordersPerPage) - 1
+                )
+              )
+            }
+            disabled={
+              currentPage >= Math.ceil(sortedOrders.length / ordersPerPage) - 1
+            }
+            className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
       </div>
 
       {deleteId && (

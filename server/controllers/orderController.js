@@ -161,6 +161,45 @@ exports.bulkUploadOrders = async (req, res) => {
       return res.status(404).json({ message: "Shop not found" });
     }
 
+    // ✅ Check DB-level duplicate orderIds
+    const incomingOrderIds = orders.map((o) => o.orderId).filter(Boolean);
+    const existingOrders = await Order.find({
+      orderId: { $in: incomingOrderIds },
+    }).select("orderId");
+    const existingOrderIdSet = new Set(existingOrders.map((o) => o.orderId));
+
+    const errors = [];
+
+    // ✅ Track duplicate orderIds within Excel itself
+    const seenOrderIds = new Set();
+
+    orders.forEach((order, index) => {
+      const rowNum = index + 2; // considering header row
+
+      if (!order.item) {
+        errors.push(`Row ${rowNum}: item is missing.`);
+      }
+
+      if (order.orderId) {
+        // Check in DB
+        if (existingOrderIdSet.has(order.orderId)) {
+          errors.push(`Row ${rowNum}: orderId "${order.orderId}" already exists in DB.`);
+        }
+
+        // Check within Excel itself
+        if (seenOrderIds.has(order.orderId)) {
+          errors.push(`Row ${rowNum}: Duplicate orderId "${order.orderId}" found in Excel.`);
+        } else {
+          seenOrderIds.add(order.orderId);
+        }
+      }
+    });
+
+    if (errors.length > 0) {
+      return res.status(400).json({ message: "Validation failed", errors });
+    }
+
+    // ✅ All clear — continue with upload
     const today = new Date();
     const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "");
 
@@ -170,12 +209,7 @@ exports.bulkUploadOrders = async (req, res) => {
     const newOrders = [];
 
     for (const order of orders) {
-      totalCount += 1;
-      currentDailyCount += 1;
-
-      const generatedOrderId = `ORD-${dateStr}-${totalCount}-${currentDailyCount}`;
-
-      const {
+      let {
         orderId,
         customerName,
         item,
@@ -186,13 +220,18 @@ exports.bulkUploadOrders = async (req, res) => {
         expectedDeliveryDate,
       } = order;
 
-      // 🔥 Safely parse total and advance
+      if (!orderId) {
+        totalCount += 1;
+        currentDailyCount += 1;
+        orderId = `ORD-${dateStr}-${totalCount}-${currentDailyCount}`;
+      }
+
       const parsedTotal = isNaN(Number(total)) ? 0 : Number(total);
       const parsedAdvance = isNaN(Number(advance)) ? 0 : Number(advance);
       const balance = parsedTotal - parsedAdvance;
 
       newOrders.push({
-        orderId: orderId || generatedOrderId,
+        orderId,
         shop: shop._id,
         userId,
         item,
@@ -208,18 +247,21 @@ exports.bulkUploadOrders = async (req, res) => {
 
     const insertedOrders = await Order.insertMany(newOrders);
 
-    // Update shop counts
     shop.totalOrderCount = totalCount;
     shop.dailyOrderCounts = shop.dailyOrderCounts || new Map();
     shop.dailyOrderCounts.set(dateStr, currentDailyCount);
     await shop.save();
 
-    res.status(201).json({ message: "Orders uploaded", insertedOrders });
+    res.status(201).json({
+      message: `${insertedOrders.length} orders uploaded successfully.`,
+      insertedOrders,
+    });
   } catch (error) {
     console.error("Bulk Upload Error:", error);
     res.status(500).json({ message: "Something went wrong" });
   }
 };
+
 
 // @desc Get Orders by Shop ID with pagination
 exports.getOrdersByShop = async (req, res) => {

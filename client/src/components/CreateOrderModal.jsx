@@ -12,6 +12,7 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
     phone: "",
     total: "",
     advance: "",
+    orderExecutive: "",
     status: "Order Received",
     expectedDeliveryDate: "",
   });
@@ -65,13 +66,10 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
     const userId = localStorage.getItem("userId");
     const shopId = localStorage.getItem("shopId");
 
-    const balance =
-      parseFloat(formData.total || 0) - parseFloat(formData.advance || 0);
-
     try {
       const res = await axios.post(
         `${process.env.REACT_APP_BASE_URL}/api/orders/create`,
-        { ...formData, shopId, userId, balance },
+        { ...formData, shopId, userId },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -156,6 +154,16 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
           placeholder="Advance Paid"
           value={formData.advance}
           onChange={handleChange}
+          className="w-full border p-2 rounded"
+        />
+
+        <input
+          type="text"
+          name="orderExecutive"
+          placeholder="Order Executive"
+          value={formData.orderExecutive}
+          onChange={handleChange}
+          required
           className="w-full border p-2 rounded"
         />
 

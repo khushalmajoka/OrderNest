@@ -23,6 +23,7 @@ const Dashboard = () => {
   const [editOrder, setEditOrder] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showMappingModal, setShowMappingModal] = useState(false);
+  const [showEditOrderModal, setShowEditOrderModal] = useState(false);
   const [excelHeaders, setExcelHeaders] = useState([]);
   const [excelData, setExcelData] = useState([]);
   const [bulkUploading, setBulkUploading] = useState(false);
@@ -140,6 +141,7 @@ const Dashboard = () => {
           <OrderList
             orders={filteredOrders}
             onEdit={setEditOrder}
+            setShowEditOrderModal={setShowEditOrderModal}
             onDelete={(id) =>
               setOrders((prev) => prev.filter((order) => order._id !== id))
             }
@@ -157,11 +159,11 @@ const Dashboard = () => {
           />
         )}
 
-        {editOrder && (
+        {showEditOrderModal && (
           <EditOrderModal
             order={editOrder}
-            onClose={() => setEditOrder(null)}
-            onSave={(updated) =>
+            onClose={() => setShowEditOrderModal(false)}
+            onUpdate={(updated) =>
               setOrders((prev) =>
                 prev.map((order) =>
                   order._id === updated._id ? updated : order

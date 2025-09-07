@@ -34,6 +34,7 @@ exports.createOrder = async (req, res) => {
       advance,
       balance,
       status,
+      orderExecutive,
       expectedDeliveryDate,
       userId,
       shopId,
@@ -72,6 +73,7 @@ exports.createOrder = async (req, res) => {
       advance,
       balance,
       status,
+      orderExecutive,
       expectedDeliveryDate,
     });
 
@@ -105,6 +107,7 @@ exports.updateOrder = async (req, res) => {
       total,
       advance,
       status,
+      orderExecutive,
       expectedDeliveryDate,
     } = req.body;
     const balance = total - advance;
@@ -119,6 +122,7 @@ exports.updateOrder = async (req, res) => {
         advance,
         balance,
         status,
+        orderExecutive,
         expectedDeliveryDate,
       },
       { new: true }
@@ -183,12 +187,16 @@ exports.bulkUploadOrders = async (req, res) => {
       if (order.orderId) {
         // Check in DB
         if (existingOrderIdSet.has(order.orderId)) {
-          errors.push(`Row ${rowNum}: orderId "${order.orderId}" already exists in DB.`);
+          errors.push(
+            `Row ${rowNum}: orderId "${order.orderId}" already exists in DB.`
+          );
         }
 
         // Check within Excel itself
         if (seenOrderIds.has(order.orderId)) {
-          errors.push(`Row ${rowNum}: Duplicate orderId "${order.orderId}" found in Excel.`);
+          errors.push(
+            `Row ${rowNum}: Duplicate orderId "${order.orderId}" found in Excel.`
+          );
         } else {
           seenOrderIds.add(order.orderId);
         }
@@ -217,6 +225,7 @@ exports.bulkUploadOrders = async (req, res) => {
         total,
         advance = 0,
         status = "Order Received",
+        orderExecutive,
         expectedDeliveryDate,
       } = order;
 
@@ -241,6 +250,7 @@ exports.bulkUploadOrders = async (req, res) => {
         advance: parsedAdvance,
         balance,
         status,
+        orderExecutive,
         expectedDeliveryDate,
       });
     }
@@ -261,7 +271,6 @@ exports.bulkUploadOrders = async (req, res) => {
     res.status(500).json({ message: "Something went wrong" });
   }
 };
-
 
 // @desc Get Orders by Shop ID with pagination
 exports.getOrdersByShop = async (req, res) => {

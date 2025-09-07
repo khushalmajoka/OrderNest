@@ -271,6 +271,34 @@ const OrderTableHeader = ({ sortField, sortOrder, setSortField, setSortOrder }) 
         {/* Days Remaining */}
         <th className="px-4 py-3">Days Remaining</th>
 
+        {/* Order Executive */}
+        <th
+          className="px-4 py-3 cursor-pointer select-none"
+          onClick={() => handleSort("orderExecutive")}
+        >
+          <div className="flex items-center gap-2">
+            <span>Order Executive</span>
+            <div className="flex flex-col leading-[0.75rem]">
+              <ChevronUp
+                size={14}
+                className={
+                  sortField === "orderExecutive" && sortOrder === "asc"
+                    ? "text-gray-900"
+                    : "text-gray-400"
+                }
+              />
+              <ChevronDown
+                size={14}
+                className={
+                  sortField === "orderExecutive" && sortOrder === "desc"
+                    ? "text-gray-900"
+                    : "text-gray-400"
+                }
+              />
+            </div>
+          </div>
+        </th>
+
         {/* Created */}
         <th
           className="px-4 py-3 cursor-pointer select-none"

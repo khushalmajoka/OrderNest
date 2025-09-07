@@ -2,6 +2,77 @@
 @tailwind components;
 @tailwind utilities;
 
+/* General body styling for a clean background */
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #f0f2f5; /* Light grey background */
+  color: #333; /* Default text color */
+}
+
+/* Hide #root and show #device-warning by default (for non-laptop screens) */
+#root {
+  display: none;
+}
+
+#device-warning {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Use min-height to ensure it covers the full viewport */
+  padding: 20px;
+  box-sizing: border-box; /* Include padding in element's total width and height */
+  background-color: #f0f2f5; /* Consistent background */
+}
+
+.warning-content {
+  background-color: #ffffff; /* White background for the message box */
+  border-radius: 12px; /* Slightly rounded corners */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+  padding: 40px;
+  max-width: 500px; /* Max width for readability */
+  text-align: center;
+  color: #333;
+}
+
+.warning-content h1 {
+  font-size: 2.2em; /* Larger heading */
+  color: #2c3e50; /* Darker, more professional heading color */
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.warning-content p {
+  font-size: 1.1em; /* Readable paragraph text */
+  line-height: 1.6;
+  margin-bottom: 15px;
+}
+
+.warning-content strong {
+  color: #007bff; /* Highlight important text */
+}
+
+.warning-content .small-text {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 25px;
+}
+
+/* Media query for laptop/desktop screens (e.g., width 768px and above) */
+@media screen and (min-width: 768px) {
+  #root {
+    display: block; /* Show the app content */
+  }
+
+  #device-warning {
+    display: none; /* Hide the warning message */
+  }
+}
+
 /* Hide arrows in number input fields (Chrome, Safari, Edge) */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {

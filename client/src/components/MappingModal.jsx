@@ -9,6 +9,7 @@ const OrderFields = [
   "advance",
   "balance",
   "status",
+  "orderExecutive",
   "expectedDelivery",
   "createdDate",
 ];
@@ -22,6 +23,7 @@ const OrderFieldsUI = [
   "Advance",
   "Balance",
   "Status",
+  "Order Executive",
   "Expected Delivery",
   "Created Date",
 ];

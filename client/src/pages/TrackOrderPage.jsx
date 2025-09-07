@@ -63,6 +63,9 @@ const TrackOrderPage = () => {
                       {order.status}
                     </span>
                   </p>
+                  <p>
+                    <strong>Order Executive:</strong> {order.orderExecutive}
+                  </p>
                 </div>
               ))}
             </div>

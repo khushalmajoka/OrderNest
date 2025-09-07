@@ -51,6 +51,10 @@ const orderSchema = new mongoose.Schema(
       ],
       default: "Order Received",
     },
+    orderExecutive: {
+      type: String,
+      required: false,
+    },
     expectedDeliveryDate: {
       type: Date,
     },

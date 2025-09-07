@@ -1,17 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import TextField from "@mui/material/TextField";
+import toast from "react-hot-toast";
+import axios from "axios";
 
-const EditOrderModal = ({ order, onClose, onSave }) => {
+const EditOrderModal = ({ order, onClose, onUpdate }) => {
   const [formData, setFormData] = useState({
     customerName: "",
     item: "",
     phone: "",
     total: 0,
     advance: 0,
+    orderExecutive: "",
     status: "Order Received",
     expectedDeliveryDate: "",
   });
+  const [loading, setLoading] = useState(false);
 
   const modalRef = useRef();
 
@@ -23,6 +27,7 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
         phone: order.phone || "",
         total: order.total || 0,
         advance: order.advance || 0,
+        orderExecutive: order.orderExecutive || "",
         status: order.status || "Order Received",
         expectedDeliveryDate: order.expectedDeliveryDate || "",
       });
@@ -60,10 +65,34 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const balance = formData.total - formData.advance;
-    onSave({ ...order, ...formData, balance });
+
+    if (loading) return;
+    setLoading(true);
+
+    const token = localStorage.getItem("token");
+
+    try {
+      const res = await axios.put(
+        `${process.env.REACT_APP_BASE_URL}/api/orders/${order._id}`,
+        { ...formData },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      toast.success("Order updated successfully!");
+      onUpdate(res.data.order);
+      onClose();
+    } catch (error) {
+      console.error("Order updation failed:", error);
+      toast.error("Failed to update order. Try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -132,6 +161,16 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
           className="w-full border p-2 rounded"
         />
 
+        <input
+          type="text"
+          name="orderExecutive"
+          placeholder="Order Executive"
+          value={formData.orderExecutive}
+          onChange={handleChange}
+          required
+          className="w-full border p-2 rounded"
+        />
+
         <select
           name="status"
           value={formData.status}
@@ -142,7 +181,9 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
           <option value="Pending">Pending</option>
           <option value="In Progress">In Progress</option>
           <option value="Completed">Completed</option>
-          <option value="Ready to Dispatch/Pick-Up">Ready to Dispatch/Pick-Up</option>
+          <option value="Ready to Dispatch/Pick-Up">
+            Ready to Dispatch/Pick-Up
+          </option>
           <option value="Dispatched">Dispatched</option>
           <option value="Delivered">Delivered</option>
           <option value="Cancelled">Cancelled</option>
@@ -185,9 +226,14 @@ const EditOrderModal = ({ order, onClose, onSave }) => {
           </button>
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            disabled={loading}
+            className={`px-4 py-2 rounded text-white transition ${
+              loading
+                ? "bg-blue-300 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600"
+            }`}
           >
-            Save Changes
+            {loading ? "Saving Changes..." : "Save Changes"}
           </button>
         </div>
       </form>

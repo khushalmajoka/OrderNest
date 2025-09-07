@@ -5,9 +5,9 @@ import OrderTableRow from "./orderlist/OrderTableRow";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import Pagination from "./orderlist/Pagination";
 import { getSortedOrders } from "../utils/getSortedOrders";
-import { getPaginationPages } from "../utils/getPaginationPages";
+import axios from "axios";
 
-const OrderList = ({ orders, onEdit, onDelete }) => {
+const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
   const [deleteId, setDeleteId] = useState(null);
   const [ordersPerPage, setOrdersPerPage] = useState(50);
   const [currentPage, setCurrentPage] = useState(0);
@@ -18,10 +18,20 @@ const OrderList = ({ orders, onEdit, onDelete }) => {
   if (!orders.length)
     return <p className="text-gray-500 mt-4">No orders yet.</p>;
 
-  const handleDelete = (id) => {
-    onDelete(id);
-    setDeleteId(null);
-    toast.success("Order deleted successfully");
+  const handleDelete = async (id) => {
+    const token = localStorage.getItem("token");
+    try {
+      await axios.delete(`${process.env.REACT_APP_BASE_URL}/api/orders/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      onDelete(id);
+      toast.success("Order deleted successfully!");
+    } catch (error) {
+      console.error("Order deletion failed:", error);
+      toast.error("Failed to delete order. Please try again.");
+    }
   };
 
   const sortedOrders = getSortedOrders(orders, sortField, sortOrder);
@@ -53,6 +63,7 @@ const OrderList = ({ orders, onEdit, onDelete }) => {
                 key={order._id}
                 order={order}
                 onEdit={onEdit}
+                setShowEditOrderModal={setShowEditOrderModal}
                 setDeleteId={setDeleteId}
               />
             ))}

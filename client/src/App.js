@@ -8,6 +8,7 @@ import { Toaster } from "react-hot-toast";
 
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import Settings from "./pages/Settings";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="/shop/signup" element={<SignupPage />} />
           <Route path="/shop/dashboard" element={<DashboardPage />} />
           <Route path="/shop/onboarding" element={<Onboarding />} />
+          <Route path="/shop/settings" element={<Settings />} />
         </Routes>
       </LocalizationProvider>
     </Router>

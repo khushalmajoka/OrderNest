@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
+import loadingGif from "../assets/Loading.gif"
 
 import { useShop } from "../hooks/useShop";
 import { useOrders } from "../hooks/useOrders";
@@ -17,6 +18,8 @@ import axios from "axios";
 
 const Dashboard = () => {
   const shop = useShop();
+  console.log(shop);
+  if(shop) localStorage.setItem("shop", JSON.stringify(shop));
   const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -104,8 +107,8 @@ const Dashboard = () => {
 
   if (!shop) {
     return (
-      <div className="text-center mt-10 text-gray-600 animate-pulse">
-        Loading shop...
+      <div className="flex items-center justify-center min-h-screen bg-[#FACFBC] font-poppins">
+        <img src={loadingGif} alt="loading"/>
       </div>
     );
   }
@@ -113,7 +116,6 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-orange-50 font-poppins">
       <Navbar shop={shop} onLogout={handleLogout} />
-
       <div className="p-8">
         <div className="flex flex-row items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2 text-2xl font-bold text-gray-800">

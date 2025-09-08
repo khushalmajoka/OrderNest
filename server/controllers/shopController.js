@@ -73,8 +73,31 @@ const getShopByUserId = async (req, res) => {
   }
 };
 
+// POST /api/shop/settings/reset
+const resetOrders = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const shop = await Shop.findOne({ owner: userId });
+
+    if (!shop) return res.status(404).json({ error: "Shop not found" });
+
+    // Reset both
+    shop.totalOrderCount = 0;
+    shop.dailyOrderCounts.clear();
+
+    await shop.save();
+
+    res.status(200).json({ message: "Total and daily order counts reset successfully" });
+  } catch (error) {
+    console.error("Reset Orders Error:", error);
+    res.status(500).json({ error: "Failed to reset orders" });
+  }
+};
+
+
 module.exports = {
   setupShop,
   getMyShop,
-  getShopByUserId
+  getShopByUserId,
+  resetOrders,
 };

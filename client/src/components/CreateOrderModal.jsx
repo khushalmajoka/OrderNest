@@ -66,10 +66,13 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
     const userId = localStorage.getItem("userId");
     const shopId = localStorage.getItem("shopId");
 
+    const balance =
+      parseFloat(formData.total || 0) - parseFloat(formData.advance || 0);
+
     try {
       const res = await axios.post(
         `${process.env.REACT_APP_BASE_URL}/api/orders/create`,
-        { ...formData, shopId, userId },
+        { ...formData, shopId, userId, balance },
         {
           headers: {
             Authorization: `Bearer ${token}`,

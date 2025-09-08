@@ -11,6 +11,7 @@ const OrderTableRow = ({
   onEdit,
   setDeleteId,
   setShowEditOrderModal,
+  setShowDeleteModal,
 }) => {
   const cardRef = useRef();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -99,7 +100,10 @@ const OrderTableRow = ({
               <Pencil size={18} />
             </button>
             <button
-              onClick={() => setDeleteId(order._id)}
+              onClick={() => {
+                setDeleteId(order._id);
+                setShowDeleteModal(true);
+              }}
               className="text-red-500 hover:text-red-600"
             >
               <Trash2 size={18} />

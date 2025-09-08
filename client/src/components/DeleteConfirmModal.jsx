@@ -1,7 +1,6 @@
 import { useState } from "react";
 
-const DeleteConfirmModal = ({ setDeleteId, handleDelete, deleteId}) => {
-  const [isDeleting, setIsDeleting] = useState(false);
+const DeleteConfirmModal = ({ setDeleteId, handleDelete, deleteId, isDeleting}) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
       <div className="bg-white p-6 rounded-lg shadow-lg w-80">
@@ -21,7 +20,6 @@ const DeleteConfirmModal = ({ setDeleteId, handleDelete, deleteId}) => {
           <button
             onClick={() => {
               handleDelete(deleteId);
-              setIsDeleting(true);
             }}
             disabled={isDeleting}
             className={`px-4 py-2 text-white rounded transition ${

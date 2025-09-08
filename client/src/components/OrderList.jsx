@@ -12,6 +12,7 @@ const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [ordersPerPage, setOrdersPerPage] = useState(50);
   const [currentPage, setCurrentPage] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const [sortField, setSortField] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
@@ -21,6 +22,7 @@ const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
 
   const handleDelete = async (id) => {
     if (!showDeleteModal) return;
+    setIsDeleting(true);
     const token = localStorage.getItem("token");
     try {
       await axios.delete(`${process.env.REACT_APP_BASE_URL}/api/orders/${id}`, {
@@ -35,6 +37,7 @@ const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
       toast.error("Failed to delete order. Please try again.");
     } finally {
       setShowDeleteModal(false);
+      setIsDeleting(false);
     }
   };
 
@@ -88,6 +91,7 @@ const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
           setDeleteId={setDeleteId}
           handleDelete={handleDelete}
           deleteId={deleteId}
+          isDeleting={isDeleting}
         />
       )}
     </>

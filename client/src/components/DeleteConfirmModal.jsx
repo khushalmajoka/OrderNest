@@ -28,7 +28,7 @@ const DeleteConfirmModal = ({ setDeleteId, handleDelete, deleteId}) => {
               isDeleting ? "bg-red-300 cursor-not-allowed" : "bg-red-500 hover:bg-red-600"
             }`}
           >
-            Confirm
+            {isDeleting ? "Deleting..." : "Confirm"}
           </button>
         </div>
       </div>

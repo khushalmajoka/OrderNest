@@ -6,15 +6,14 @@ import DeleteConfirmModal from "../../../common/components/DeleteConfirmModal";
 import Pagination from "./Pagination";
 import { getSortedOrders } from "../utils/getSortedOrders";
 import axios from "axios";
-import OrderDetailCard from "./OrderDetailsCard";
 
 const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
   const [deleteId, setDeleteId] = useState(null);
+  const [activeOrderId, setActiveOrderId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [ordersPerPage, setOrdersPerPage] = useState(50);
   const [currentPage, setCurrentPage] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [activeOrder, setActiveOrder] = useState(null);
 
   const [sortField, setSortField] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
@@ -52,8 +51,8 @@ const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
 
   return (
     <>
-      <div className="overflow-auto border rounded shadow w-full">
-        <table className="overflow-auto min-w-max bg-white rounded-lg shadow-md text-left">
+      <div className="overflow-auto border rounded shadow">
+        <table className="overflow-auto min-w-max bg-white rounded-lg shadow-md text-left w-full">
           <OrderTableHeader
             setSortField={setSortField}
             setSortOrder={setSortOrder}
@@ -69,7 +68,8 @@ const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
                 setShowEditOrderModal={setShowEditOrderModal}
                 setShowDeleteModal={setShowDeleteModal}
                 setDeleteId={setDeleteId}
-                onRowClick={() => setActiveOrder(order)}
+                activeOrderId={activeOrderId}
+                setActiveOrderId={setActiveOrderId}
               />
             ))}
           </tbody>
@@ -81,10 +81,6 @@ const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
         totalOrders={sortedOrders.length}
-      />
-      <OrderDetailCard
-        order={activeOrder}
-        onClose={() => setActiveOrder(null)}
       />
 
       {showDeleteModal && (

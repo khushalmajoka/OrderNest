@@ -300,7 +300,7 @@ const OrderTableHeader = ({ sortField, sortOrder, setSortField, setSortOrder }) 
         </th>
 
         {/* Created */}
-        <th
+        {/* <th
           className="px-4 py-3 cursor-pointer select-none"
           onClick={() => handleSort("createdAt")}
         >
@@ -325,10 +325,10 @@ const OrderTableHeader = ({ sortField, sortOrder, setSortField, setSortOrder }) 
               />
             </div>
           </div>
-        </th>
+        </th> */}
 
         {/* Updated */}
-        <th
+        {/* <th
           className="px-4 py-3 cursor-pointer select-none"
           onClick={() => handleSort("updatedAt")}
         >
@@ -353,10 +353,10 @@ const OrderTableHeader = ({ sortField, sortOrder, setSortField, setSortOrder }) 
               />
             </div>
           </div>
-        </th>
+        </th> */}
 
         {/* Actions */}
-        <th></th>
+        {/* <th></th> */}
       </tr>
     </thead>
   );

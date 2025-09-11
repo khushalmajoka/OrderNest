@@ -1,6 +1,6 @@
 import { Pencil, Share2, Trash2 } from "lucide-react";
 import moment from "moment";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import html2canvas from "html2canvas";
 import { useRef, useState } from "react";
 import ShareModal from "../../../common/components/ShareModal";
@@ -13,7 +13,8 @@ const OrderTableRow = ({
   setDeleteId,
   setShowEditOrderModal,
   setShowDeleteModal,
-  onRowClick,
+  activeOrderId,
+  setActiveOrderId,
 }) => {
   const cardRef = useRef();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -46,6 +47,8 @@ const OrderTableRow = ({
     setIsModalOpen(false);
   };
 
+  const isExpanded = activeOrderId === order._id;
+
   return (
     <>
       {/* Hidden card for screenshot */}
@@ -53,44 +56,25 @@ const OrderTableRow = ({
         <OrderCard ref={cardRef} order={order} />
       </div>
 
-      <tr
+      <motion.tr
+        layout
         key={order._id}
-        className="group border-t text-sm hover:bg-orange-50 transition-all relative cursor-pointer"
+        className={`group border-t text-sm transition-all relative cursor-pointer ${
+          isExpanded ? "bg-orange-50" : "hover:bg-orange-50"
+        }`}
         onClick={(e) => {
-          if (e.target.closest("button")) return; // prevent conflict with edit/delete/share
-          onRowClick(order);
+          if (e.target.closest("button")) return; // avoid conflicts
+          setActiveOrderId(isExpanded ? null : order._id);
         }}
       >
-        <motion.td
-          layoutId={`order-title-${order._id}`}
-          className="px-4 py-2"
-        >
-          {order.orderId || order._id.slice(-6)}
-        </motion.td>
-        <motion.td
-          layoutId={`customer-name-${order._id}`}
-          className="px-4 py-2"
-        >
-          {order.customerName}
-        </motion.td>
-        <motion.td layoutId={`item-${order._id}`} className="px-4 py-2">
-          {order.item}
-        </motion.td>
-        <motion.td layoutId={`phone-${order._id}`} className="px-4 py-2">
-          {order.phone}
-        </motion.td>
-        <motion.td layoutId={`total-${order._id}`} className="px-4 py-2">
-          ₹{order.total}
-        </motion.td>
-        <motion.td layoutId={`advance-${order._id}`} className="px-4 py-2">
-          ₹{order.advance}
-        </motion.td>
-        <motion.td layoutId={`balance-${order._id}`} className="px-4 py-2">
-          ₹{order.balance}
-        </motion.td>
-        <motion.td layoutId={`status-${order._id}`} className="px-4 py-2">
-          {order.status}
-        </motion.td>
+        <td className="px-4 py-2">{order.orderId || order._id.slice(-6)}</td>
+        <td className="px-4 py-2">{order.customerName}</td>
+        <td className="px-4 py-2">{order.item}</td>
+        <td className="px-4 py-2">{order.phone}</td>
+        <td className="px-4 py-2">₹{order.total}</td>
+        <td className="px-4 py-2">₹{order.advance}</td>
+        <td className="px-4 py-2">₹{order.balance}</td>
+        <td className="px-4 py-2">{order.status}</td>
         <td className="px-4 py-2">
           {order.expectedDeliveryDate
             ? moment(order.expectedDeliveryDate).format("DD MMM YYYY")
@@ -105,13 +89,7 @@ const OrderTableRow = ({
             : "-"}
         </td>
         <td className="px-4 py-2">{order.orderExecutive}</td>
-        <td className="px-4 py-2">
-          {moment(order.createdAt).format("DD MMM, hh:mm A")}
-        </td>
-        <td className="px-4 py-2">
-          {moment(order.updatedAt).format("DD MMM, hh:mm A")}
-        </td>
-        <td className="sticky right-0 group-hover:bg-orange-50 px-4 py-2 shadow-left border rounded-md">
+        <td className="absolute right-0 group-hover:bg-orange-50 px-4 py-2 shadow-left rounded-md">
           <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
             <button
               onClick={() => {
@@ -139,7 +117,38 @@ const OrderTableRow = ({
             </button>
           </div>
         </td>
-      </tr>
+      </motion.tr>
+
+      {/* Expanded details row */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.tr
+            layout
+            key={`expand-${order._id}`}
+            className="bg-white text-sm"
+          >
+            <td colSpan="12" className="p-0">
+              {/* Wrapper for smooth expand/collapse */}
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.35, ease: "easeInOut" }}
+                className="overflow-hidden p-4 bg-orange-50"
+              >
+                <p className="mb-2">
+                  <strong>Created Date:</strong>{" "}
+                  {moment(order.createdAt).format("DD MMM, hh:mm A")}
+                </p>
+                <p>
+                  <strong>Updated Date:</strong>{" "}
+                  {moment(order.updatedAt).format("DD MMM, hh:mm A")}
+                </p>
+              </motion.div>
+            </td>
+          </motion.tr>
+        )}
+      </AnimatePresence>
 
       {/* Share Modal */}
       <ShareModal

@@ -2,24 +2,24 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
-import loadingGif from "../assets/Loading.gif"
+import loadingGif from "../../../assets/Loading.gif";
 
-import { useShop } from "../hooks/useShop";
+import { useShop } from "../../shop/hooks/useShop";
 import { useOrders } from "../hooks/useOrders";
 
-import Navbar from "../components/Navbar";
-import SearchBar from "../components/SearchBar";
-import ActionsBar from "../components/ActionsBar";
+import Navbar from "../../shop/components/Navbar";
+import SearchBar from "../../../common/components/SearchBar";
+import ActionsBar from "../../../common/components/ActionsBar";
 import OrderList from "../components/OrderList";
-import EditOrderModal from "../components/EditOrderModal";
-import CreateOrderModal from "../components/CreateOrderModal";
-import MappingModal from "../components/MappingModal";
+import EditOrderModal from "../../../common/components/EditOrderModal";
+import CreateOrderModal from "../../../common/components/CreateOrderModal";
+import MappingModal from "../../../common/components/MappingModal";
 import axios from "axios";
 
 const Dashboard = () => {
   const shop = useShop();
   console.log(shop);
-  if(shop) localStorage.setItem("shop", JSON.stringify(shop));
+  if (shop) localStorage.setItem("shop", JSON.stringify(shop));
   const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -108,7 +108,7 @@ const Dashboard = () => {
   if (!shop) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#FACFBC] font-poppins">
-        <img src={loadingGif} alt="loading"/>
+        <img src={loadingGif} alt="loading" />
       </div>
     );
   }

@@ -1,11 +1,12 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
-import OrderTableHeader from "./orderlist/OrderTableHeader";
-import OrderTableRow from "./orderlist/OrderTableRow";
-import DeleteConfirmModal from "./DeleteConfirmModal";
-import Pagination from "./orderlist/Pagination";
+import OrderTableHeader from "./OrderTableHeader";
+import OrderTableRow from "./OrderTableRow";
+import DeleteConfirmModal from "../../../common/components/DeleteConfirmModal";
+import Pagination from "./Pagination";
 import { getSortedOrders } from "../utils/getSortedOrders";
 import axios from "axios";
+import OrderDetailCard from "./OrderDetailsCard";
 
 const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
   const [deleteId, setDeleteId] = useState(null);
@@ -13,6 +14,7 @@ const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
   const [ordersPerPage, setOrdersPerPage] = useState(50);
   const [currentPage, setCurrentPage] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [activeOrder, setActiveOrder] = useState(null);
 
   const [sortField, setSortField] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
@@ -48,12 +50,6 @@ const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
     currentPage * ordersPerPage + ordersPerPage
   );
 
-  // const pageNumbers = getPaginationPages(
-  //   sortedOrders.length,
-  //   ordersPerPage,
-  //   currentPage
-  // );
-
   return (
     <>
       <div className="overflow-auto border rounded shadow w-full">
@@ -73,6 +69,7 @@ const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
                 setShowEditOrderModal={setShowEditOrderModal}
                 setShowDeleteModal={setShowDeleteModal}
                 setDeleteId={setDeleteId}
+                onRowClick={() => setActiveOrder(order)}
               />
             ))}
           </tbody>
@@ -84,6 +81,10 @@ const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
         totalOrders={sortedOrders.length}
+      />
+      <OrderDetailCard
+        order={activeOrder}
+        onClose={() => setActiveOrder(null)}
       />
 
       {showDeleteModal && (

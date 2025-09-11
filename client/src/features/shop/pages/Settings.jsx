@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import ConfirmResetModal from "../components/ConfirmResetModal";
-import SettingCard from "../components/SettingCard";
 import axios from "axios";
 import toast from "react-hot-toast";
+import Navbar from "../components/Navbar";
+import SettingCard from "../components/SettingCard";
+import ConfirmResetModal from "../../../common/components/ConfirmResetModal";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -48,9 +48,7 @@ const Settings = () => {
               Resetting will set{" "}
               <span className="font-semibold">total order count</span> to 0 and
               clear{" "}
-              <span className="font-semibold">
-                daily order count records
-              </span>{" "}
+              <span className="font-semibold">daily order count records</span>{" "}
               including past ones.
             </>
           }

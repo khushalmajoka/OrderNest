@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import OrderNestLogo from "../assets/OrderNestLogoWithoutBg.png";
+import OrderNestLogo from "../../../assets/OrderNestLogoWithoutBg.png";
 import toast from "react-hot-toast";
 
 const SignupPage = () => {

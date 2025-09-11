@@ -1,5 +1,5 @@
 import React from "react";
-import { useShop } from "../hooks/useShop";
+import { useShop } from "../../features/shop/hooks/useShop";
 
 const OrderCard = React.forwardRef(({ order }, ref) => {
   const shop = useShop();
@@ -82,7 +82,9 @@ const OrderCard = React.forwardRef(({ order }, ref) => {
               alt="Instagram QR"
               className="h-20 object-contain rounded-lg border shadow-sm"
             />
-            <p className="text-sm text-gray-600 mb-3">We appreciate your trust ❤️</p>
+            <p className="text-sm text-gray-600 mb-3">
+              We appreciate your trust ❤️
+            </p>
           </div>
         )}
       </div>

@@ -20,7 +20,7 @@ exports.trackOrder = async (req, res) => {
     res.status(200).json({ orders });
   } catch (err) {
     console.error("Track Order Error:", err);
-    res.status(500).json({ message: "Something went wrong" });
+    return next(new Error("Something went wrong"));
   }
 };
 
@@ -80,8 +80,7 @@ exports.createOrder = async (req, res) => {
     await newOrder.save();
     res.status(201).json({ message: "Order created", order: newOrder });
   } catch (error) {
-    console.error("Create Order Error:", error);
-    res.status(500).json({ message: "Something went wrong" });
+    return next(new Error("Create Order Error"));
   }
 };
 
@@ -92,8 +91,7 @@ exports.getOrdersByUser = async (req, res) => {
     const orders = await Order.find({ userId }).sort({ createdAt: -1 });
     res.status(200).json({ orders });
   } catch (error) {
-    console.error("Fetch Orders Error:", error);
-    res.status(500).json({ message: "Something went wrong" });
+    return next(new Error("Fetch Orders Error"));
   }
 };
 
@@ -134,8 +132,7 @@ exports.updateOrder = async (req, res) => {
 
     res.status(200).json({ message: "Order updated", order: updatedOrder });
   } catch (error) {
-    console.error("Update Order Error:", error);
-    res.status(500).json({ message: "Something went wrong" });
+    return next(new Error("Update Order Error"));
   }
 };
 
@@ -150,8 +147,7 @@ exports.deleteOrder = async (req, res) => {
 
     res.status(200).json({ message: "Order deleted successfully" });
   } catch (error) {
-    console.error("Delete Order Error:", error);
-    res.status(500).json({ message: "Something went wrong" });
+    return next(new Error("Delete Order Error"));
   }
 };
 
@@ -267,8 +263,7 @@ exports.bulkUploadOrders = async (req, res) => {
       insertedOrders,
     });
   } catch (error) {
-    console.error("Bulk Upload Error:", error);
-    res.status(500).json({ message: "Something went wrong" });
+    return next(new Error("Bulk Upload Error"));
   }
 };
 
@@ -296,7 +291,6 @@ exports.getOrdersByShop = async (req, res) => {
       currentPage: page,
     });
   } catch (error) {
-    console.error("Get Orders By Shop Error:", error);
-    res.status(500).json({ message: "Something went wrong" });
+    return next(new Error("Get Orders by Shop Error"));
   }
 };

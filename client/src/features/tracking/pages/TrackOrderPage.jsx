@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import OrderNestLogo from "../assets/OrderNestLogoWithoutBg.png";
+import OrderNestLogo from "../../../assets/OrderNestLogoWithoutBg.png";
 
 const TrackOrderPage = () => {
   const [input, setInput] = useState("");

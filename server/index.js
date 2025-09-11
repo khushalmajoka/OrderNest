@@ -5,6 +5,7 @@ const authRoutes = require('./routes/authRoutes');
 const shopRoutes = require("./routes/shopRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const cors = require('cors');
+const errorHandler = require('./middlewares/errorHandler');
 
 dotenv.config();
 
@@ -22,6 +23,8 @@ app.use(express.json({ limit: '10mb' }));
 app.use('/api/auth', authRoutes);
 app.use("/api/shop", shopRoutes);
 app.use("/api/orders", orderRoutes);
+
+app.use(errorHandler);
 
 
 // Default route (optional)

@@ -35,8 +35,7 @@ const setupShop = async (req, res) => {
 
     res.status(201).json({ message: "Shop setup complete", shop: savedShop });
   } catch (error) {
-    console.error("Setup Shop Error:", error);
-    res.status(500).json({ error: "Failed to setup shop" });
+    return next(new Error("Setup Shop Error"));
   }
 };
 
@@ -50,8 +49,7 @@ const getMyShop = async (req, res) => {
 
     res.status(200).json({ shop });
   } catch (error) {
-    console.error("Get Shop Error:", error);
-    res.status(500).json({ error: "Failed to fetch shop" });
+    return next(new Error("Get My Shop Error"));
   }
 };
 
@@ -68,8 +66,7 @@ const getShopByUserId = async (req, res) => {
 
     res.status(200).json({ shop });
   } catch (error) {
-    console.error("Get Shop By User ID Error:", error);
-    res.status(500).json({ error: "Failed to fetch shop" });
+    return next(new Error("Get Shop By User ID Error"));
   }
 };
 
@@ -89,8 +86,7 @@ const resetOrders = async (req, res) => {
 
     res.status(200).json({ message: "Total and daily order counts reset successfully" });
   } catch (error) {
-    console.error("Reset Orders Error:", error);
-    res.status(500).json({ error: "Failed to reset orders" });
+    return next(new Error("Failed to reset order counts"));
   }
 };
 

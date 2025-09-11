@@ -1,14 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
-import SignupPage from "./pages/SignupPage";
-import Onboarding from "./pages/Onboarding";
-import TrackOrderPage from "./pages/TrackOrderPage";
+import LoginPage from "./features/auth/pages/LoginPage";
+import DashboardPage from "./features/orders/pages/DashboardPage";
+import SignupPage from "./features/auth/pages/SignupPage";
+import Onboarding from "./features/shop/pages/Onboarding";
+import TrackOrderPage from "./features/tracking/pages/TrackOrderPage";
 import { Toaster } from "react-hot-toast";
 
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import Settings from "./pages/Settings";
+import Settings from "./features/shop/pages/Settings";
 
 function App() {
   return (

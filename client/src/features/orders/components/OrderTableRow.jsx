@@ -1,9 +1,10 @@
 import { Pencil, Share2, Trash2 } from "lucide-react";
 import moment from "moment";
+import { motion } from "framer-motion";
 import html2canvas from "html2canvas";
 import { useRef, useState } from "react";
-import ShareModal from "../ShareModal";
-import OrderCard from "../OrderCard";
+import ShareModal from "../../../common/components/ShareModal";
+import OrderCard from "../../../common/components/OrderCard";
 import toast from "react-hot-toast";
 
 const OrderTableRow = ({
@@ -12,19 +13,18 @@ const OrderTableRow = ({
   setDeleteId,
   setShowEditOrderModal,
   setShowDeleteModal,
+  onRowClick,
 }) => {
   const cardRef = useRef();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const generateImage = async () => {
     if (!cardRef.current) return;
-
     const canvas = await html2canvas(cardRef.current, {
       scale: 3,
       useCORS: true,
       backgroundColor: "#ffffff",
     });
-
     return canvas.toDataURL("image/png", 1.0);
   };
 
@@ -39,11 +39,8 @@ const OrderTableRow = ({
       link.click();
     } else if (type === "whatsapp") {
       toast("📲 WhatsApp share coming soon!");
-      // const whatsappUrl = `https://api.whatsapp.com/send?...`;
-      // window.open(whatsappUrl, "_blank");
     } else if (type === "instagram") {
       toast("📸 Instagram share coming soon!");
-      // window.open("https://instagram.com/sham._gallery", "_blank");
     }
 
     setIsModalOpen(false);
@@ -58,16 +55,42 @@ const OrderTableRow = ({
 
       <tr
         key={order._id}
-        className="group border-t text-sm hover:bg-orange-50 transition-all relative"
+        className="group border-t text-sm hover:bg-orange-50 transition-all relative cursor-pointer"
+        onClick={(e) => {
+          if (e.target.closest("button")) return; // prevent conflict with edit/delete/share
+          onRowClick(order);
+        }}
       >
-        <td className="px-4 py-2">{order.orderId || order._id.slice(-6)}</td>
-        <td className="px-4 py-2">{order.customerName}</td>
-        <td className="px-4 py-2">{order.item}</td>
-        <td className="px-4 py-2">{order.phone}</td>
-        <td className="px-4 py-2">₹{order.total}</td>
-        <td className="px-4 py-2">₹{order.advance}</td>
-        <td className="px-4 py-2">₹{order.balance}</td>
-        <td className="px-4 py-2">{order.status}</td>
+        <motion.td
+          layoutId={`order-title-${order._id}`}
+          className="px-4 py-2"
+        >
+          {order.orderId || order._id.slice(-6)}
+        </motion.td>
+        <motion.td
+          layoutId={`customer-name-${order._id}`}
+          className="px-4 py-2"
+        >
+          {order.customerName}
+        </motion.td>
+        <motion.td layoutId={`item-${order._id}`} className="px-4 py-2">
+          {order.item}
+        </motion.td>
+        <motion.td layoutId={`phone-${order._id}`} className="px-4 py-2">
+          {order.phone}
+        </motion.td>
+        <motion.td layoutId={`total-${order._id}`} className="px-4 py-2">
+          ₹{order.total}
+        </motion.td>
+        <motion.td layoutId={`advance-${order._id}`} className="px-4 py-2">
+          ₹{order.advance}
+        </motion.td>
+        <motion.td layoutId={`balance-${order._id}`} className="px-4 py-2">
+          ₹{order.balance}
+        </motion.td>
+        <motion.td layoutId={`status-${order._id}`} className="px-4 py-2">
+          {order.status}
+        </motion.td>
         <td className="px-4 py-2">
           {order.expectedDeliveryDate
             ? moment(order.expectedDeliveryDate).format("DD MMM YYYY")

@@ -144,10 +144,9 @@ const Onboarding = () => {
         <input
           type="text"
           name="address"
-          placeholder="Address"
+          placeholder="Address (optional)"
           value={formData.address}
           onChange={handleChange}
-          required
           className="w-full px-4 py-2 border rounded-md"
         />
 

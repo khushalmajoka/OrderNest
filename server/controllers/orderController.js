@@ -2,7 +2,7 @@ const Order = require("../models/Order");
 const Shop = require("../models/Shop");
 
 // @desc Public Track Order by Order ID or Phone
-exports.trackOrder = async (req, res) => {
+exports.trackOrder = async (req, res, next) => {
   const { query } = req.query;
 
   if (!query) {
@@ -20,11 +20,11 @@ exports.trackOrder = async (req, res) => {
     res.status(200).json({ orders });
   } catch (err) {
     console.error("Track Order Error:", err);
-    return next(new Error("Something went wrong"));
+    return next(err);
   }
 };
 
-exports.createOrder = async (req, res) => {
+exports.createOrder = async (req, res, next) => {
   try {
     const {
       item,
@@ -80,23 +80,23 @@ exports.createOrder = async (req, res) => {
     await newOrder.save();
     res.status(201).json({ message: "Order created", order: newOrder });
   } catch (error) {
-    return next(new Error("Create Order Error"));
+    return next(error);
   }
 };
 
 // @desc Get Orders by user
-exports.getOrdersByUser = async (req, res) => {
+exports.getOrdersByUser = async (req, res, next) => {
   try {
     const userId = req.params.userId;
     const orders = await Order.find({ userId }).sort({ createdAt: -1 });
     res.status(200).json({ orders });
   } catch (error) {
-    return next(new Error("Fetch Orders Error"));
+    return next(error);
   }
 };
 
 // @desc Update Order
-exports.updateOrder = async (req, res) => {
+exports.updateOrder = async (req, res, next) => {
   try {
     const {
       customerName,
@@ -132,12 +132,12 @@ exports.updateOrder = async (req, res) => {
 
     res.status(200).json({ message: "Order updated", order: updatedOrder });
   } catch (error) {
-    return next(new Error("Update Order Error"));
+    return next(error);
   }
 };
 
 // @desc Delete Order
-exports.deleteOrder = async (req, res) => {
+exports.deleteOrder = async (req, res, next) => {
   try {
     const deletedOrder = await Order.findByIdAndDelete(req.params.id);
 
@@ -147,11 +147,11 @@ exports.deleteOrder = async (req, res) => {
 
     res.status(200).json({ message: "Order deleted successfully" });
   } catch (error) {
-    return next(new Error("Delete Order Error"));
+    return next(error);
   }
 };
 
-exports.bulkUploadOrders = async (req, res) => {
+exports.bulkUploadOrders = async (req, res, next) => {
   try {
     const { orders, shopId } = req.body;
     const userId = req.user.id;
@@ -263,12 +263,12 @@ exports.bulkUploadOrders = async (req, res) => {
       insertedOrders,
     });
   } catch (error) {
-    return next(new Error("Bulk Upload Error"));
+    return next(error);
   }
 };
 
 // @desc Get Orders by Shop ID with pagination
-exports.getOrdersByShop = async (req, res) => {
+exports.getOrdersByShop = async (req, res, next) => {
   try {
     const shopId = req.params.shopId;
 
@@ -291,6 +291,6 @@ exports.getOrdersByShop = async (req, res) => {
       currentPage: page,
     });
   } catch (error) {
-    return next(new Error("Get Orders by Shop Error"));
+    return next(error);
   }
 };

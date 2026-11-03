@@ -2,7 +2,7 @@ const Shop = require("../models/Shop");
 const User = require("../models/User");
 
 // POST /api/shop/setup
-const setupShop = async (req, res) => {
+const setupShop = async (req, res, next) => {
   try {
     const { name, logo, address, phone, category } = req.body;
     const userId = req.user?.id; // Set by auth middleware
@@ -35,12 +35,12 @@ const setupShop = async (req, res) => {
 
     res.status(201).json({ message: "Shop setup complete", shop: savedShop });
   } catch (error) {
-    return next(new Error("Setup Shop Error"));
+    return next(error);
   }
 };
 
 // GET /api/shop/me
-const getMyShop = async (req, res) => {
+const getMyShop = async (req, res, next) => {
   try {
     const userId = req.user?.id;
     const shop = await Shop.findOne({ owner: userId });
@@ -49,12 +49,12 @@ const getMyShop = async (req, res) => {
 
     res.status(200).json({ shop });
   } catch (error) {
-    return next(new Error("Get My Shop Error"));
+    return next(error);
   }
 };
 
 // GET /api/shop/:userId
-const getShopByUserId = async (req, res) => {
+const getShopByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
 
@@ -66,12 +66,12 @@ const getShopByUserId = async (req, res) => {
 
     res.status(200).json({ shop });
   } catch (error) {
-    return next(new Error("Get Shop By User ID Error"));
+    return next(error);
   }
 };
 
 // POST /api/shop/settings/reset
-const resetOrders = async (req, res) => {
+const resetOrders = async (req, res, next) => {
   try {
     const userId = req.user?.id;
     const shop = await Shop.findOne({ owner: userId });
@@ -86,7 +86,7 @@ const resetOrders = async (req, res) => {
 
     res.status(200).json({ message: "Total and daily order counts reset successfully" });
   } catch (error) {
-    return next(new Error("Failed to reset order counts"));
+    return next(error);
   }
 };
 

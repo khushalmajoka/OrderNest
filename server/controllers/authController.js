@@ -2,7 +2,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const generateToken = require("../utils/generateToken");
 
-const register = async (req, res) => {
+const register = async (req, res, next) => {
   const { name, email, password } = req.body;
 
   try {
@@ -19,11 +19,11 @@ const register = async (req, res) => {
 
     res.status(201).json({ user: user });
   } catch (err) {
-    return next(new Error("Registration failed"));
+    return next(err);
   }
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
@@ -37,7 +37,7 @@ const login = async (req, res) => {
 
     res.status(200).json({ user: user, token });
   } catch (err) {
-    return next(new Error("Order not found"));
+    return next(err);
   }
 };
 

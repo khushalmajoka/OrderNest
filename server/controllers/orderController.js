@@ -1,4 +1,5 @@
 const Order = require("../models/Order");
+const reserveOrderIds = require("../utils/reserveOrderIds");
 
 // @desc Public Track Order by Order ID or Phone
 exports.trackOrder = async (req, res, next) => {
@@ -41,39 +42,38 @@ exports.createOrder = async (req, res, next) => {
     const shop = req.shop;
     const userId = req.user.id;
 
-    const today = new Date();
-    const dateStr = today.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
+    let newOrder;
+    for (let attempt = 0; attempt < 5 && !newOrder; attempt++) {
+      const [orderId] = await reserveOrderIds(shop._id, 1);
 
-    // Update total order count
-    shop.totalOrderCount = (shop.totalOrderCount || 0) + 1;
+      try {
+        newOrder = await new Order({
+          orderId,
+          shop: shop._id,
+          userId,
+          item,
+          customerName,
+          phone,
+          total,
+          advance,
+          balance,
+          status,
+          orderExecutive,
+          expectedDeliveryDate,
+        }).save();
+      } catch (err) {
+        // Lost a race for this exact ID: reserve the next number and retry
+        if (err.code === 11000 && err.keyPattern && err.keyPattern.orderId) {
+          continue;
+        }
+        throw err;
+      }
+    }
 
-    // Update today's daily count
-    const currentDailyCount = shop.dailyOrderCounts?.get(dateStr) || 0;
-    const updatedDailyCount = currentDailyCount + 1;
+    if (!newOrder) {
+      throw new Error("Could not allocate a unique order ID");
+    }
 
-    shop.dailyOrderCounts = shop.dailyOrderCounts || new Map();
-    shop.dailyOrderCounts.set(dateStr, updatedDailyCount);
-
-    await shop.save();
-
-    const generatedOrderId = `ORD-${dateStr}-${shop.totalOrderCount}-${updatedDailyCount}`;
-
-    const newOrder = new Order({
-      orderId: generatedOrderId,
-      shop: shop._id,
-      userId,
-      item,
-      customerName,
-      phone,
-      total,
-      advance,
-      balance,
-      status,
-      orderExecutive,
-      expectedDeliveryDate,
-    });
-
-    await newOrder.save();
     res.status(201).json({ message: "Order created", order: newOrder });
   } catch (error) {
     return next(error);
@@ -203,11 +203,12 @@ exports.bulkUploadOrders = async (req, res, next) => {
     }
 
     // ✅ All clear — continue with upload
-    const today = new Date();
-    const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "");
-
-    let currentDailyCount = shop.dailyOrderCounts?.get(dateStr) || 0;
-    let totalCount = shop.totalOrderCount || 0;
+    // Reserve one block of numbers up front for every row without its own ID
+    const missingIds = orders.filter((o) => !o.orderId).length;
+    const generatedIds = missingIds
+      ? await reserveOrderIds(shop._id, missingIds)
+      : [];
+    let nextGenerated = 0;
 
     const newOrders = [];
 
@@ -225,9 +226,7 @@ exports.bulkUploadOrders = async (req, res, next) => {
       } = order;
 
       if (!orderId) {
-        totalCount += 1;
-        currentDailyCount += 1;
-        orderId = `ORD-${dateStr}-${totalCount}-${currentDailyCount}`;
+        orderId = generatedIds[nextGenerated++];
       }
 
       const parsedTotal = isNaN(Number(total)) ? 0 : Number(total);
@@ -251,11 +250,6 @@ exports.bulkUploadOrders = async (req, res, next) => {
     }
 
     const insertedOrders = await Order.insertMany(newOrders);
-
-    shop.totalOrderCount = totalCount;
-    shop.dailyOrderCounts = shop.dailyOrderCounts || new Map();
-    shop.dailyOrderCounts.set(dateStr, currentDailyCount);
-    await shop.save();
 
     res.status(201).json({
       message: `${insertedOrders.length} orders uploaded successfully.`,

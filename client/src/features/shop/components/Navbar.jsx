@@ -1,6 +1,7 @@
 import { Menu } from "lucide-react";
 import { useState } from "react";
 import SideDrawer from "./SideDrawer";
+import { getShopLogo } from "../../../common/utils/utils";
 
 const Navbar = ({ shop, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,9 +11,9 @@ const Navbar = ({ shop, onLogout }) => {
       <nav className="sticky top-0 z-10 backdrop-blur-lg bg-white/30 border-b border-orange-200 shadow-md px-6 py-3 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <img
-            src={shop.logo}
+            src={getShopLogo(shop)}
             alt="Shop Logo"
-            className="w-10 h-10 rounded-full border border-orange-400"
+            className="w-10 h-10 rounded-full border border-orange-400 object-cover"
           />
           <span className="text-xl font-semibold text-orange-800">
             {shop.name || "Your Shop"}

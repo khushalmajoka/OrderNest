@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fb923c"/>
+      <stop offset="1" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+  <circle cx="64" cy="64" r="64" fill="url(#bg)"/>
+  <!-- awning -->
+  <path d="M30 46 L36 32 H92 L98 46 Z" fill="#ffffff"/>
+  <path d="M30 46 h17.3 v6 a8.65 8.65 0 0 1 -17.3 0 Z M47.3 46 h17.3 v6 a8.65 8.65 0 0 1 -17.3 0 Z M64.6 46 h17.3 v6 a8.65 8.65 0 0 1 -17.3 0 Z M81.9 46 h16.1 v6 a8.05 8.05 0 0 1 -16.1 0 Z" fill="#ffedd5"/>
+  <!-- body -->
+  <rect x="35" y="62" width="58" height="36" rx="3" fill="#ffffff"/>
+  <!-- door -->
+  <rect x="55" y="74" width="18" height="24" rx="2" fill="#fb923c"/>
+  <!-- window -->
+  <rect x="40" y="70" width="11" height="11" rx="2" fill="#ffedd5"/>
+  <rect x="77" y="70" width="11" height="11" rx="2" fill="#ffedd5"/>
+</svg>

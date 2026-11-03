@@ -1,5 +1,6 @@
 import React from "react";
 import { useShop } from "../../features/shop/hooks/useShop";
+import { getShopLogo } from "../utils/utils";
 
 const OrderCard = React.forwardRef(({ order }, ref) => {
   const shop = useShop();
@@ -11,9 +12,9 @@ const OrderCard = React.forwardRef(({ order }, ref) => {
     >
       {/* Header */}
       <div className="bg-gradient-to-r from-orange-400 to-pink-500 text-white text-center py-4">
-        {shop?.logo && (
+        {shop && (
           <img
-            src={shop.logo}
+            src={getShopLogo(shop)}
             alt="Shop Logo"
             className="h-16 mx-auto mb-2 object-contain bg-white rounded-full p-1 shadow"
           />

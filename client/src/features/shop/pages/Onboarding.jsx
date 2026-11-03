@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { SHOP_CATEGORIES } from "../constants";
+import { getShopLogo } from "../../../common/utils/utils";
 
 const Onboarding = () => {
   const [formData, setFormData] = useState({
@@ -90,22 +92,27 @@ const Onboarding = () => {
         {/* Logo Upload */}
         <div className="space-y-2">
           <label className="block text-gray-700 font-medium">
-            Shop Logo <span className="text-red-500">*</span>
+            Shop Logo{" "}
+            <span className="text-gray-400 font-normal text-sm">
+              (optional)
+            </span>
           </label>
           <input
             type="file"
             accept="image/*"
             onChange={handleImageUpload}
             className="w-full px-3 py-2 border rounded-md bg-white"
-            required
           />
 
-          {formData.logo && (
-            <img
-              src={formData.logo}
-              alt="Logo Preview"
-              className="w-24 h-24 object-cover rounded-full border mx-auto"
-            />
+          <img
+            src={getShopLogo(formData)}
+            alt="Logo Preview"
+            className="w-24 h-24 object-cover rounded-full border mx-auto"
+          />
+          {!formData.logo && (
+            <p className="text-xs text-gray-500 text-center">
+              No logo? We'll use this default one. You can add your own later.
+            </p>
           )}
         </div>
 
@@ -117,9 +124,11 @@ const Onboarding = () => {
           className="w-full px-4 py-2 border rounded-md"
         >
           <option value="">Select Category</option>
-          <option value="Gift">Gift</option>
-          <option value="Grocery">Grocery</option>
-          <option value="Electronics">Electronics</option>
+          {SHOP_CATEGORIES.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
         </select>
 
         <input
@@ -135,10 +144,9 @@ const Onboarding = () => {
         <input
           type="text"
           name="address"
-          placeholder="Address"
+          placeholder="Address (optional)"
           value={formData.address}
           onChange={handleChange}
-          required
           className="w-full px-4 py-2 border rounded-md"
         />
 

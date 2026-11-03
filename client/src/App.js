@@ -1,4 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import LoginPage from "./features/auth/pages/LoginPage";
 import DashboardPage from "./features/orders/pages/DashboardPage";
 import SignupPage from "./features/auth/pages/SignupPage";
@@ -25,6 +30,9 @@ function App() {
           <Route path="/shop/dashboard" element={<DashboardPage />} />
           <Route path="/shop/onboarding" element={<Onboarding />} />
           <Route path="/shop/settings" element={<Settings />} />
+
+          {/* Unknown URL -> customer page instead of a blank screen */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </LocalizationProvider>
     </Router>

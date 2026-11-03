@@ -7,8 +7,10 @@ const setupShop = async (req, res, next) => {
     const { name, logo, address, phone, category } = req.body;
     const userId = req.user?.id; // Set by auth middleware
 
-    if (!name || !address || !phone || !category) {
-      return res.status(400).json({ error: "All fields are required" });
+    if (!name || !phone || !category) {
+      return res
+        .status(400)
+        .json({ error: "Shop name, phone and category are required" });
     }
 
     // Check if shop already exists for this user

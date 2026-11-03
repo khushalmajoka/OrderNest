@@ -60,7 +60,10 @@ const getShopByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
 
-    // Optional: Check if req.user.id === userId if you want to prevent unauthorized access
+    // A user may only read their own shop
+    if (userId !== req.user.id) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
 
     const shop = await Shop.findOne({ owner: userId });
 

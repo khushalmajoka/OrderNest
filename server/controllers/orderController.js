@@ -1,5 +1,4 @@
 const Order = require("../models/Order");
-const Shop = require("../models/Shop");
 
 // @desc Public Track Order by Order ID or Phone
 exports.trackOrder = async (req, res, next) => {
@@ -36,14 +35,11 @@ exports.createOrder = async (req, res, next) => {
       status,
       orderExecutive,
       expectedDeliveryDate,
-      userId,
-      shopId,
     } = req.body;
 
-    const shop = await Shop.findById(shopId);
-    if (!shop) {
-      return res.status(404).json({ message: "Shop not found" });
-    }
+    // Shop and user always come from the logged-in user, never from the body
+    const shop = req.shop;
+    const userId = req.user.id;
 
     const today = new Date();
     const dateStr = today.toISOString().slice(0, 10).replace(/-/g, ""); // YYYYMMDD
@@ -64,7 +60,7 @@ exports.createOrder = async (req, res, next) => {
 
     const newOrder = new Order({
       orderId: generatedOrderId,
-      shop: shopId,
+      shop: shop._id,
       userId,
       item,
       customerName,
@@ -88,6 +84,9 @@ exports.createOrder = async (req, res, next) => {
 exports.getOrdersByUser = async (req, res, next) => {
   try {
     const userId = req.params.userId;
+    if (userId !== req.user.id) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
     const orders = await Order.find({ userId }).sort({ createdAt: -1 });
     res.status(200).json({ orders });
   } catch (error) {
@@ -110,8 +109,9 @@ exports.updateOrder = async (req, res, next) => {
     } = req.body;
     const balance = total - advance;
 
-    const updatedOrder = await Order.findByIdAndUpdate(
-      req.params.id,
+    // Only match an order that belongs to the caller's own shop
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: req.params.id, shop: req.shop._id },
       {
         customerName,
         item,
@@ -139,7 +139,10 @@ exports.updateOrder = async (req, res, next) => {
 // @desc Delete Order
 exports.deleteOrder = async (req, res, next) => {
   try {
-    const deletedOrder = await Order.findByIdAndDelete(req.params.id);
+    const deletedOrder = await Order.findOneAndDelete({
+      _id: req.params.id,
+      shop: req.shop._id,
+    });
 
     if (!deletedOrder) {
       return res.status(404).json({ message: "Order not found" });
@@ -153,13 +156,9 @@ exports.deleteOrder = async (req, res, next) => {
 
 exports.bulkUploadOrders = async (req, res, next) => {
   try {
-    const { orders, shopId } = req.body;
+    const { orders } = req.body;
     const userId = req.user.id;
-
-    const shop = await Shop.findById(shopId);
-    if (!shop) {
-      return res.status(404).json({ message: "Shop not found" });
-    }
+    const shop = req.shop;
 
     // ✅ Check DB-level duplicate orderIds
     const incomingOrderIds = orders.map((o) => o.orderId).filter(Boolean);
@@ -271,6 +270,9 @@ exports.bulkUploadOrders = async (req, res, next) => {
 exports.getOrdersByShop = async (req, res, next) => {
   try {
     const shopId = req.params.shopId;
+    if (shopId !== String(req.shop._id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
 
     const page = Math.max(1, parseInt(req.query.page)) || 1;
     const limit = Math.max(1, parseInt(req.query.limit)) || 10;

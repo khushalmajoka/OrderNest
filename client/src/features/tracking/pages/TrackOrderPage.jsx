@@ -17,7 +17,7 @@ const TrackOrderPage = () => {
       setLoading(true);
       setSearched(false);
       const res = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/api/orders/track?query=${input}`
+        `${process.env.REACT_APP_BASE_URL}/api/orders/track?query=${encodeURIComponent(input.trim())}`
       );
       if (res.data.orders.length === 0) {
         toast.error("No orders found.");

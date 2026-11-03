@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import OrderNestLogo from "../../../assets/OrderNestLogoWithoutBg.png";
 import toast from "react-hot-toast";
 
@@ -125,9 +125,9 @@ const Login = () => {
 
         <p className="text-center text-sm text-gray-600 mt-4">
           Don't have an account?{" "}
-          <a href="/signup" className="text-orange-600 hover:underline">
+          <Link to="/shop/signup" className="text-orange-600 hover:underline">
             Sign up
-          </a>
+          </Link>
         </p>
       </div>
     </div>

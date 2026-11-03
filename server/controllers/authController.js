@@ -2,6 +2,14 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const generateToken = require("../utils/generateToken");
 
+// Only these fields are ever sent to the client (never the password hash)
+const toPublicUser = (user) => ({
+  _id: user._id,
+  name: user.name,
+  email: user.email,
+  shopId: user.shopId,
+});
+
 const register = async (req, res, next) => {
   const { name, email, password } = req.body;
 
@@ -17,7 +25,7 @@ const register = async (req, res, next) => {
       password: hashedPassword,
     });
 
-    res.status(201).json({ user: user });
+    res.status(201).json({ user: toPublicUser(user) });
   } catch (err) {
     return next(err);
   }
@@ -27,7 +35,7 @@ const login = async (req, res, next) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!user) return res.status(404).json({ error: "User not found" });
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -35,7 +43,7 @@ const login = async (req, res, next) => {
 
     const token = generateToken(user._id);
 
-    res.status(200).json({ user: user, token });
+    res.status(200).json({ user: toPublicUser(user), token });
   } catch (err) {
     return next(err);
   }

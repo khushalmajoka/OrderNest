@@ -8,14 +8,13 @@
 // reserved ID (e.g. the counters were reset the same day); then we move ahead.
 const Shop = require("../models/Shop");
 const Order = require("../models/Order");
+const dateStamp = require("./dateStamp");
 
 const MAX_ATTEMPTS = 20;
 
-// YYYYMMDD
-const todayStamp = () => new Date().toISOString().slice(0, 10).replace(/-/g, "");
-
-async function reserveOrderIds(shopId, count = 1) {
-  const dateStr = todayStamp();
+// `now` is only passed in by tests; the day follows Indian time (see dateStamp)
+async function reserveOrderIds(shopId, count = 1, now = new Date()) {
+  const dateStr = dateStamp(now);
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     // Normally nothing is skipped. After a clash inside this shop, skip ahead

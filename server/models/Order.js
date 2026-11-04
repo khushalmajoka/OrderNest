@@ -8,10 +8,10 @@ const orderSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    // Unique per shop (see index below), not across shops
     orderId: {
       type: String,
       required: true,
-      unique: true,
     },
     shop: { type: mongoose.Schema.Types.ObjectId, ref: "Shop", required: true },
     item: {
@@ -63,5 +63,10 @@ const orderSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Two shops may use the same order ID; within one shop it must be unique.
+orderSchema.index({ shop: 1, orderId: 1 }, { unique: true });
+// Plain lookup index for the public tracking endpoint (searches by orderId).
+orderSchema.index({ orderId: 1 });
 
 module.exports = mongoose.model("Order", orderSchema);

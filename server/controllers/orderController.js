@@ -160,9 +160,10 @@ exports.bulkUploadOrders = async (req, res, next) => {
     const userId = req.user.id;
     const shop = req.shop;
 
-    // ✅ Check DB-level duplicate orderIds
+    // ✅ Check DB-level duplicate orderIds (within this shop only)
     const incomingOrderIds = orders.map((o) => o.orderId).filter(Boolean);
     const existingOrders = await Order.find({
+      shop: shop._id,
       orderId: { $in: incomingOrderIds },
     }).select("orderId");
     const existingOrderIdSet = new Set(existingOrders.map((o) => o.orderId));

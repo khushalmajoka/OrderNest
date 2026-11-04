@@ -1,9 +1,11 @@
 // Reserves order numbers for a shop.
 //
-// The counters are bumped with a single atomic $inc, so two requests arriving
-// at the same moment can never receive the same number. Order IDs are unique
-// across all shops but numbered per shop, so if a reserved ID is already taken
-// (another shop, or a counter that was reset) we skip ahead and reserve again.
+// Numbering is per shop and continuous: the counters are bumped with a single
+// atomic $inc, so two requests arriving at the same moment never get the same
+// number and no number is skipped. The same ID may exist in different shops.
+//
+// The only time we skip is when this shop already has an order with the
+// reserved ID (e.g. the counters were reset the same day); then we move ahead.
 const Shop = require("../models/Shop");
 const Order = require("../models/Order");
 
@@ -16,8 +18,8 @@ async function reserveOrderIds(shopId, count = 1) {
   const dateStr = todayStamp();
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    // First try takes the next numbers. After a clash, skip ahead by 1, 2, 4...
-    // so a crowded range (e.g. after a counter reset) is cleared quickly.
+    // Normally nothing is skipped. After a clash inside this shop, skip ahead
+    // by 1, 2, 4... so a crowded range is cleared quickly.
     const skip = attempt === 0 ? 0 : 2 ** (attempt - 1);
     const step = count + skip;
 
@@ -42,7 +44,7 @@ async function reserveOrderIds(shopId, count = 1) {
         `ORD-${dateStr}-${endTotal - count + 1 + i}-${endDaily - count + 1 + i}`
     );
 
-    const taken = await Order.exists({ orderId: { $in: ids } });
+    const taken = await Order.exists({ shop: shopId, orderId: { $in: ids } });
     if (!taken) return ids;
   }
 

@@ -1,21 +1,43 @@
 const Order = require("../models/Order");
 const reserveOrderIds = require("../utils/reserveOrderIds");
 
-// @desc Public Track Order by Order ID or Phone
+const lastTenDigits = (value) =>
+  String(value ?? "")
+    .replace(/\D/g, "")
+    .slice(-10);
+
+// @desc Public Track Order: needs BOTH the Order ID and the customer's phone.
+// Returns only what the tracking page shows. A wrong phone and an unknown ID
+// give the same empty answer, so nobody can probe which IDs exist.
 exports.trackOrder = async (req, res, next) => {
-  const { query } = req.query;
-
-  if (!query) {
-    return res.status(400).json({ message: "Query parameter is required" });
-  }
-
   try {
-    const isPhone = /^\d{10}$/.test(query);
-    const filter = isPhone
-      ? { phone: query }
-      : { orderId: query.toUpperCase() };
+    const { orderId: rawOrderId, phone: rawPhone } = req.body || {};
+    const orderId = String(rawOrderId ?? "").trim().toUpperCase();
+    const phone = lastTenDigits(rawPhone);
 
-    const orders = await Order.find(filter).sort({ createdAt: -1 });
+    if (!orderId || phone.length !== 10) {
+      return res
+        .status(400)
+        .json({ message: "Enter your Order ID and 10-digit phone number" });
+    }
+
+    // Order IDs are only unique per shop, so several shops can match the ID;
+    // the phone number then picks out the customer's own order(s).
+    const candidates = await Order.find({ orderId })
+      .populate("shop", "name")
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const orders = candidates
+      .filter((order) => lastTenDigits(order.phone) === phone)
+      .map((order) => ({
+        orderId: order.orderId,
+        customerName: order.customerName,
+        item: order.item,
+        status: order.status,
+        orderExecutive: order.orderExecutive,
+        shopName: order.shop ? order.shop.name : undefined,
+      }));
 
     res.status(200).json({ orders });
   } catch (err) {

@@ -11,10 +11,12 @@ const {
 } = require("../controllers/orderController");
 const authenticate = require("../middlewares/authenticate");
 const loadShop = require("../middlewares/loadShop");
+const { trackLimiter } = require("../middlewares/rateLimiter");
 
 const router = express.Router();
 
-router.get("/track", trackOrder);
+// Public: customers look up their order with Order ID + phone number
+router.post("/track", trackLimiter, trackOrder);
 
 // Create Order
 router.post("/create", authenticate, loadShop, createOrder);

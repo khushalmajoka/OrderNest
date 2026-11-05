@@ -4,30 +4,34 @@ import toast from "react-hot-toast";
 import OrderNestLogo from "../../../assets/OrderNestLogoWithoutBg.png";
 
 const TrackOrderPage = () => {
-  const [input, setInput] = useState("");
+  const [orderId, setOrderId] = useState("");
+  const [phone, setPhone] = useState("");
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
   const handleSearch = async () => {
-    if (!input.trim())
-      return toast.error("Please enter Order ID or Phone number");
+    if (!orderId.trim() || phone.replace(/\D/g, "").length < 10)
+      return toast.error("Please enter your Order ID and 10-digit phone number");
 
     try {
       setLoading(true);
       setSearched(false);
-      const res = await axios.get(
-        `${process.env.REACT_APP_BASE_URL}/api/orders/track?query=${encodeURIComponent(input.trim())}`
+      const res = await axios.post(
+        `${process.env.REACT_APP_BASE_URL}/api/orders/track`,
+        { orderId: orderId.trim(), phone }
       );
       if (res.data.orders.length === 0) {
-        toast.error("No orders found.");
+        toast.error("No order found. Check your Order ID and phone number.");
       }
 
       setOrders(res.data.orders || []);
       setSearched(true);
     } catch (err) {
       console.error("Failed to fetch orders:", err);
-      toast.error("Failed to track order. Try again later.");
+      toast.error(
+        err.response?.data?.message || "Failed to track order. Try again later."
+      );
     } finally {
       setLoading(false);
     }
@@ -40,19 +44,19 @@ const TrackOrderPage = () => {
           {loading && <p className="text-center text-gray-500">Searching...</p>}
           {!loading && searched && (
             <div className="space-y-4 overflow-auto scrollbar-hidden">
-              {orders.map((order) => (
+              {orders.map((order, index) => (
                 <div
-                  key={order._id}
+                  key={`${order.orderId}-${order.shopName}-${index}`}
                   className="bg-white p-4 rounded shadow border border-orange-100"
                 >
+                  <p>
+                    <strong>Shop:</strong> {order.shopName}
+                  </p>
                   <p>
                     <strong>Order ID:</strong> {order.orderId}
                   </p>
                   <p>
                     <strong>Customer:</strong> {order.customerName}
-                  </p>
-                  <p>
-                    <strong>Phone:</strong> {order.phone}
                   </p>
                   <p>
                     <strong>Item:</strong> {order.item}
@@ -85,27 +89,40 @@ const TrackOrderPage = () => {
             Track Your Order
           </h2>
           <p className="text-sm text-gray-500 mb-6 text-center">
-            Enter your Order ID or phone number below to check your order
-            status.
+            Enter your Order ID and the phone number you gave the shop to check
+            your order status.
           </p>
 
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-3">
             <input
               type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
+              value={orderId}
+              onChange={(e) => setOrderId(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSearch();
               }}
-              placeholder="Order ID or Phone"
-              className="flex-1 px-4 py-2 border rounded-md focus:ring-2 focus:ring-orange-400 focus:outline-none"
+              placeholder="Order ID"
+              className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-orange-400 focus:outline-none"
+            />
+
+            <input
+              type="tel"
+              inputMode="numeric"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value.replace(/[^\d+\s-]/g, ""))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSearch();
+              }}
+              placeholder="Phone number"
+              className="px-4 py-2 border rounded-md focus:ring-2 focus:ring-orange-400 focus:outline-none"
             />
 
             <button
               onClick={handleSearch}
-              className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition"
+              disabled={loading}
+              className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition disabled:opacity-60"
             >
-              Track
+              {loading ? "Searching..." : "Track"}
             </button>
           </div>
         </div>

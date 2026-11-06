@@ -68,5 +68,7 @@ const orderSchema = new mongoose.Schema(
 orderSchema.index({ shop: 1, orderId: 1 }, { unique: true });
 // Plain lookup index for the public tracking endpoint (searches by orderId).
 orderSchema.index({ orderId: 1 });
+// Dashboard listing: one shop's orders, newest first.
+orderSchema.index({ shop: 1, createdAt: -1 });
 
 module.exports = mongoose.model("Order", orderSchema);

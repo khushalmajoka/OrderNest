@@ -283,7 +283,37 @@ exports.bulkUploadOrders = async (req, res, next) => {
   }
 };
 
-// @desc Get Orders by Shop ID with pagination
+// Columns the dashboard can sort by (anything else falls back to newest first)
+const SORTABLE_FIELDS = [
+  "orderId",
+  "customerName",
+  "item",
+  "phone",
+  "total",
+  "advance",
+  "balance",
+  "status",
+  "expectedDeliveryDate",
+  "orderExecutive",
+  "createdAt",
+  "updatedAt",
+];
+const TEXT_FIELDS = [
+  "orderId",
+  "customerName",
+  "item",
+  "phone",
+  "status",
+  "orderExecutive",
+];
+const SEARCH_FIELDS = ["customerName", "orderId", "item", "phone"];
+const MAX_PAGE_SIZE = 200;
+const DEFAULT_PAGE_SIZE = 50;
+
+const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// @desc Get this shop's orders, one page at a time.
+// Query: page (from 1), limit (max 200), search, sortBy, sortDir (asc|desc)
 exports.getOrdersByShop = async (req, res, next) => {
   try {
     const shopId = req.params.shopId;
@@ -291,23 +321,53 @@ exports.getOrdersByShop = async (req, res, next) => {
       return res.status(403).json({ message: "Forbidden" });
     }
 
-    const page = Math.max(1, parseInt(req.query.page)) || 1;
-    const limit = Math.max(1, parseInt(req.query.limit)) || 10;
-    const skip = (page - 1) * limit;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(
+      MAX_PAGE_SIZE,
+      Math.max(1, parseInt(req.query.limit, 10) || DEFAULT_PAGE_SIZE)
+    );
 
-    // Total count for pagination
-    const totalOrders = await Order.countDocuments({ shop: shopId });
+    const filter = { shop: req.shop._id };
 
-    const orders = await Order.find({ shop: shopId })
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    // Search is plain text, so special characters are matched literally
+    const search = String(req.query.search ?? "").trim().slice(0, 100);
+    if (search) {
+      const pattern = new RegExp(escapeRegex(search), "i");
+      filter.$or = SEARCH_FIELDS.map((field) => ({ [field]: pattern }));
+    }
+
+    const sortBy = SORTABLE_FIELDS.includes(req.query.sortBy)
+      ? req.query.sortBy
+      : "createdAt";
+    const sortDir = req.query.sortDir === "asc" ? 1 : -1;
+
+    // _id as a tie-breaker keeps pages stable when many rows share a value
+    let query = Order.find(filter)
+      .sort({ [sortBy]: sortDir, _id: sortDir })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+
+    // Text columns: ignore upper/lower case and sort numbers inside text by value
+    if (TEXT_FIELDS.includes(sortBy)) {
+      query = query.collation({
+        locale: "en",
+        strength: 2,
+        numericOrdering: true,
+      });
+    }
+
+    const [orders, totalOrders] = await Promise.all([
+      query,
+      Order.countDocuments(filter),
+    ]);
 
     res.status(200).json({
       orders,
       totalOrders,
       totalPages: Math.ceil(totalOrders / limit),
       currentPage: page,
+      limit,
     });
   } catch (error) {
     return next(error);

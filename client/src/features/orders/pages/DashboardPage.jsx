@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
@@ -22,7 +22,8 @@ const Dashboard = () => {
   if (shop) localStorage.setItem("shop", JSON.stringify(shop));
   const navigate = useNavigate();
 
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchInput, setSearchInput] = useState(""); // what is typed
+  const [search, setSearch] = useState(""); // what is sent to the server
   const [editOrder, setEditOrder] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showMappingModal, setShowMappingModal] = useState(false);
@@ -32,11 +33,52 @@ const Dashboard = () => {
   const [bulkUploading, setBulkUploading] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(0);
-  const [ordersPerPage] = useState(100);
-  const { orders, setOrders, totalOrders, loading } = useOrders(
-    currentPage,
-    ordersPerPage
-  );
+  const [ordersPerPage, setOrdersPerPage] = useState(50);
+  const [sortField, setSortField] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc");
+
+  const { orders, setOrders, totalOrders, loading, loaded, refetch } =
+    useOrders({
+      shopId: shop?._id,
+      page: currentPage,
+      limit: ordersPerPage,
+      search,
+      sortField,
+      sortOrder,
+    });
+
+  // Wait for a pause in typing, then search the whole list from page 1
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput.trim());
+      setCurrentPage(0);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Changing the sort starts again from page 1
+  const handleSortField = (field) => {
+    setSortField(field);
+    setCurrentPage(0);
+  };
+  const handleSortOrder = (order) => {
+    setSortOrder(order);
+    setCurrentPage(0);
+  };
+
+  const handleOrderDeleted = () => {
+    // Last row of a later page: step back, otherwise just reload this page
+    if (orders.length === 1 && currentPage > 0) {
+      setCurrentPage((page) => page - 1);
+    } else {
+      refetch();
+    }
+  };
+
+  const showFirstPageAgain = () => {
+    setCurrentPage(0);
+    refetch();
+  };
 
   const handleLogout = () => {
     localStorage.clear();
@@ -90,7 +132,7 @@ const Dashboard = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setOrders((prev) => [...res.data.insertedOrders, ...prev]);
+      showFirstPageAgain();
       toast.success(`${res.data.insertedOrders.length} orders uploaded.`);
     } catch (err) {
       toast.error("Bulk upload failed.");
@@ -98,12 +140,6 @@ const Dashboard = () => {
       setBulkUploading(false);
     }
   };
-
-  const filteredOrders = orders.filter((order) =>
-    [order.customerName, order.orderId, order.item, order.phone].some((field) =>
-      field?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
 
   if (!shop) {
     return (
@@ -125,8 +161,8 @@ const Dashboard = () => {
 
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             <SearchBar
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
             />
             <ActionsBar
               onCreateClick={() => setShowCreateModal(true)}
@@ -135,29 +171,36 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {loading ? (
+        {!loaded ? (
           <div className="flex justify-center py-10">
             <div className="w-8 h-8 border-4 border-orange-500 border-dashed rounded-full animate-spin"></div>
           </div>
         ) : (
-          <OrderList
-            orders={filteredOrders}
-            onEdit={setEditOrder}
-            setShowEditOrderModal={setShowEditOrderModal}
-            onDelete={(id) =>
-              setOrders((prev) => prev.filter((order) => order._id !== id))
-            }
-            onPageChange={(page) => setCurrentPage(page)}
-            totalOrders={totalOrders}
-          />
+          // Keep the table on screen (dimmed) while the next page loads
+          <div className={loading ? "opacity-60 transition-opacity" : ""}>
+            <OrderList
+              orders={orders}
+              totalOrders={totalOrders}
+              searching={Boolean(search)}
+              ordersPerPage={ordersPerPage}
+              setOrdersPerPage={setOrdersPerPage}
+              currentPage={currentPage}
+              setCurrentPage={setCurrentPage}
+              sortField={sortField}
+              sortOrder={sortOrder}
+              setSortField={handleSortField}
+              setSortOrder={handleSortOrder}
+              onEdit={setEditOrder}
+              setShowEditOrderModal={setShowEditOrderModal}
+              onDelete={handleOrderDeleted}
+            />
+          </div>
         )}
 
         {showCreateModal && (
           <CreateOrderModal
             onClose={() => setShowCreateModal(false)}
-            onOrderCreated={(newOrder) =>
-              setOrders((prev) => [newOrder, ...prev])
-            }
+            onOrderCreated={showFirstPageAgain}
           />
         )}
 

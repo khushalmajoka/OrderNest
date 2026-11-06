@@ -4,22 +4,37 @@ import OrderTableHeader from "./OrderTableHeader";
 import OrderTableRow from "./OrderTableRow";
 import DeleteConfirmModal from "../../../common/components/DeleteConfirmModal";
 import Pagination from "./Pagination";
-import { getSortedOrders } from "../utils/getSortedOrders";
 import axios from "axios";
 
-const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
+// Shows one page of orders. Paging, search and sorting are done by the server;
+// the page state lives in the dashboard and arrives here as props.
+const OrderList = ({
+  orders,
+  totalOrders,
+  searching,
+  ordersPerPage,
+  setOrdersPerPage,
+  currentPage,
+  setCurrentPage,
+  sortField,
+  sortOrder,
+  setSortField,
+  setSortOrder,
+  onEdit,
+  onDelete,
+  setShowEditOrderModal,
+}) => {
   const [deleteId, setDeleteId] = useState(null);
   const [activeOrderId, setActiveOrderId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [ordersPerPage, setOrdersPerPage] = useState(50);
-  const [currentPage, setCurrentPage] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const [sortField, setSortField] = useState(null);
-  const [sortOrder, setSortOrder] = useState("asc");
-
   if (!orders.length)
-    return <p className="text-gray-500 mt-4">No orders yet.</p>;
+    return (
+      <p className="text-gray-500 mt-4">
+        {searching ? "No orders match your search." : "No orders yet."}
+      </p>
+    );
 
   const handleDelete = async (id) => {
     if (!showDeleteModal) return;
@@ -42,13 +57,6 @@ const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
     }
   };
 
-  const sortedOrders = getSortedOrders(orders, sortField, sortOrder);
-
-  const paginatedOrders = sortedOrders.slice(
-    currentPage * ordersPerPage,
-    currentPage * ordersPerPage + ordersPerPage
-  );
-
   return (
     <>
       <div className="overflow-auto border rounded shadow">
@@ -60,7 +68,7 @@ const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
             sortOrder={sortOrder}
           />
           <tbody>
-            {paginatedOrders.map((order) => (
+            {orders.map((order) => (
               <OrderTableRow
                 key={order._id}
                 order={order}
@@ -80,7 +88,7 @@ const OrderList = ({ orders, onEdit, onDelete, setShowEditOrderModal }) => {
         setOrdersPerPage={setOrdersPerPage}
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
-        totalOrders={sortedOrders.length}
+        totalOrders={totalOrders}
       />
 
       {showDeleteModal && (

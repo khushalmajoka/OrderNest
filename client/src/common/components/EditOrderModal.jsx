@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { isValid } from "date-fns";
+import { fromDateString, toDateString } from "../utils/dateUtils";
 import TextField from "@mui/material/TextField";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -191,16 +193,13 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
 
         <DatePicker
           label="Expected Delivery Date"
-          value={
-            formData.expectedDeliveryDate
-              ? new Date(formData.expectedDeliveryDate)
-              : null
-          }
+          value={fromDateString(formData.expectedDeliveryDate)}
           onChange={(date) => {
-            if (date) {
+            // Ignore empty or half-typed dates (an Invalid Date would throw)
+            if (date && isValid(date)) {
               setFormData((prev) => ({
                 ...prev,
-                expectedDeliveryDate: date.toISOString().split("T")[0],
+                expectedDeliveryDate: toDateString(date),
               }));
             }
           }}

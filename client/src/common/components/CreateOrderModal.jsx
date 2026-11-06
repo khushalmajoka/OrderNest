@@ -3,6 +3,8 @@ import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { isValid } from "date-fns";
+import { fromDateString, toDateString } from "../utils/dateUtils";
 import TextField from "@mui/material/TextField";
 
 const CreateOrderModal = ({ onClose, onOrderCreated }) => {
@@ -172,16 +174,13 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
 
         <DatePicker
           label="Expected Delivery Date"
-          value={
-            formData.expectedDeliveryDate
-              ? new Date(formData.expectedDeliveryDate)
-              : null
-          }
+          value={fromDateString(formData.expectedDeliveryDate)}
           onChange={(date) => {
-            if (date) {
+            // Ignore empty or half-typed dates (an Invalid Date would throw)
+            if (date && isValid(date)) {
               setFormData((prev) => ({
                 ...prev,
-                expectedDeliveryDate: date.toISOString().split("T")[0],
+                expectedDeliveryDate: toDateString(date),
               }));
             }
           }}

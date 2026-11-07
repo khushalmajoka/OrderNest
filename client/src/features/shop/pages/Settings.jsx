@@ -5,13 +5,14 @@ import toast from "react-hot-toast";
 import Navbar from "../components/Navbar";
 import SettingCard from "../components/SettingCard";
 import ConfirmResetModal from "../../../common/components/ConfirmResetModal";
+import { clearSession } from "../../whatsNew/whatsNewStorage";
 
 const Settings = () => {
   const navigate = useNavigate();
   const [showModal, setShowModal] = useState(false);
 
   const handleLogout = () => {
-    localStorage.clear();
+    clearSession();
     navigate("/shop");
   };
 

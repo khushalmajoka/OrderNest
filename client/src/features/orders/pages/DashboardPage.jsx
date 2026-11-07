@@ -14,6 +14,12 @@ import OrderList from "../components/OrderList";
 import EditOrderModal from "../../../common/components/EditOrderModal";
 import CreateOrderModal from "../../../common/components/CreateOrderModal";
 import MappingModal from "../../../common/components/MappingModal";
+import WhatsNewModal from "../../whatsNew/WhatsNewModal";
+import {
+  hasSeenWhatsNew,
+  markWhatsNewSeen,
+  clearSession,
+} from "../../whatsNew/whatsNewStorage";
 import axios from "axios";
 
 const Dashboard = () => {
@@ -31,6 +37,9 @@ const Dashboard = () => {
   const [excelHeaders, setExcelHeaders] = useState([]);
   const [excelData, setExcelData] = useState([]);
   const [bulkUploading, setBulkUploading] = useState(false);
+  const [showWhatsNew, setShowWhatsNew] = useState(
+    () => !hasSeenWhatsNew(localStorage.getItem("userId"))
+  );
 
   const [currentPage, setCurrentPage] = useState(0);
   const [ordersPerPage, setOrdersPerPage] = useState(50);
@@ -80,8 +89,13 @@ const Dashboard = () => {
     refetch();
   };
 
+  const handleWhatsNewConfirmed = () => {
+    markWhatsNewSeen(localStorage.getItem("userId"));
+    setShowWhatsNew(false);
+  };
+
   const handleLogout = () => {
-    localStorage.clear();
+    clearSession();
     navigate("/shop");
   };
 
@@ -225,6 +239,8 @@ const Dashboard = () => {
             onClose={() => setShowMappingModal(false)}
           />
         )}
+
+        {showWhatsNew && <WhatsNewModal onConfirm={handleWhatsNewConfirmed} />}
 
         {bulkUploading && (
           <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-40 flex items-center justify-center z-50">

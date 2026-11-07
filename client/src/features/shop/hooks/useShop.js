@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { clearSession } from "../../whatsNew/whatsNewStorage";
 
 export const useShop = () => {
   const [shop, setShop] = useState(null);
@@ -26,7 +27,7 @@ export const useShop = () => {
         setShop(shopRes.data.shop);
       } catch (err) {
         toast.error("Session expired. Please login again.");
-        localStorage.clear();
+        clearSession();
         navigate("/shop");
       }
     };

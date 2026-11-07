@@ -3,7 +3,6 @@ const express = require("express");
 const {
   createOrder,
   getOrdersByShop,
-  getOrdersByUser,
   updateOrder,
   deleteOrder,
   trackOrder,
@@ -23,8 +22,7 @@ router.post("/create", authenticate, loadShop, createOrder);
 
 router.post("/bulk-upload", authenticate, loadShop, bulkUploadOrders);
 
-// Get Orders for User
-router.get("/:userId", authenticate, getOrdersByUser);
+// Get one page of a shop's orders
 router.get("/shop/:shopId", authenticate, loadShop, getOrdersByShop);
 
 // PUT /api/orders/:id => Update Order

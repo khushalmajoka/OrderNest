@@ -41,20 +41,6 @@ const setupShop = async (req, res, next) => {
   }
 };
 
-// GET /api/shop/me
-const getMyShop = async (req, res, next) => {
-  try {
-    const userId = req.user?.id;
-    const shop = await Shop.findOne({ owner: userId });
-
-    if (!shop) return res.status(404).json({ error: "Shop not found" });
-
-    res.status(200).json({ shop });
-  } catch (error) {
-    return next(error);
-  }
-};
-
 // GET /api/shop/:userId
 const getShopByUserId = async (req, res, next) => {
   try {
@@ -98,7 +84,6 @@ const resetOrders = async (req, res, next) => {
 
 module.exports = {
   setupShop,
-  getMyShop,
   getShopByUserId,
   resetOrders,
 };

@@ -102,20 +102,6 @@ exports.createOrder = async (req, res, next) => {
   }
 };
 
-// @desc Get Orders by user
-exports.getOrdersByUser = async (req, res, next) => {
-  try {
-    const userId = req.params.userId;
-    if (userId !== req.user.id) {
-      return res.status(403).json({ message: "Forbidden" });
-    }
-    const orders = await Order.find({ userId }).sort({ createdAt: -1 });
-    res.status(200).json({ orders });
-  } catch (error) {
-    return next(error);
-  }
-};
-
 // @desc Update Order
 exports.updateOrder = async (req, res, next) => {
   try {

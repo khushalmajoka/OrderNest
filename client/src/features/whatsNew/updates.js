@@ -2,9 +2,13 @@
 //
 // To announce a new update later: change WHATS_NEW_VERSION (any new text) and
 // edit the list below. Everyone then sees the popup once more.
-export const WHATS_NEW_VERSION = "2026-11-07";
+export const WHATS_NEW_VERSION = "2026-11-07-mobile";
 
 export const WHATS_NEW_ITEMS = [
+  {
+    title: "Now works on your mobile phone",
+    text: "You can now use OrderNest on your phone. Orders show as easy cards with Edit, Share and Delete buttons, and your customers can track their orders from their phones too.",
+  },
   {
     title: "Orders open faster",
     text: "The dashboard now shows 50 orders per page. Search and sorting work across all your orders, not only the page you are looking at.",

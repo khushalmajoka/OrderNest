@@ -62,8 +62,12 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex justify-evenly items-center bg-gradient-to-br from-orange-100 to-gray-100 px-4 font-poppins">
-      <img src={OrderNestLogo} alt="OrderNest Logo" />
+    <div className="min-h-screen flex flex-col md:flex-row justify-center md:justify-evenly items-center gap-6 bg-gradient-to-br from-orange-100 to-gray-100 px-4 py-8 font-poppins">
+      <img
+        src={OrderNestLogo}
+        alt="OrderNest Logo"
+        className="w-40 md:w-auto max-w-full h-auto"
+      />
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 rounded-xl shadow-md w-full max-w-sm flex flex-col items-center"

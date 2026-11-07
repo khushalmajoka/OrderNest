@@ -1,5 +1,5 @@
 const SearchBar = ({ value, onChange }) => (
-  <div className="relative w-72">
+  <div className="relative w-full md:w-72">
     <input
       type="text"
       placeholder="Search by name, ID, item..."

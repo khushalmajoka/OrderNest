@@ -66,11 +66,15 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-evenly bg-gradient-to-br from-orange-100 to-gray-100 px-4 font-poppins">
-      <img src={OrderNestLogo} alt="OrderNest Logo" />
-      <div className="max-w-md w-full bg-white p-8 rounded-2xl shadow-md">
+    <div className="min-h-screen flex flex-col md:flex-row items-center justify-center md:justify-evenly gap-6 bg-gradient-to-br from-orange-100 to-gray-100 px-4 py-8 font-poppins">
+      <img
+        src={OrderNestLogo}
+        alt="OrderNest Logo"
+        className="w-40 md:w-auto max-w-full h-auto"
+      />
+      <div className="max-w-md w-full bg-white p-5 sm:p-8 rounded-2xl shadow-md">
         <div className="flex flex-col items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <h1 className="text-2xl sm:text-3xl text-center font-bold text-gray-800 mb-2">
             Welcome to OrderNest
           </h1>
           <p className="text-sm text-gray-500">

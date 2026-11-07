@@ -10,7 +10,7 @@ const Pagination = ({
   const totalPages = Math.ceil(totalOrders / ordersPerPage);
 
   return (
-    <div className="flex justify-between items-center flex-wrap mt-4">
+    <div className="flex justify-between items-center flex-wrap gap-3 mt-4">
       {/* Orders per page dropdown */}
       <div className="flex items-center gap-2 text-sm">
         <label htmlFor="pageSize">Orders per page: </label>
@@ -30,11 +30,11 @@ const Pagination = ({
       </div>
 
       {/* Simple Pagination Controls */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3 md:gap-4">
         <button
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
           disabled={currentPage === 0}
-          className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+          className="px-3 py-2 md:py-1 border rounded text-sm disabled:opacity-50 bg-white"
         >
           Prev
         </button>
@@ -48,7 +48,7 @@ const Pagination = ({
             setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))
           }
           disabled={currentPage >= totalPages - 1}
-          className="px-3 py-1 border rounded text-sm disabled:opacity-50"
+          className="px-3 py-2 md:py-1 border rounded text-sm disabled:opacity-50 bg-white"
         >
           Next
         </button>

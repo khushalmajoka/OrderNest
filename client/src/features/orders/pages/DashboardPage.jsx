@@ -24,7 +24,6 @@ import axios from "axios";
 
 const Dashboard = () => {
   const shop = useShop();
-  console.log(shop);
   if (shop) localStorage.setItem("shop", JSON.stringify(shop));
   const navigate = useNavigate();
 
@@ -166,14 +165,14 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-orange-50 font-poppins">
       <Navbar shop={shop} onLogout={handleLogout} />
-      <div className="p-8">
-        <div className="flex flex-row items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-2 text-2xl font-bold text-gray-800">
-            <span className="text-orange-500 text-3xl">📦</span> Orders
+      <div className="p-4 md:p-8">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-2 text-xl md:text-2xl font-bold text-gray-800">
+            <span className="text-orange-500 text-2xl md:text-3xl">📦</span> Orders
             Dashboard
           </div>
 
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
             <SearchBar
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
@@ -194,6 +193,7 @@ const Dashboard = () => {
           <div className={loading ? "opacity-60 transition-opacity" : ""}>
             <OrderList
               orders={orders}
+              shop={shop}
               totalOrders={totalOrders}
               searching={Boolean(search)}
               ordersPerPage={ordersPerPage}

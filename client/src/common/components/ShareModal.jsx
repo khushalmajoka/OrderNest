@@ -5,8 +5,8 @@ const ShareModal = ({ isOpen, onClose, onShare }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-      <div className="bg-white rounded-lg shadow-lg w-72 p-6 space-y-4 relative">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 p-4">
+      <div className="bg-white rounded-lg shadow-lg w-full max-w-xs p-6 space-y-4 relative">
         <h2 className="text-lg font-semibold text-gray-800">Share Order</h2>
 
         <div className="flex gap-7 justify-center">

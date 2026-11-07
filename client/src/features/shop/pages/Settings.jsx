@@ -39,7 +39,7 @@ const Settings = () => {
         onLogout={handleLogout}
       />
 
-      <div className="p-8 space-y-6">
+      <div className="p-4 md:p-8 space-y-6">
         <h1 className="text-2xl font-bold text-orange-700 mb-6">Settings</h1>
 
         <SettingCard

@@ -70,10 +70,10 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-orange-50 font-poppins px-4">
+    <div className="min-h-screen flex items-center justify-center bg-orange-50 font-poppins px-4 py-6">
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-xl rounded-xl p-8 w-full max-w-md space-y-5"
+        className="bg-white shadow-xl rounded-xl p-5 sm:p-8 w-full max-w-md space-y-5"
       >
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
           🛍️ Setup Your Shop

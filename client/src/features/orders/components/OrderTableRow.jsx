@@ -1,14 +1,13 @@
 import { Pencil, Share2, Trash2 } from "lucide-react";
 import moment from "moment";
 import { motion, AnimatePresence } from "framer-motion";
-import html2canvas from "html2canvas";
-import { useRef, useState } from "react";
 import ShareModal from "../../../common/components/ShareModal";
 import OrderCard from "../../../common/components/OrderCard";
-import toast from "react-hot-toast";
+import { useOrderShare } from "../hooks/useOrderShare";
 
 const OrderTableRow = ({
   order,
+  shop,
   onEdit,
   setDeleteId,
   setShowEditOrderModal,
@@ -16,36 +15,8 @@ const OrderTableRow = ({
   activeOrderId,
   setActiveOrderId,
 }) => {
-  const cardRef = useRef();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const generateImage = async () => {
-    if (!cardRef.current) return;
-    const canvas = await html2canvas(cardRef.current, {
-      scale: 3,
-      useCORS: true,
-      backgroundColor: "#ffffff",
-    });
-    return canvas.toDataURL("image/png", 1.0);
-  };
-
-  const handleShare = async (type) => {
-    const image = await generateImage();
-    if (!image) return;
-
-    if (type === "download") {
-      const link = document.createElement("a");
-      link.href = image;
-      link.download = `order-${order.orderId || order._id.slice(-6)}.png`;
-      link.click();
-    } else if (type === "whatsapp") {
-      toast("📲 WhatsApp share coming soon!");
-    } else if (type === "instagram") {
-      toast("📸 Instagram share coming soon!");
-    }
-
-    setIsModalOpen(false);
-  };
+  const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
+    useOrderShare(order);
 
   const isExpanded = activeOrderId === order._id;
 
@@ -53,7 +24,7 @@ const OrderTableRow = ({
     <>
       {/* Hidden card for screenshot */}
       <div className="absolute -left-[9999px]">
-        <OrderCard ref={cardRef} order={order} />
+        <OrderCard ref={cardRef} order={order} shop={shop} />
       </div>
 
       <motion.tr
@@ -90,7 +61,7 @@ const OrderTableRow = ({
         </td>
         <td className="px-4 py-2">{order.orderExecutive}</td>
         <td className="absolute right-0 group-hover:bg-orange-50 px-4 py-2 shadow-left rounded-md">
-          <div className="flex gap-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          <div className="flex gap-3 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity duration-200">
             <button
               onClick={() => {
                 setShowEditOrderModal(true);
@@ -110,7 +81,7 @@ const OrderTableRow = ({
               <Trash2 size={18} />
             </button>
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => setIsShareOpen(true)}
               className="text-green-500 hover:text-green-600"
             >
               <Share2 size={18} />
@@ -152,8 +123,8 @@ const OrderTableRow = ({
 
       {/* Share Modal */}
       <ShareModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
         onShare={handleShare}
       />
     </>

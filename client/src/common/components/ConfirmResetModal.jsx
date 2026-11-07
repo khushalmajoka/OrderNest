@@ -6,7 +6,7 @@ const ConfirmResetModal = ({ isOpen, onClose, onConfirm, title }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
         <h2 className="text-lg font-semibold text-orange-700 mb-4">{title}</h2>
         <p className="text-sm text-gray-600 mb-4">

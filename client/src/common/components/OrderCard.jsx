@@ -1,10 +1,8 @@
 import React from "react";
-import { useShop } from "../../features/shop/hooks/useShop";
 import { getShopLogo } from "../utils/utils";
 
-const OrderCard = React.forwardRef(({ order }, ref) => {
-  const shop = useShop();
-
+// The shop comes from the dashboard (no extra request per order).
+const OrderCard = React.forwardRef(({ order, shop }, ref) => {
   return (
     <div
       ref={ref}

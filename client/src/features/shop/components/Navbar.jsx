@@ -8,14 +8,14 @@ const Navbar = ({ shop, onLogout }) => {
 
   return (
     <>
-      <nav className="sticky top-0 z-10 backdrop-blur-lg bg-white/30 border-b border-orange-200 shadow-md px-6 py-3 flex justify-between items-center">
-        <div className="flex items-center gap-3">
+      <nav className="sticky top-0 z-10 backdrop-blur-lg bg-white/30 border-b border-orange-200 shadow-md px-4 md:px-6 py-3 flex justify-between items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <img
             src={getShopLogo(shop)}
             alt="Shop Logo"
-            className="w-10 h-10 rounded-full border border-orange-400 object-cover"
+            className="w-10 h-10 shrink-0 rounded-full border border-orange-400 object-cover"
           />
-          <span className="text-xl font-semibold text-orange-800">
+          <span className="text-lg md:text-xl font-semibold text-orange-800 truncate">
             {shop.name || "Your Shop"}
           </span>
         </div>

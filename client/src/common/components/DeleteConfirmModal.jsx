@@ -1,7 +1,7 @@
 const DeleteConfirmModal = ({ setDeleteId, handleDelete, deleteId, isDeleting}) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-80">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 p-4">
+      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-xs">
         <h2 className="text-lg font-semibold text-gray-800 mb-3">
           Delete Order?
         </h2>

@@ -38,9 +38,9 @@ const TrackOrderPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-100 to-white flex justify-evenly px-4 py-10">
+    <div className="min-h-screen bg-gradient-to-br from-orange-100 to-white flex flex-col lg:flex-row items-center lg:items-start lg:justify-evenly gap-6 px-4 py-6 md:py-10">
       {orders.length > 0 && searched && (
-        <div className="mt-10 w-1/3 max-w-2xl max-h-[600px] overflow-auto" style={{scrollbarWidth: "none", msOverflowStyle: "none"}}>
+        <div className="order-2 lg:order-1 lg:mt-10 w-full lg:w-1/3 max-w-2xl lg:max-h-[600px] overflow-auto" style={{scrollbarWidth: "none", msOverflowStyle: "none"}}>
           {loading && <p className="text-center text-gray-500">Searching...</p>}
           {!loading && searched && (
             <div className="space-y-4 overflow-auto scrollbar-hidden">
@@ -76,15 +76,15 @@ const TrackOrderPage = () => {
           )}
         </div>
       )}
-      <div>
-        <div className="mb-6 mt-10">
+      <div className="order-1 lg:order-2 w-full max-w-lg">
+        <div className="mb-6 mt-4 md:mt-10">
           <img
             src={OrderNestLogo}
             alt="OrderNest Logo"
             className="w-48 h-auto mx-auto"
           />
         </div>
-        <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-lg border-t-4 border-orange-500">
+        <div className="bg-white rounded-xl shadow-lg p-5 sm:p-8 w-full max-w-lg border-t-4 border-orange-500">
           <h2 className="text-2xl font-bold text-gray-800 mb-2 text-center">
             Track Your Order
           </h2>

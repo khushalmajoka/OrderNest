@@ -71,7 +71,8 @@ const resetOrders = async (req, res, next) => {
 
     // Reset both
     shop.totalOrderCount = 0;
-    shop.dailyOrderCounts.clear();
+    // A brand-new shop has no daily counts yet (nothing to clear)
+    if (shop.dailyOrderCounts) shop.dailyOrderCounts.clear();
 
     await shop.save();
 

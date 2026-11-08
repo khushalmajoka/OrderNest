@@ -1,5 +1,6 @@
 // models/Order.js
 const mongoose = require("mongoose");
+const ORDER_STATUSES = require("./orderStatuses");
 
 const orderSchema = new mongoose.Schema(
   {
@@ -39,16 +40,7 @@ const orderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: [
-        "Order Received",
-        "Pending",
-        "In Progress",
-        "Completed",
-        "Ready to Dispatch/Pick-Up",
-        "Dispatched",
-        "Delivered",
-        "Cancelled" 
-      ],
+      enum: ORDER_STATUSES,
       default: "Order Received",
     },
     orderExecutive: {

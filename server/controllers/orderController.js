@@ -1,5 +1,6 @@
 const Order = require("../models/Order");
 const reserveOrderIds = require("../utils/reserveOrderIds");
+const { checkOrderInput } = require("../utils/orderInput");
 
 const lastTenDigits = (value) =>
   String(value ?? "")
@@ -12,10 +13,10 @@ const lastTenDigits = (value) =>
 exports.trackOrder = async (req, res, next) => {
   try {
     const { orderId: rawOrderId, phone: rawPhone } = req.body || {};
-    const orderId = String(rawOrderId ?? "").trim().toUpperCase();
+    const typedId = String(rawOrderId ?? "").trim();
     const phone = lastTenDigits(rawPhone);
 
-    if (!orderId || phone.length !== 10) {
+    if (!typedId || phone.length !== 10) {
       return res
         .status(400)
         .json({ message: "Enter your Order ID and 10-digit phone number" });
@@ -23,7 +24,11 @@ exports.trackOrder = async (req, res, next) => {
 
     // Order IDs are only unique per shop, so several shops can match the ID;
     // the phone number then picks out the customer's own order(s).
-    const candidates = await Order.find({ orderId })
+    // IDs we generate are upper case, and uploaded IDs are stored upper case
+    // too; older uploads may still be in their original case, so try both.
+    const candidates = await Order.find({
+      orderId: { $in: [...new Set([typedId, typedId.toUpperCase()])] },
+    })
       .populate("shop", "name")
       .sort({ createdAt: -1 })
       .lean();
@@ -48,17 +53,10 @@ exports.trackOrder = async (req, res, next) => {
 
 exports.createOrder = async (req, res, next) => {
   try {
-    const {
-      item,
-      customerName,
-      phone,
-      total,
-      advance,
-      balance,
-      status,
-      orderExecutive,
-      expectedDeliveryDate,
-    } = req.body;
+    const { item, customerName, phone, status, orderExecutive } = req.body;
+
+    const checked = checkOrderInput(req.body);
+    if (checked.error) return res.status(400).json({ message: checked.error });
 
     // Shop and user always come from the logged-in user, never from the body
     const shop = req.shop;
@@ -76,12 +74,9 @@ exports.createOrder = async (req, res, next) => {
           item,
           customerName,
           phone,
-          total,
-          advance,
-          balance,
+          ...checked.values,
           status,
           orderExecutive,
-          expectedDeliveryDate,
         }).save();
       } catch (err) {
         // Lost a race for this exact ID: reserve the next number and retry
@@ -105,17 +100,10 @@ exports.createOrder = async (req, res, next) => {
 // @desc Update Order
 exports.updateOrder = async (req, res, next) => {
   try {
-    const {
-      customerName,
-      item,
-      phone,
-      total,
-      advance,
-      status,
-      orderExecutive,
-      expectedDeliveryDate,
-    } = req.body;
-    const balance = total - advance;
+    const { customerName, item, phone, status, orderExecutive } = req.body;
+
+    const checked = checkOrderInput(req.body);
+    if (checked.error) return res.status(400).json({ message: checked.error });
 
     // Only match an order that belongs to the caller's own shop
     const updatedOrder = await Order.findOneAndUpdate(
@@ -124,14 +112,11 @@ exports.updateOrder = async (req, res, next) => {
         customerName,
         item,
         phone,
-        total,
-        advance,
-        balance,
+        ...checked.values,
         status,
         orderExecutive,
-        expectedDeliveryDate,
       },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!updatedOrder) {
@@ -162,13 +147,31 @@ exports.deleteOrder = async (req, res, next) => {
   }
 };
 
+const MAX_BULK_ROWS = 2000;
+
 exports.bulkUploadOrders = async (req, res, next) => {
   try {
-    const { orders } = req.body;
+    const { orders: rows } = req.body;
     const userId = req.user.id;
     const shop = req.shop;
 
-    // ✅ Check DB-level duplicate orderIds (within this shop only)
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(400).json({ message: "No orders to upload." });
+    }
+    if (rows.length > MAX_BULK_ROWS) {
+      return res.status(400).json({
+        message: `Please upload at most ${MAX_BULK_ROWS} orders at a time.`,
+      });
+    }
+
+    // Typed IDs are tidied (spaces removed, upper case) so customers can track
+    // them whichever way they type the ID, and so the duplicate checks work.
+    const orders = rows.map((row) => {
+      const typedId = String(row?.orderId ?? "").trim().toUpperCase();
+      return { ...row, orderId: typedId || undefined };
+    });
+
+    // Check DB-level duplicate orderIds (within this shop only)
     const incomingOrderIds = orders.map((o) => o.orderId).filter(Boolean);
     const existingOrders = await Order.find({
       shop: shop._id,
@@ -178,8 +181,9 @@ exports.bulkUploadOrders = async (req, res, next) => {
 
     const errors = [];
 
-    // ✅ Track duplicate orderIds within Excel itself
+    // Track duplicate orderIds within Excel itself
     const seenOrderIds = new Set();
+    const cleanValues = [];
 
     orders.forEach((order, index) => {
       const rowNum = index + 2; // considering header row
@@ -187,6 +191,13 @@ exports.bulkUploadOrders = async (req, res, next) => {
       if (!order.item) {
         errors.push(`Row ${rowNum}: item is missing.`);
       }
+
+      // An empty total is allowed here and saved as 0
+      const checked = checkOrderInput(order, { totalRequired: false });
+      if (checked.error) {
+        errors.push(`Row ${rowNum}: ${checked.error}`);
+      }
+      cleanValues[index] = checked.values;
 
       if (order.orderId) {
         // Check in DB
@@ -208,10 +219,14 @@ exports.bulkUploadOrders = async (req, res, next) => {
     });
 
     if (errors.length > 0) {
-      return res.status(400).json({ message: "Validation failed", errors });
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: errors.slice(0, 20),
+        totalErrors: errors.length,
+      });
     }
 
-    // ✅ All clear — continue with upload
+    // All clear: continue with upload.
     // Reserve one block of numbers up front for every row without its own ID
     const missingIds = orders.filter((o) => !o.orderId).length;
     const generatedIds = missingIds
@@ -219,44 +234,17 @@ exports.bulkUploadOrders = async (req, res, next) => {
       : [];
     let nextGenerated = 0;
 
-    const newOrders = [];
-
-    for (const order of orders) {
-      let {
-        orderId,
-        customerName,
-        item,
-        phone,
-        total,
-        advance = 0,
-        status = "Order Received",
-        orderExecutive,
-        expectedDeliveryDate,
-      } = order;
-
-      if (!orderId) {
-        orderId = generatedIds[nextGenerated++];
-      }
-
-      const parsedTotal = isNaN(Number(total)) ? 0 : Number(total);
-      const parsedAdvance = isNaN(Number(advance)) ? 0 : Number(advance);
-      const balance = parsedTotal - parsedAdvance;
-
-      newOrders.push({
-        orderId,
-        shop: shop._id,
-        userId,
-        item,
-        customerName,
-        phone,
-        total: parsedTotal,
-        advance: parsedAdvance,
-        balance,
-        status,
-        orderExecutive,
-        expectedDeliveryDate,
-      });
-    }
+    const newOrders = orders.map((order, index) => ({
+      orderId: order.orderId || generatedIds[nextGenerated++],
+      shop: shop._id,
+      userId,
+      item: order.item,
+      customerName: order.customerName,
+      phone: order.phone,
+      ...cleanValues[index],
+      status: order.status || "Order Received",
+      orderExecutive: order.orderExecutive,
+    }));
 
     const insertedOrders = await Order.insertMany(newOrders);
 

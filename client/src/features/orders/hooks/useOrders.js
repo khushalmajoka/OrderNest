@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { getErrorMessage } from "../../../common/utils/api";
 
 // Loads one page of the shop's orders. The server does the paging, searching
 // and sorting, so only the rows on screen are ever downloaded.
@@ -17,7 +18,9 @@ export const useOrders = ({
   const [totalOrders, setTotalOrders] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState(false); // first response has arrived
+  const [error, setError] = useState(null); // why the last request failed
   const [refreshKey, setRefreshKey] = useState(0);
+  const loadedRef = useRef(false);
 
   // Ask for the current page again (after create / delete / bulk upload)
   const refetch = useCallback(() => setRefreshKey((key) => key + 1), []);
@@ -31,6 +34,7 @@ export const useOrders = ({
     const fetchOrders = async () => {
       try {
         setLoading(true);
+        setError(null);
         const token = localStorage.getItem("token");
 
         const response = await axios.get(
@@ -51,10 +55,15 @@ export const useOrders = ({
         setOrders(response.data.orders);
         setTotalOrders(response.data.totalOrders);
         setLoaded(true);
+        loadedRef.current = true;
       } catch (err) {
         if (axios.isCancel(err)) return;
         console.error("Error fetching orders:", err);
-        toast.error("Failed to load orders. Please try again.");
+        const message = getErrorMessage(err, "Failed to load orders.");
+        // First load: the dashboard shows the message with a "Try again"
+        // button. Later loads: keep the orders on screen and just tell the user.
+        setError(message);
+        if (loadedRef.current) toast.error(message);
       } finally {
         if (!controller.signal.aborted) setLoading(false);
       }
@@ -64,5 +73,5 @@ export const useOrders = ({
     return () => controller.abort();
   }, [shopId, page, limit, search, sortField, sortOrder, refreshKey]);
 
-  return { orders, setOrders, totalOrders, loading, loaded, refetch };
+  return { orders, setOrders, totalOrders, loading, loaded, error, refetch };
 };

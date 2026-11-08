@@ -6,9 +6,13 @@ import Navbar from "../components/Navbar";
 import SettingCard from "../components/SettingCard";
 import ConfirmResetModal from "../../../common/components/ConfirmResetModal";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
+import { useShop } from "../hooks/useShop";
+import { getErrorMessage } from "../../../common/utils/api";
+import loadingGif from "../../../assets/Loading.gif";
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { shop, error, reload } = useShop();
   const [showModal, setShowModal] = useState(false);
 
   const handleLogout = () => {
@@ -28,16 +32,35 @@ const Settings = () => {
       toast.success("Total order count reset successfully!");
       setShowModal(false);
     } catch (err) {
-      toast.error("Failed to reset orders.");
+      toast.error(getErrorMessage(err, "Failed to reset orders."));
     }
   };
 
+  if (!shop && error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-orange-50 font-poppins px-4 text-center">
+        <p className="text-gray-700">{error}</p>
+        <button
+          onClick={reload}
+          className="px-5 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
+
+  if (!shop) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#FACFBC] font-poppins">
+        <img src={loadingGif} alt="loading" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-orange-50 font-poppins">
-      <Navbar
-        shop={JSON.parse(localStorage.getItem("shop"))}
-        onLogout={handleLogout}
-      />
+      <Navbar shop={shop} onLogout={handleLogout} />
 
       <div className="p-4 md:p-8 space-y-6">
         <h1 className="text-2xl font-bold text-orange-700 mb-6">Settings</h1>

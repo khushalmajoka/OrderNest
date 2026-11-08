@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { SHOP_CATEGORIES } from "../constants";
 import { getShopLogo } from "../../../common/utils/utils";
+import { getErrorMessage } from "../../../common/utils/api";
+import { shrinkLogo } from "../utils/shrinkLogo";
 
 const Onboarding = () => {
   const [formData, setFormData] = useState({
@@ -22,16 +24,16 @@ const Onboarding = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    const reader = new FileReader();
+    if (!file) return;
 
-    reader.onloadend = () => {
-      setFormData({ ...formData, logo: reader.result });
-    };
-
-    if (file) {
-      reader.readAsDataURL(file);
+    try {
+      // Phone photos are huge; a small copy is all the app needs
+      const logo = await shrinkLogo(file);
+      setFormData((prev) => ({ ...prev, logo }));
+    } catch {
+      toast.error("Could not use this picture. Please choose another image.");
     }
   };
 
@@ -62,7 +64,7 @@ const Onboarding = () => {
         navigate("/shop/dashboard");
       }
     } catch (err) {
-      toast.error("Failed to setup shop");
+      toast.error(getErrorMessage(err, "Failed to setup shop"));
       console.error(err);
     } finally {
       setLoading(false);

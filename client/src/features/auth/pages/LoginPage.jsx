@@ -55,11 +55,11 @@ const Login = () => {
           navigate("/shop/dashboard");
         }
       } else {
-        toast.error(data.message || "Login failed");
+        toast.error(data.error || data.message || "Login failed");
       }
     } catch (err) {
       console.error(err);
-      toast.error("Something went wrong");
+      toast.error("Can't reach the server. Check your internet and try again.");
     } finally {
       setLoading(false);
     }

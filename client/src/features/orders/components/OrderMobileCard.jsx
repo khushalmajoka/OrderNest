@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Pencil, Share2, Trash2 } from "lucide-react";
 import moment from "moment";
-import ShareModal from "../../../common/components/ShareModal";
-import OrderCard from "../../../common/components/OrderCard";
+import OrderShareDialog from "./OrderShareDialog";
 import { useOrderShare } from "../hooks/useOrderShare";
+import { deliveryCountdown } from "../../../common/utils/dateUtils";
 
 // One order as a card, for phone screens (the table is too wide there).
 const OrderMobileCard = ({
@@ -18,17 +18,10 @@ const OrderMobileCard = ({
     useOrderShare(order);
   const [showMore, setShowMore] = useState(false);
 
-  const daysLeft = order.expectedDeliveryDate
-    ? Math.max(moment(order.expectedDeliveryDate).diff(moment(), "days"), 0)
-    : null;
+  const countdown = deliveryCountdown(order.expectedDeliveryDate, order.status);
 
   return (
     <div className="bg-white rounded-lg shadow border border-orange-100 p-4 text-sm">
-      {/* Hidden card used to make the shareable image */}
-      <div className="absolute -left-[9999px]">
-        <OrderCard ref={cardRef} order={order} shop={shop} />
-      </div>
-
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs text-gray-500">Order ID</p>
@@ -74,9 +67,19 @@ const OrderMobileCard = ({
       <div className="mt-3 text-gray-600 space-y-1">
         <p>
           <strong>Delivery:</strong>{" "}
-          {order.expectedDeliveryDate
-            ? `${moment(order.expectedDeliveryDate).format("DD MMM YYYY")} (${daysLeft} days)`
-            : "-"}
+          {order.expectedDeliveryDate ? (
+            <>
+              {moment(order.expectedDeliveryDate).format("DD MMM YYYY")}
+              {countdown.text !== "-" && (
+                <span className={countdown.late ? "text-red-600 font-medium" : ""}>
+                  {" "}
+                  ({countdown.text})
+                </span>
+              )}
+            </>
+          ) : (
+            "-"
+          )}
         </p>
         <p>
           <strong>Executive:</strong> {order.orderExecutive || "-"}
@@ -131,8 +134,11 @@ const OrderMobileCard = ({
         </button>
       </div>
 
-      <ShareModal
+      <OrderShareDialog
         isOpen={isShareOpen}
+        order={order}
+        shop={shop}
+        cardRef={cardRef}
         onClose={() => setIsShareOpen(false)}
         onShare={handleShare}
       />

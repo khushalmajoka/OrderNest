@@ -51,11 +51,11 @@ const SignupPage = () => {
         toast.success("Registration successful!");
         navigate("/shop");
       } else {
-        toast.error(data.message || "Registration failed!");
+        toast.error(data.error || data.message || "Registration failed!");
       }
     } catch (error) {
       console.error("Error during registration:", error);
-      toast.error("Something went wrong. Please try again.");
+      toast.error("Can't reach the server. Check your internet and try again.");
     } finally {
       setLoading(false);
     }
@@ -96,10 +96,11 @@ const SignupPage = () => {
         <input
           type="password"
           name="password"
-          placeholder="Password"
+          placeholder="Password (at least 8 characters)"
           value={form.password}
           onChange={handleChange}
           required
+          minLength={8}
           className="w-full px-4 py-2 border mb-4 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
         />
         <input

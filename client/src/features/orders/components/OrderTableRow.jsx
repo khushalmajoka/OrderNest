@@ -1,9 +1,9 @@
 import { Pencil, Share2, Trash2 } from "lucide-react";
 import moment from "moment";
 import { motion, AnimatePresence } from "framer-motion";
-import ShareModal from "../../../common/components/ShareModal";
-import OrderCard from "../../../common/components/OrderCard";
+import OrderShareDialog from "./OrderShareDialog";
 import { useOrderShare } from "../hooks/useOrderShare";
+import { deliveryCountdown } from "../../../common/utils/dateUtils";
 
 const OrderTableRow = ({
   order,
@@ -19,14 +19,10 @@ const OrderTableRow = ({
     useOrderShare(order);
 
   const isExpanded = activeOrderId === order._id;
+  const countdown = deliveryCountdown(order.expectedDeliveryDate, order.status);
 
   return (
     <>
-      {/* Hidden card for screenshot */}
-      <div className="absolute -left-[9999px]">
-        <OrderCard ref={cardRef} order={order} shop={shop} />
-      </div>
-
       <motion.tr
         layout
         key={order._id}
@@ -51,13 +47,10 @@ const OrderTableRow = ({
             ? moment(order.expectedDeliveryDate).format("DD MMM YYYY")
             : "-"}
         </td>
-        <td className="px-4 py-2">
-          {order.expectedDeliveryDate
-            ? Math.max(
-                moment(order.expectedDeliveryDate).diff(moment(), "days"),
-                0
-              ) + " days"
-            : "-"}
+        <td
+          className={`px-4 py-2 ${countdown.late ? "text-red-600 font-medium" : ""}`}
+        >
+          {countdown.text}
         </td>
         <td className="px-4 py-2">{order.orderExecutive}</td>
         <td className="absolute right-0 group-hover:bg-orange-50 px-4 py-2 shadow-left rounded-md">
@@ -121,9 +114,11 @@ const OrderTableRow = ({
         )}
       </AnimatePresence>
 
-      {/* Share Modal */}
-      <ShareModal
+      <OrderShareDialog
         isOpen={isShareOpen}
+        order={order}
+        shop={shop}
+        cardRef={cardRef}
         onClose={() => setIsShareOpen(false)}
         onShare={handleShare}
       />

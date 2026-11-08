@@ -21,10 +21,11 @@ import {
   clearSession,
 } from "../../whatsNew/whatsNewStorage";
 import axios from "axios";
+import { getErrorMessage } from "../../../common/utils/api";
+import { mapExcelRow } from "../utils/excelImport";
 
 const Dashboard = () => {
-  const shop = useShop();
-  if (shop) localStorage.setItem("shop", JSON.stringify(shop));
+  const { shop, error: shopError, reload: reloadShop } = useShop();
   const navigate = useNavigate();
 
   const [searchInput, setSearchInput] = useState(""); // what is typed
@@ -45,15 +46,22 @@ const Dashboard = () => {
   const [sortField, setSortField] = useState(null);
   const [sortOrder, setSortOrder] = useState("asc");
 
-  const { orders, setOrders, totalOrders, loading, loaded, refetch } =
-    useOrders({
-      shopId: shop?._id,
-      page: currentPage,
-      limit: ordersPerPage,
-      search,
-      sortField,
-      sortOrder,
-    });
+  const {
+    orders,
+    setOrders,
+    totalOrders,
+    loading,
+    loaded,
+    error: ordersError,
+    refetch,
+  } = useOrders({
+    shopId: shop?._id,
+    page: currentPage,
+    limit: ordersPerPage,
+    search,
+    sortField,
+    sortOrder,
+  });
 
   // Wait for a pause in typing, then search the whole list from page 1
   useEffect(() => {
@@ -123,36 +131,40 @@ const Dashboard = () => {
     setShowMappingModal(false);
     setBulkUploading(true);
     try {
-      const mappedOrders = excelData.map((row) => {
-        const mapped = {};
-        for (const [excelKey, field] of Object.entries(fieldMap)) {
-          let value = row[excelKey];
-          if (["advance", "balance", "price", "quantity"].includes(field)) {
-            value = typeof value === "string" ? value.replace(/,/g, "") : value;
-            value = Number(value);
-          }
-          mapped[field] = value;
-        }
-        return mapped;
-      });
+      const mappedOrders = excelData.map((row) => mapExcelRow(row, fieldMap));
 
       const token = localStorage.getItem("token");
-      const shopId = localStorage.getItem("shopId");
 
       const res = await axios.post(
         `${process.env.REACT_APP_BASE_URL}/api/orders/bulk-upload`,
-        { orders: mappedOrders, shopId },
+        { orders: mappedOrders },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       showFirstPageAgain();
       toast.success(`${res.data.insertedOrders.length} orders uploaded.`);
     } catch (err) {
-      toast.error("Bulk upload failed.");
+      toast.error(getErrorMessage(err, "Bulk upload failed."), {
+        duration: 9000,
+      });
     } finally {
       setBulkUploading(false);
     }
   };
+
+  if (!shop && shopError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-orange-50 font-poppins px-4 text-center">
+        <p className="text-gray-700">{shopError}</p>
+        <button
+          onClick={reloadShop}
+          className="px-5 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   if (!shop) {
     return (
@@ -184,7 +196,17 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {!loaded ? (
+        {!loaded && ordersError ? (
+          <div className="flex flex-col items-center gap-3 py-10 text-center">
+            <p className="text-gray-700">{ordersError}</p>
+            <button
+              onClick={refetch}
+              className="px-5 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
+            >
+              Try again
+            </button>
+          </div>
+        ) : !loaded ? (
           <div className="flex justify-center py-10">
             <div className="w-8 h-8 border-4 border-orange-500 border-dashed rounded-full animate-spin"></div>
           </div>

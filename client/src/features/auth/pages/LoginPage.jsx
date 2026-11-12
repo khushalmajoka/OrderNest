@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OrderNestLogo from "../../../assets/OrderNestLogoWithoutBg.png";
 import toast from "react-hot-toast";
+import PasswordInput from "../../../common/components/PasswordInput";
 
 const Login = () => {
   const [form, setForm] = useState({
@@ -109,8 +110,7 @@ const Login = () => {
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
-            <input
-              type="password"
+            <PasswordInput
               name="password"
               value={form.password}
               onChange={handleChange}

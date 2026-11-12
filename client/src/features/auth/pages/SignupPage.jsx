@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import OrderNestLogo from "../../../assets/OrderNestLogoWithoutBg.png";
 import toast from "react-hot-toast";
+import PasswordInput from "../../../common/components/PasswordInput";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -100,8 +101,7 @@ const SignupPage = () => {
           required
           className="w-full px-4 py-2 border mb-4 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
         />
-        <input
-          type="password"
+        <PasswordInput
           name="password"
           placeholder="Password (at least 8 characters)"
           value={form.password}
@@ -110,8 +110,7 @@ const SignupPage = () => {
           minLength={8}
           className="w-full px-4 py-2 border mb-4 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-400"
         />
-        <input
-          type="password"
+        <PasswordInput
           name="confirmPassword"
           placeholder="Confirm Password"
           value={form.confirmPassword}

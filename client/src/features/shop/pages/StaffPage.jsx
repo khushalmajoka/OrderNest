@@ -7,6 +7,7 @@ import loadingGif from "../../../assets/Loading.gif";
 import { useShop } from "../hooks/useShop";
 import { getErrorMessage } from "../../../common/utils/api";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
+import PasswordInput from "../../../common/components/PasswordInput";
 
 // Viewing orders is always allowed; these are the extras the admin can give.
 const POWERS = [
@@ -46,15 +47,20 @@ const PowerBoxes = ({ value, onChange, disabled }) => (
 
 // ---- Add a new staff member
 const AddStaffForm = ({ onAdded }) => {
-  const empty = { name: "", username: "", password: "", permissions: {} };
+  const empty = { name: "", username: "", password: "", confirm: "", permissions: {} };
   const [form, setForm] = useState(empty);
   const [busy, setBusy] = useState(false);
 
   const submit = async (e) => {
     e.preventDefault();
+    if (form.password !== form.confirm) {
+      toast.error("The two passwords do not match.");
+      return;
+    }
     setBusy(true);
     try {
-      await api("post", "", form);
+      const { confirm, ...staff } = form; // the server does not need the second copy
+      await api("post", "", staff);
       toast.success("Staff member added.");
       setForm(empty);
       onAdded();
@@ -83,14 +89,22 @@ const AddStaffForm = ({ onAdded }) => {
         onChange={(e) => setForm({ ...form, username: e.target.value })}
         className={inputClass}
       />
-      <input
-        type="password"
+      <PasswordInput
         placeholder="Password (at least 8 characters)"
         required
         minLength={8}
         autoComplete="new-password"
         value={form.password}
         onChange={(e) => setForm({ ...form, password: e.target.value })}
+        className={inputClass}
+      />
+      <PasswordInput
+        placeholder="Password again"
+        required
+        minLength={8}
+        autoComplete="new-password"
+        value={form.confirm}
+        onChange={(e) => setForm({ ...form, confirm: e.target.value })}
         className={inputClass}
       />
       <div>
@@ -117,6 +131,7 @@ const AddStaffForm = ({ onAdded }) => {
 const StaffCard = ({ member, onChanged }) => {
   const [busy, setBusy] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [newPasswordAgain, setNewPasswordAgain] = useState("");
   const [showReset, setShowReset] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -237,21 +252,31 @@ const StaffCard = ({ member, onChanged }) => {
 
       {showReset && (
         <div className="space-y-2">
-          <input
-            type="password"
+          <PasswordInput
             placeholder="New password (at least 8 characters)"
             autoComplete="new-password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             className={inputClass}
           />
+          <PasswordInput
+            placeholder="New password again"
+            autoComplete="new-password"
+            value={newPasswordAgain}
+            onChange={(e) => setNewPasswordAgain(e.target.value)}
+            className={inputClass}
+          />
+          {newPasswordAgain !== "" && newPassword !== newPasswordAgain && (
+            <p className="text-xs text-red-600">The two passwords do not match.</p>
+          )}
           <div className="flex gap-2">
             <button
-              disabled={busy || newPassword.length < 8}
+              disabled={busy || newPassword.length < 8 || newPassword !== newPasswordAgain}
               onClick={() =>
                 run(async () => {
                   await api("put", `/${member._id}/password`, { password: newPassword });
                   setNewPassword("");
+                  setNewPasswordAgain("");
                   setShowReset(false);
                 }, "New password saved. Tell it to the staff member.")
               }
@@ -263,6 +288,7 @@ const StaffCard = ({ member, onChanged }) => {
               onClick={() => {
                 setShowReset(false);
                 setNewPassword("");
+                setNewPasswordAgain("");
               }}
               className="flex-1 py-2 rounded-md border text-sm"
             >

@@ -137,6 +137,7 @@ const OrderList = ({
           <table className="bg-white rounded-lg shadow-md text-left w-full">
             <OrderTableHeader
               columns={rowColumns}
+              showActions={access.edit || access.delete || access.share}
               setSortField={setSortField}
               setSortOrder={setSortOrder}
               sortField={sortField}

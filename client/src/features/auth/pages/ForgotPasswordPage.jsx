@@ -4,6 +4,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import OrderNestLogo from "../../../assets/OrderNestLogoWithoutBg.png";
 import { getErrorMessage } from "../../../common/utils/api";
+import PasswordInput from "../../../common/components/PasswordInput";
 
 const RESEND_SECONDS = 60;
 const inputClass =
@@ -118,8 +119,7 @@ const ForgotPasswordPage = () => {
               onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
               className={`${inputClass} tracking-widest text-center text-lg`}
             />
-            <input
-              type="password"
+            <PasswordInput
               required
               minLength={8}
               autoComplete="new-password"
@@ -128,8 +128,7 @@ const ForgotPasswordPage = () => {
               onChange={(e) => setPassword(e.target.value)}
               className={inputClass}
             />
-            <input
-              type="password"
+            <PasswordInput
               required
               minLength={8}
               autoComplete="new-password"

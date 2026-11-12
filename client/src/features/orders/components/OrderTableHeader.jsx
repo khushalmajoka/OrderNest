@@ -2,6 +2,7 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 
 const OrderTableHeader = ({
   columns,
+  showActions,
   sortField,
   sortOrder,
   setSortField,
@@ -28,7 +29,7 @@ const OrderTableHeader = ({
           column.sort ? (
             <th
               key={column.key}
-              className="px-3 py-3 cursor-pointer select-none"
+              className="px-2 py-3 cursor-pointer select-none"
               onClick={() => handleSort(column.sort)}
             >
               <div className="flex items-center gap-2">
@@ -40,10 +41,15 @@ const OrderTableHeader = ({
               </div>
             </th>
           ) : (
-            <th key={column.key} className="px-3 py-3">
+            <th key={column.key} className="px-2 py-3">
               {column.label}
             </th>
           )
+        )}
+        {showActions && (
+          <th className="px-2 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">
+            Actions
+          </th>
         )}
       </tr>
     </thead>

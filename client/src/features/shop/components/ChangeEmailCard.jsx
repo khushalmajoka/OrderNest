@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "../../../common/utils/api";
+import PasswordInput from "../../../common/components/PasswordInput";
 
 const inputClass =
   "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400";
@@ -71,8 +72,7 @@ const ChangeEmailCard = ({ email, onChanged }) => {
             onChange={(e) => setNewEmail(e.target.value)}
             className={inputClass}
           />
-          <input
-            type="password"
+          <PasswordInput
             required
             autoComplete="current-password"
             placeholder="Your password"

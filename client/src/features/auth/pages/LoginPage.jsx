@@ -54,6 +54,12 @@ const Login = () => {
         } else {
           navigate("/shop/dashboard");
         }
+      } else if (data.code === "EMAIL_NOT_VERIFIED") {
+        // Signed up but never typed the emailed code
+        toast("Please confirm your email first.");
+        navigate("/shop/verify-email", {
+          state: { email: form.identifier.trim() },
+        });
       } else {
         toast.error(data.error || data.message || "Login failed");
       }

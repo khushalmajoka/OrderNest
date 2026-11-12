@@ -1,5 +1,14 @@
 const mongoose = require("mongoose");
 
+const codeFields = {
+  hash: String,
+  expiresAt: Date,
+  attempts: { type: Number, default: 0 },
+  sentAt: Date,
+  kind: String,
+  newEmail: String, // only for "change email": the address being confirmed
+};
+
 const UserSchema = new mongoose.Schema({
   name: { type: String, required: true },
   // Admins log in with this. Staff get a made-up one (username@staff.invalid)
@@ -35,13 +44,13 @@ const UserSchema = new mongoose.Schema({
     requestedAt: Date,
     approvedUntil: Date,
   },
-  // Admin forgot-password: only a fingerprint of the emailed code is kept
-  resetCode: {
-    hash: String,
-    expiresAt: Date,
-    attempts: { type: Number, default: 0 },
-    sentAt: Date,
-  },
+  // Emailed codes (see utils/emailCodes.js). Only a fingerprint is kept.
+  resetCode: { ...codeFields }, // forgot password
+  emailCode: { ...codeFields }, // confirming an email: at sign-up, or a new address
+
+  // False only for a new sign-up that has not typed its emailed code yet.
+  // Accounts from before this existed count as confirmed.
+  emailVerified: { type: Boolean, default: true },
   // Logins made before this moment stop working (set when a password changes)
   passwordChangedAt: Date,
 });

@@ -8,6 +8,7 @@ import LoginPage from "./features/auth/pages/LoginPage";
 import DashboardPage from "./features/orders/pages/DashboardPage";
 import SignupPage from "./features/auth/pages/SignupPage";
 import ForgotPasswordPage from "./features/auth/pages/ForgotPasswordPage";
+import VerifyEmailPage from "./features/auth/pages/VerifyEmailPage";
 import Onboarding from "./features/shop/pages/Onboarding";
 import TrackOrderPage from "./features/tracking/pages/TrackOrderPage";
 import { Toaster } from "react-hot-toast";
@@ -30,6 +31,7 @@ function App() {
           <Route path="/shop" element={<LoginPage />} />
           <Route path="/shop/signup" element={<SignupPage />} />
           <Route path="/shop/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/shop/verify-email" element={<VerifyEmailPage />} />
           <Route path="/shop/dashboard" element={<DashboardPage />} />
           <Route path="/shop/onboarding" element={<Onboarding />} />
           <Route path="/shop/settings" element={<Settings />} />

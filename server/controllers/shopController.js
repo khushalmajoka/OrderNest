@@ -62,10 +62,10 @@ const getShopByUserId = async (req, res, next) => {
     if (!shop) return res.status(404).json({ error: "Shop not found" });
 
     // `account` tells the screen what this person may do
-    const { id, role, name, username, permissions, passwordChange } = req.account;
+    const { id, role, name, email, username, permissions, passwordChange } = req.account;
     res.status(200).json({
       shop,
-      account: { id, role, name, username, permissions, passwordChange },
+      account: { id, role, name, email, username, permissions, passwordChange },
     });
   } catch (error) {
     return next(error);

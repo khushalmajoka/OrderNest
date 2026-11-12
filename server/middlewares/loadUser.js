@@ -32,6 +32,7 @@ const loadUser = async (req, res, next) => {
       id: String(user._id),
       role,
       name: user.name,
+      email: role === "admin" ? user.email : undefined,
       username: user.username,
       shopId: user.shopId,
       permissions: user.permissions ? user.permissions.toObject() : {},

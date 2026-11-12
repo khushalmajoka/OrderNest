@@ -1,8 +1,8 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
 const generateToken = require("../utils/generateToken");
 const { sendMail, isMailConfigured } = require("../utils/mailer");
+const { issueCode, checkCode, CODE_MINUTES } = require("../utils/emailCodes");
 
 // Only these fields are ever sent to the client (never the password hash)
 const toPublicUser = (user) => {
@@ -32,6 +32,37 @@ const DUMMY_HASH = bcrypt.hashSync("not-a-real-password", 10);
 const cleanEmail = (value) =>
   typeof value === "string" ? value.trim().toLowerCase() : "";
 
+const passwordProblem = (password) =>
+  typeof password !== "string" ||
+  password.length < MIN_PASSWORD ||
+  password.length > MAX_PASSWORD
+    ? `Password must be ${MIN_PASSWORD} to ${MAX_PASSWORD} characters.`
+    : null;
+
+const NO_MAIL = {
+  error: "Email is not set up yet, so a code cannot be sent. Please contact support.",
+};
+const WRONG_CODE = {
+  error: "That code is not right or has expired. Please ask for a new one.",
+};
+
+// New sign-ups must confirm their email. (REQUIRE_EMAIL_VERIFICATION=false
+// switches this off; meant for local testing only.)
+const needsVerification = () => process.env.REQUIRE_EMAIL_VERIFICATION !== "false";
+
+// Sends a code without making the person wait (and without telling anyone
+// whether it worked: a failed send is only logged).
+const mailCode = (to, subject, intro, code) =>
+  sendMail({
+    to,
+    subject,
+    text:
+      `${intro}\n\nYour OrderNest code is ${code}\n\n` +
+      `It works for ${CODE_MINUTES} minutes. If you did not ask for this, ignore this email.`,
+  }).catch((err) => console.error("Could not send the email:", err.message));
+
+// ---------- Sign-up and login ----------
+
 const register = async (req, res, next) => {
   const { name, password } = req.body || {};
   const email = cleanEmail(req.body?.email);
@@ -43,28 +74,45 @@ const register = async (req, res, next) => {
     if (!EMAIL_PATTERN.test(email)) {
       return res.status(400).json({ error: "Please enter a valid email." });
     }
-    if (
-      typeof password !== "string" ||
-      password.length < MIN_PASSWORD ||
-      password.length > MAX_PASSWORD
-    ) {
-      return res.status(400).json({
-        error: `Password must be ${MIN_PASSWORD} to ${MAX_PASSWORD} characters.`,
+    const problem = passwordProblem(password);
+    if (problem) return res.status(400).json({ error: problem });
+
+    const verify = needsVerification();
+    if (verify && !isMailConfigured()) {
+      return res.status(503).json({
+        error: "Sign-up is not available right now (email is not set up yet). Please contact support.",
       });
     }
 
-    const existing = await User.findOne({ email }).collation(CASE_INSENSITIVE);
-    if (existing)
-      return res.status(400).json({ error: "Email already registered" });
-
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = await User.create({
-      name: name.trim(),
-      email,
-      password: hashedPassword,
-    });
+    let user = await User.findOne({ email }).collation(CASE_INSENSITIVE);
 
-    res.status(201).json({ user: toPublicUser(user) });
+    if (user && !(verify && user.emailVerified === false)) {
+      return res.status(400).json({ error: "Email already registered" });
+    }
+
+    if (user) {
+      // Signed up before but never confirmed (maybe a typo or a lost email):
+      // such an account holds no data, so let them start again.
+      user.name = name.trim();
+      user.password = hashedPassword;
+    } else {
+      user = new User({
+        name: name.trim(),
+        email,
+        password: hashedPassword,
+        emailVerified: !verify,
+      });
+    }
+
+    const code = verify ? issueCode(user, "emailCode", "verify") : null;
+    await user.save();
+
+    if (code) {
+      mailCode(user.email, "Confirm your OrderNest email", "Welcome to OrderNest!", code);
+    }
+
+    res.status(201).json({ user: toPublicUser(user), needsVerification: verify });
   } catch (err) {
     // Two sign-ups with the same email at the same moment
     if (err.code === 11000) {
@@ -109,6 +157,13 @@ const login = async (req, res, next) => {
         .json({ error: "Your account is turned off. Please ask your admin." });
     }
 
+    if (user.emailVerified === false) {
+      return res.status(403).json({
+        code: "EMAIL_NOT_VERIFIED",
+        error: "Please confirm your email first.",
+      });
+    }
+
     const token = generateToken(user._id);
 
     res.status(200).json({ user: toPublicUser(user), token });
@@ -117,29 +172,134 @@ const login = async (req, res, next) => {
   }
 };
 
-// ---------- Forgot password (admins, by emailed code) ----------
+// ---------- Confirm the email after sign-up ----------
 
-const CODE_MINUTES = 10;
-const RESEND_SECONDS = 60;
-const MAX_CODE_TRIES = 5;
+// POST /api/auth/verify-email   { email, code }
+const verifyEmail = async (req, res, next) => {
+  const email = cleanEmail(req.body?.email);
+  try {
+    const user = EMAIL_PATTERN.test(email)
+      ? await User.findOne({ email, emailVerified: false }).collation(CASE_INSENSITIVE)
+      : null;
+    if (!user) return res.status(400).json(WRONG_CODE);
 
-// Only a fingerprint of the code is stored, tied to the account
-const fingerprint = (code, userId) =>
-  crypto
-    .createHmac("sha256", process.env.JWT_SECRET)
-    .update(`${userId}:${code}`)
-    .digest("hex");
+    const ok = checkCode(user, "emailCode", "verify", req.body?.code);
+    if (!ok) {
+      await user.save();
+      return res.status(400).json(WRONG_CODE);
+    }
 
-const sameText = (a, b) => {
-  const x = Buffer.from(a);
-  const y = Buffer.from(b);
-  return x.length === y.length && crypto.timingSafeEqual(x, y);
+    user.emailVerified = true;
+    user.emailCode = undefined;
+    await user.save();
+    res.status(200).json({ message: "Email confirmed. You can login now." });
+  } catch (err) {
+    return next(err);
+  }
 };
+
+// POST /api/auth/resend-verification   { email }
+// Same answer whether or not there is a waiting account.
+const resendVerification = async (req, res, next) => {
+  const email = cleanEmail(req.body?.email);
+  try {
+    if (!EMAIL_PATTERN.test(email)) {
+      return res.status(400).json({ error: "Please enter a valid email." });
+    }
+    if (!isMailConfigured()) return res.status(503).json(NO_MAIL);
+
+    res.status(200).json({
+      message: `If this email is waiting to be confirmed, we sent a new 6-digit code. It works for ${CODE_MINUTES} minutes.`,
+    });
+
+    const user = await User.findOne({ email, emailVerified: false }).collation(CASE_INSENSITIVE);
+    if (!user) return;
+    const code = issueCode(user, "emailCode", "verify");
+    if (!code) return; // asked again too soon
+    await user.save();
+    mailCode(user.email, "Confirm your OrderNest email", "Welcome to OrderNest!", code);
+  } catch (err) {
+    console.error("Resend verification failed:", err.message);
+  }
+};
+
+// ---------- Change the email (logged-in admin) ----------
+
+// POST /api/auth/change-email/request   { newEmail, password }
+// The code goes to the NEW address, so only someone who can read it can use it.
+const requestEmailChange = async (req, res, next) => {
+  const newEmail = cleanEmail(req.body?.newEmail);
+  try {
+    if (!EMAIL_PATTERN.test(newEmail)) {
+      return res.status(400).json({ error: "Please enter a valid email." });
+    }
+    if (!isMailConfigured()) return res.status(503).json(NO_MAIL);
+
+    const user = await User.findById(req.account.id).select("+password");
+    if (
+      typeof req.body?.password !== "string" ||
+      !(await bcrypt.compare(req.body.password, user.password))
+    ) {
+      return res.status(400).json({ error: "Your password is not right." });
+    }
+    if (newEmail === user.email.toLowerCase()) {
+      return res.status(400).json({ error: "This is already your email." });
+    }
+    if (await User.exists({ email: newEmail }).collation(CASE_INSENSITIVE)) {
+      return res.status(400).json({ error: "This email is already used by another account." });
+    }
+
+    const code = issueCode(user, "emailCode", "change", { newEmail });
+    if (!code) {
+      return res
+        .status(400)
+        .json({ error: "A code was just sent. Please wait a minute before asking again." });
+    }
+    await user.save();
+
+    mailCode(newEmail, "Confirm your new OrderNest email", "You asked to change your OrderNest email.", code);
+    res.status(200).json({
+      message: `We sent a 6-digit code to ${newEmail}. It works for ${CODE_MINUTES} minutes.`,
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+// POST /api/auth/change-email/confirm   { code }
+const confirmEmailChange = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.account.id);
+    const newEmail = user.emailCode?.newEmail;
+
+    if (!newEmail || !checkCode(user, "emailCode", "change", req.body?.code)) {
+      await user.save();
+      return res.status(400).json(WRONG_CODE);
+    }
+
+    // Someone may have taken it in the meantime
+    if (await User.exists({ email: newEmail, _id: { $ne: user._id } }).collation(CASE_INSENSITIVE)) {
+      return res.status(400).json({ error: "This email is already used by another account." });
+    }
+
+    user.email = newEmail;
+    user.emailVerified = true;
+    user.emailCode = undefined;
+    await user.save();
+    res.status(200).json({ email: user.email, message: "Your email was changed." });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ error: "This email is already used by another account." });
+    }
+    return next(err);
+  }
+};
+
+// ---------- Forgot password (admins, by emailed code) ----------
 
 // Staff have no real email: they ask their admin to set a new password.
 const findAdminByEmail = (email) =>
-  User.findOne({ email, role: { $ne: "staff" } })
-    .collation(CASE_INSENSITIVE);
+  User.findOne({ email, role: { $ne: "staff" } }).collation(CASE_INSENSITIVE);
 
 // POST /api/auth/forgot-password   { email }
 // The answer is the same whether or not the email has an account, and it is
@@ -151,11 +311,7 @@ const forgotPassword = async (req, res, next) => {
     if (!EMAIL_PATTERN.test(email)) {
       return res.status(400).json({ error: "Please enter a valid email." });
     }
-    if (!isMailConfigured()) {
-      return res.status(503).json({
-        error: "Email is not set up yet, so a code cannot be sent. Please contact support.",
-      });
-    }
+    if (!isMailConfigured()) return res.status(503).json(NO_MAIL);
 
     const reply = () =>
       res.status(200).json({
@@ -163,29 +319,15 @@ const forgotPassword = async (req, res, next) => {
       });
 
     const user = await findAdminByEmail(email);
-    const sentAt = user?.resetCode?.sentAt;
-    if (!user || (sentAt && Date.now() - sentAt.getTime() < RESEND_SECONDS * 1000)) {
-      return reply(); // unknown email, or asked again too soon: same answer, nothing sent
-    }
+    const code = user && user.emailVerified !== false
+      ? issueCode(user, "resetCode", "reset")
+      : null;
+    if (!code) return reply(); // unknown email, or asked again too soon: same answer, nothing sent
 
-    const code = String(crypto.randomInt(0, 1000000)).padStart(6, "0");
-    user.resetCode = {
-      hash: fingerprint(code, user._id),
-      expiresAt: new Date(Date.now() + CODE_MINUTES * 60 * 1000),
-      attempts: 0,
-      sentAt: new Date(),
-    };
     await user.save();
-
     reply();
 
-    sendMail({
-      to: user.email,
-      subject: "Your OrderNest password code",
-      text:
-        `Your OrderNest code is ${code}\n\n` +
-        `It works for ${CODE_MINUTES} minutes. If you did not ask to reset your password, ignore this email.`,
-    }).catch((err) => console.error("Could not send the reset email:", err.message));
+    mailCode(user.email, "Your OrderNest password code", "You asked to reset your OrderNest password.", code);
   } catch (err) {
     return next(err);
   }
@@ -195,39 +337,20 @@ const forgotPassword = async (req, res, next) => {
 const resetPassword = async (req, res, next) => {
   const email = cleanEmail(req.body?.email);
   const { code, newPassword } = req.body || {};
-  const wrong = { error: "That code is not right or has expired. Please ask for a new one." };
 
   try {
     if (!EMAIL_PATTERN.test(email) || typeof code !== "string" || !/^\d{6}$/.test(code.trim())) {
-      return res.status(400).json(wrong);
+      return res.status(400).json(WRONG_CODE);
     }
-    if (
-      typeof newPassword !== "string" ||
-      newPassword.length < MIN_PASSWORD ||
-      newPassword.length > MAX_PASSWORD
-    ) {
-      return res.status(400).json({
-        error: `Password must be ${MIN_PASSWORD} to ${MAX_PASSWORD} characters.`,
-      });
-    }
+    const problem = passwordProblem(newPassword);
+    if (problem) return res.status(400).json({ error: problem });
 
     const user = await findAdminByEmail(email);
-    const saved = user?.resetCode;
-    if (!user || !saved?.hash || !saved.expiresAt || saved.expiresAt < new Date()) {
-      return res.status(400).json(wrong);
-    }
+    if (!user) return res.status(400).json(WRONG_CODE);
 
-    // Every try counts; after a few wrong ones the code is thrown away
-    user.resetCode.attempts = (saved.attempts || 0) + 1;
-    if (user.resetCode.attempts > MAX_CODE_TRIES) {
-      user.resetCode = undefined;
-      await user.save();
-      return res.status(400).json(wrong);
-    }
-
-    if (!sameText(saved.hash, fingerprint(code.trim(), user._id))) {
-      await user.save();
-      return res.status(400).json(wrong);
+    if (!checkCode(user, "resetCode", "reset", code)) {
+      await user.save(); // keeps the count of wrong tries
+      return res.status(400).json(WRONG_CODE);
     }
 
     user.password = await bcrypt.hash(newPassword, 10);
@@ -241,4 +364,13 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, forgotPassword, resetPassword };
+module.exports = {
+  register,
+  login,
+  verifyEmail,
+  resendVerification,
+  requestEmailChange,
+  confirmEmailChange,
+  forgotPassword,
+  resetPassword,
+};

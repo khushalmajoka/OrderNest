@@ -48,8 +48,15 @@ const SignupPage = () => {
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("Registration successful!");
-        navigate("/shop");
+        if (data.needsVerification) {
+          toast.success("Almost done! We sent a code to your email.");
+          navigate("/shop/verify-email", {
+            state: { email: form.email.trim(), fresh: true },
+          });
+        } else {
+          toast.success("Registration successful!");
+          navigate("/shop");
+        }
       } else {
         toast.error(data.error || data.message || "Registration failed!");
       }

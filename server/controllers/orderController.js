@@ -1,6 +1,7 @@
 const Order = require("../models/Order");
 const reserveOrderIds = require("../utils/reserveOrderIds");
 const { checkOrderInput } = require("../utils/orderInput");
+const buildOrderFilters = require("../utils/orderFilters");
 
 const lastTenDigits = (value) =>
   String(value ?? "")
@@ -287,7 +288,8 @@ const DEFAULT_PAGE_SIZE = 50;
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // @desc Get this shop's orders, one page at a time.
-// Query: page (from 1), limit (max 200), search, sortBy, sortDir (asc|desc)
+// Query: page (from 1), limit (max 200), search, sortBy, sortDir (asc|desc),
+// plus the filters listed in utils/orderFilters.js
 exports.getOrdersByShop = async (req, res, next) => {
   try {
     const shopId = req.params.shopId;
@@ -309,6 +311,11 @@ exports.getOrdersByShop = async (req, res, next) => {
       const pattern = new RegExp(escapeRegex(search), "i");
       filter.$or = SEARCH_FIELDS.map((field) => ({ [field]: pattern }));
     }
+
+    // Filter panel choices (status, amounts, dates, ...), all must match
+    const filters = buildOrderFilters(req.query);
+    if (filters.error) return res.status(400).json({ message: filters.error });
+    if (filters.conditions.length) filter.$and = filters.conditions;
 
     const sortBy = SORTABLE_FIELDS.includes(req.query.sortBy)
       ? req.query.sortBy

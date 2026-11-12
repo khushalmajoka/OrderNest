@@ -13,6 +13,7 @@ export const useOrders = ({
   search,
   sortField,
   sortOrder,
+  filterParams = {},
 }) => {
   const [orders, setOrders] = useState([]);
   const [totalOrders, setTotalOrders] = useState(0);
@@ -21,6 +22,8 @@ export const useOrders = ({
   const [error, setError] = useState(null); // why the last request failed
   const [refreshKey, setRefreshKey] = useState(0);
   const loadedRef = useRef(false);
+  // Same filters => same key, so the list is not reloaded for nothing
+  const filterKey = JSON.stringify(filterParams);
 
   // Ask for the current page again (after create / delete / bulk upload)
   const refetch = useCallback(() => setRefreshKey((key) => key + 1), []);
@@ -47,6 +50,7 @@ export const useOrders = ({
               search: search || undefined,
               sortBy: sortField || undefined,
               sortDir: sortField ? sortOrder : undefined,
+              ...JSON.parse(filterKey),
             },
             signal: controller.signal,
           }
@@ -71,7 +75,7 @@ export const useOrders = ({
 
     fetchOrders();
     return () => controller.abort();
-  }, [shopId, page, limit, search, sortField, sortOrder, refreshKey]);
+  }, [shopId, page, limit, search, sortField, sortOrder, filterKey, refreshKey]);
 
   return { orders, setOrders, totalOrders, loading, loaded, error, refetch };
 };

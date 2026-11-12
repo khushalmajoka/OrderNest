@@ -51,7 +51,7 @@ const OrderList = ({
   if (!orders.length)
     return (
       <p className="text-gray-500 mt-4">
-        {searching ? "No orders match your search." : "No orders yet."}
+        {searching ? "No orders match your search or filters." : "No orders yet."}
       </p>
     );
 

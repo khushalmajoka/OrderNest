@@ -23,6 +23,14 @@ import {
 import axios from "axios";
 import { getErrorMessage } from "../../../common/utils/api";
 import { mapExcelRow } from "../utils/excelImport";
+import FilterPanel from "../components/FilterPanel";
+import FilterChips from "../components/FilterChips";
+import {
+  EMPTY_FILTERS,
+  countActiveFilters,
+  filtersToParams,
+} from "../utils/filters";
+import { SlidersHorizontal } from "lucide-react";
 
 const Dashboard = () => {
   const { shop, error: shopError, reload: reloadShop } = useShop();
@@ -30,6 +38,8 @@ const Dashboard = () => {
 
   const [searchInput, setSearchInput] = useState(""); // what is typed
   const [search, setSearch] = useState(""); // what is sent to the server
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [showFilters, setShowFilters] = useState(false);
   const [editOrder, setEditOrder] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showMappingModal, setShowMappingModal] = useState(false);
@@ -61,6 +71,7 @@ const Dashboard = () => {
     search,
     sortField,
     sortOrder,
+    filterParams: filtersToParams(filters),
   });
 
   // Wait for a pause in typing, then search the whole list from page 1
@@ -71,6 +82,14 @@ const Dashboard = () => {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchInput]);
+
+  // New filters start again from page 1
+  const applyFilters = (next) => {
+    setFilters(next);
+    setCurrentPage(0);
+    setShowFilters(false);
+  };
+  const filterCount = countActiveFilters(filters);
 
   // Changing the sort starts again from page 1
   const handleSortField = (field) => {
@@ -185,16 +204,39 @@ const Dashboard = () => {
           </div>
 
           <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
-            <SearchBar
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-            />
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <SearchBar
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+              />
+              <button
+                onClick={() => setShowFilters(true)}
+                className={`relative shrink-0 flex items-center gap-1 px-3 py-2 rounded-md border shadow-sm text-sm md:text-base ${
+                  filterCount
+                    ? "bg-orange-100 border-orange-400 text-orange-800"
+                    : "bg-white border-gray-300 text-gray-700"
+                }`}
+              >
+                <SlidersHorizontal size={18} /> Filters
+                {filterCount > 0 && (
+                  <span className="ml-1 min-w-5 h-5 px-1 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center">
+                    {filterCount}
+                  </span>
+                )}
+              </button>
+            </div>
             <ActionsBar
               onCreateClick={() => setShowCreateModal(true)}
               onFileChange={handleBulkUpload}
             />
           </div>
         </div>
+
+        <FilterChips
+          filters={filters}
+          onChange={applyFilters}
+          onClearAll={() => applyFilters(EMPTY_FILTERS)}
+        />
 
         {!loaded && ordersError ? (
           <div className="flex flex-col items-center gap-3 py-10 text-center">
@@ -217,7 +259,7 @@ const Dashboard = () => {
               orders={orders}
               shop={shop}
               totalOrders={totalOrders}
-              searching={Boolean(search)}
+              searching={Boolean(search) || filterCount > 0}
               ordersPerPage={ordersPerPage}
               setOrdersPerPage={setOrdersPerPage}
               currentPage={currentPage}
@@ -231,6 +273,14 @@ const Dashboard = () => {
               onDelete={handleOrderDeleted}
             />
           </div>
+        )}
+
+        {showFilters && (
+          <FilterPanel
+            filters={filters}
+            onApply={applyFilters}
+            onClose={() => setShowFilters(false)}
+          />
         )}
 
         {showCreateModal && (

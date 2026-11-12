@@ -13,6 +13,10 @@ const shopSchema = new mongoose.Schema({
 
   totalOrderCount: { type: Number, default: 0 },
   dailyOrderCounts: { type: Map, of: Number },
+
+  // Row colour per order status: { "Pending": { enabled: true, color: "yellow" } }
+  // Statuses missing here use the app's defaults.
+  statusColors: { type: mongoose.Schema.Types.Mixed },
 });
 
 module.exports = mongoose.model("Shop", shopSchema);

@@ -1,5 +1,7 @@
 const Shop = require("../models/Shop");
 const User = require("../models/User");
+const ORDER_STATUSES = require("../models/orderStatuses");
+const COLOR_NAMES = require("../models/statusColors");
 
 // POST /api/shop/setup
 const setupShop = async (req, res, next) => {
@@ -82,9 +84,47 @@ const resetOrders = async (req, res, next) => {
   }
 };
 
+// PUT /api/shop/settings/status-colors
+// Body: { statusColors: { "Pending": { enabled: true, color: "yellow" }, ... } }
+const saveStatusColors = async (req, res, next) => {
+  try {
+    const incoming = req.body?.statusColors;
+    if (!incoming || typeof incoming !== "object" || Array.isArray(incoming)) {
+      return res.status(400).json({ error: "Status colours are missing." });
+    }
+
+    // Keep only known statuses, and only the two things we store
+    const clean = {};
+    for (const [status, choice] of Object.entries(incoming)) {
+      if (!ORDER_STATUSES.includes(status)) {
+        return res.status(400).json({ error: `Unknown status: ${status}` });
+      }
+      if (
+        !choice ||
+        typeof choice.enabled !== "boolean" ||
+        !COLOR_NAMES.includes(choice.color)
+      ) {
+        return res.status(400).json({ error: `Pick a valid colour for ${status}.` });
+      }
+      clean[status] = { enabled: choice.enabled, color: choice.color };
+    }
+
+    const shop = await Shop.findOneAndUpdate(
+      { owner: req.user.id },
+      { statusColors: clean },
+      { new: true }
+    );
+    if (!shop) return res.status(404).json({ error: "Shop not found" });
+
+    res.status(200).json({ statusColors: shop.statusColors });
+  } catch (error) {
+    return next(error);
+  }
+};
 
 module.exports = {
   setupShop,
   getShopByUserId,
   resetOrders,
+  saveStatusColors,
 };

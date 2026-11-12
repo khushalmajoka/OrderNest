@@ -4,6 +4,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Navbar from "../components/Navbar";
 import SettingCard from "../components/SettingCard";
+import StatusColorsCard from "../components/StatusColorsCard";
 import ConfirmResetModal from "../../../common/components/ConfirmResetModal";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
 import { useShop } from "../hooks/useShop";
@@ -64,6 +65,8 @@ const Settings = () => {
 
       <div className="p-4 md:p-8 space-y-6">
         <h1 className="text-2xl font-bold text-orange-700 mb-6">Settings</h1>
+
+        <StatusColorsCard shop={shop} />
 
         <SettingCard
           title="Order Management"

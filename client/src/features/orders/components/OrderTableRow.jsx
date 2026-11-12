@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import OrderShareDialog from "./OrderShareDialog";
 import { useOrderShare } from "../hooks/useOrderShare";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
+import { getStatusStyle } from "../../../common/utils/statusColors";
 
 const OrderTableRow = ({
   order,
@@ -20,6 +21,7 @@ const OrderTableRow = ({
 
   const isExpanded = activeOrderId === order._id;
   const countdown = deliveryCountdown(order.expectedDeliveryDate, order.status);
+  const statusStyle = getStatusStyle(shop, order.status);
 
   return (
     <>
@@ -27,21 +29,41 @@ const OrderTableRow = ({
         layout
         key={order._id}
         className={`group border-t text-sm transition-all relative cursor-pointer ${
-          isExpanded ? "bg-orange-50" : "hover:bg-orange-50"
+          statusStyle
+            ? `${statusStyle.row} hover:brightness-95`
+            : isExpanded
+            ? "bg-orange-50"
+            : "hover:bg-orange-50"
         }`}
         onClick={(e) => {
           if (e.target.closest("button")) return; // avoid conflicts
           setActiveOrderId(isExpanded ? null : order._id);
         }}
       >
-        <td className="px-4 py-2">{order.orderId || order._id.slice(-6)}</td>
+        <td
+          className={`px-4 py-2 border-l-4 ${
+            statusStyle ? statusStyle.strip : "border-l-transparent"
+          }`}
+        >
+          {order.orderId || order._id.slice(-6)}
+        </td>
         <td className="px-4 py-2">{order.customerName}</td>
         <td className="px-4 py-2">{order.item}</td>
         <td className="px-4 py-2">{order.phone}</td>
         <td className="px-4 py-2">₹{order.total}</td>
         <td className="px-4 py-2">₹{order.advance}</td>
         <td className="px-4 py-2">₹{order.balance}</td>
-        <td className="px-4 py-2">{order.status}</td>
+        <td className="px-4 py-2">
+          {statusStyle ? (
+            <span
+              className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${statusStyle.badge}`}
+            >
+              {order.status}
+            </span>
+          ) : (
+            order.status
+          )}
+        </td>
         <td className="px-4 py-2">
           {order.expectedDeliveryDate
             ? moment(order.expectedDeliveryDate).format("DD MMM YYYY")

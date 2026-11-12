@@ -4,6 +4,7 @@ import moment from "moment";
 import OrderShareDialog from "./OrderShareDialog";
 import { useOrderShare } from "../hooks/useOrderShare";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
+import { getStatusStyle } from "../../../common/utils/statusColors";
 
 // One order as a card, for phone screens (the table is too wide there).
 const OrderMobileCard = ({
@@ -19,9 +20,16 @@ const OrderMobileCard = ({
   const [showMore, setShowMore] = useState(false);
 
   const countdown = deliveryCountdown(order.expectedDeliveryDate, order.status);
+  const statusStyle = getStatusStyle(shop, order.status);
 
   return (
-    <div className="bg-white rounded-lg shadow border border-orange-100 p-4 text-sm">
+    <div
+      className={`rounded-lg shadow border border-orange-100 border-l-4 p-4 text-sm ${
+        statusStyle
+          ? `${statusStyle.row} ${statusStyle.strip}`
+          : "bg-white border-l-orange-100"
+      }`}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs text-gray-500">Order ID</p>
@@ -29,7 +37,11 @@ const OrderMobileCard = ({
             {order.orderId || order._id.slice(-6)}
           </p>
         </div>
-        <span className="shrink-0 px-2 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-medium text-center">
+        <span
+          className={`shrink-0 px-2 py-1 rounded-full text-xs font-medium text-center ${
+            statusStyle ? statusStyle.badge : "bg-orange-100 text-orange-700"
+          }`}
+        >
           {order.status}
         </span>
       </div>

@@ -21,6 +21,11 @@ const shopSchema = new mongoose.Schema({
   // Which table columns sit in the order row (the rest show when a row is
   // opened). Not set = the app's default.
   tableColumns: { type: [String], default: undefined },
+
+  // Delivery slip: which parts print ({ logo: true, ... }; missing = default)
+  // and a short note printed at the bottom of every slip.
+  slipFields: { type: mongoose.Schema.Types.Mixed },
+  slipNote: { type: String, maxlength: 200, default: "" },
 });
 
 module.exports = mongoose.model("Shop", shopSchema);

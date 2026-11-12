@@ -6,6 +6,7 @@ const {
   resetOrders,
   saveStatusColors,
   saveTableColumns,
+  saveSlipSettings,
 } = require("../controllers/shopController");
 const authenticate = require("../middlewares/authenticate");
 const loadUser = require("../middlewares/loadUser");
@@ -28,6 +29,14 @@ router.put(
   loadUser,
   requireAdmin,
   saveTableColumns
+);
+
+router.put(
+  "/settings/slip",
+  authenticate,
+  loadUser,
+  requireAdmin,
+  saveSlipSettings
 );
 
 module.exports = router;

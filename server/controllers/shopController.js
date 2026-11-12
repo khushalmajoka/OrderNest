@@ -3,6 +3,7 @@ const User = require("../models/User");
 const ORDER_STATUSES = require("../models/orderStatuses");
 const COLOR_NAMES = require("../models/statusColors");
 const TABLE_COLUMNS = require("../models/tableColumns");
+const SLIP_FIELDS = require("../models/slipFields");
 
 // POST /api/shop/setup
 const setupShop = async (req, res, next) => {
@@ -160,7 +161,47 @@ const saveTableColumns = async (req, res, next) => {
   }
 };
 
+// PUT /api/shop/settings/slip   { fields: { logo: true, ... }, note: "..." }
+const saveSlipSettings = async (req, res, next) => {
+  try {
+    const { fields, note } = req.body || {};
+    if (!fields || typeof fields !== "object" || Array.isArray(fields)) {
+      return res.status(400).json({ error: "Please send the slip fields." });
+    }
+
+    const clean = {};
+    for (const [key, value] of Object.entries(fields)) {
+      if (!SLIP_FIELDS.includes(key)) {
+        return res.status(400).json({ error: `Unknown slip field: ${key}` });
+      }
+      if (typeof value !== "boolean") {
+        return res.status(400).json({ error: `${key} must be on or off.` });
+      }
+      clean[key] = value;
+    }
+
+    if (note !== undefined && typeof note !== "string") {
+      return res.status(400).json({ error: "The note must be text." });
+    }
+    if ((note || "").length > 200) {
+      return res.status(400).json({ error: "The note is too long (200 letters at most)." });
+    }
+
+    const shop = await Shop.findOneAndUpdate(
+      { owner: req.user.id },
+      { slipFields: clean, slipNote: (note || "").trim() },
+      { new: true }
+    );
+    if (!shop) return res.status(404).json({ error: "Shop not found" });
+
+    res.status(200).json({ slipFields: shop.slipFields, slipNote: shop.slipNote });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
+  saveSlipSettings,
   saveTableColumns,
   setupShop,
   getShopByUserId,

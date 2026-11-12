@@ -297,6 +297,41 @@ const DEFAULT_PAGE_SIZE = 50;
 
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+// Search, filters and sort from the query string, shared by the dashboard
+// list and the Excel export so both always agree. Returns { filter, sortBy,
+// sortDir } or { error }.
+const readListQuery = (req) => {
+  const filter = { shop: req.shop._id };
+
+  // Search is plain text, so special characters are matched literally
+  const search = String(req.query.search ?? "").trim().slice(0, 100);
+  if (search) {
+    const pattern = new RegExp(escapeRegex(search), "i");
+    filter.$or = SEARCH_FIELDS.map((field) => ({ [field]: pattern }));
+  }
+
+  // Filter panel choices (status, amounts, dates, ...), all must match
+  const filters = buildOrderFilters(req.query);
+  if (filters.error) return { error: filters.error };
+  if (filters.conditions.length) filter.$and = filters.conditions;
+
+  const sortBy = SORTABLE_FIELDS.includes(req.query.sortBy)
+    ? req.query.sortBy
+    : "createdAt";
+  const sortDir = req.query.sortDir === "asc" ? 1 : -1;
+  return { filter, sortBy, sortDir };
+};
+
+// _id as a tie-breaker keeps the order stable when many rows share a value
+const sortedQuery = ({ filter, sortBy, sortDir }) => {
+  const query = Order.find(filter).sort({ [sortBy]: sortDir, _id: sortDir });
+  // Text columns: ignore upper/lower case and sort numbers inside text by value
+  if (TEXT_FIELDS.includes(sortBy)) {
+    query.collation({ locale: "en", strength: 2, numericOrdering: true });
+  }
+  return query;
+};
+
 // @desc Get this shop's orders, one page at a time.
 // Query: page (from 1), limit (max 200), search, sortBy, sortDir (asc|desc),
 // plus the filters listed in utils/orderFilters.js
@@ -313,44 +348,15 @@ exports.getOrdersByShop = async (req, res, next) => {
       Math.max(1, parseInt(req.query.limit, 10) || DEFAULT_PAGE_SIZE)
     );
 
-    const filter = { shop: req.shop._id };
-
-    // Search is plain text, so special characters are matched literally
-    const search = String(req.query.search ?? "").trim().slice(0, 100);
-    if (search) {
-      const pattern = new RegExp(escapeRegex(search), "i");
-      filter.$or = SEARCH_FIELDS.map((field) => ({ [field]: pattern }));
-    }
-
-    // Filter panel choices (status, amounts, dates, ...), all must match
-    const filters = buildOrderFilters(req.query);
-    if (filters.error) return res.status(400).json({ message: filters.error });
-    if (filters.conditions.length) filter.$and = filters.conditions;
-
-    const sortBy = SORTABLE_FIELDS.includes(req.query.sortBy)
-      ? req.query.sortBy
-      : "createdAt";
-    const sortDir = req.query.sortDir === "asc" ? 1 : -1;
-
-    // _id as a tie-breaker keeps pages stable when many rows share a value
-    let query = Order.find(filter)
-      .sort({ [sortBy]: sortDir, _id: sortDir })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
-
-    // Text columns: ignore upper/lower case and sort numbers inside text by value
-    if (TEXT_FIELDS.includes(sortBy)) {
-      query = query.collation({
-        locale: "en",
-        strength: 2,
-        numericOrdering: true,
-      });
-    }
+    const list = readListQuery(req);
+    if (list.error) return res.status(400).json({ message: list.error });
 
     const [orders, totalOrders] = await Promise.all([
-      query,
-      Order.countDocuments(filter),
+      sortedQuery(list)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(),
+      Order.countDocuments(list.filter),
     ]);
 
     res.status(200).json({
@@ -359,6 +365,49 @@ exports.getOrdersByShop = async (req, res, next) => {
       totalPages: Math.ceil(totalOrders / limit),
       currentPage: page,
       limit,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// The most rows one Excel file can have
+const MAX_EXPORT_ROWS = 10000;
+const EXPORT_FIELDS =
+  "orderId customerName phone address item total advance balance status expectedDeliveryDate orderExecutive createdAt updatedAt";
+
+// @desc The orders for an Excel file: same search, filters and sort as the
+// dashboard, but no paging. Query: `limit` = how many rows (default and
+// maximum 10000). Admin only (see the route).
+exports.exportOrders = async (req, res, next) => {
+  try {
+    if (req.params.shopId !== String(req.shop._id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const list = readListQuery(req);
+    if (list.error) return res.status(400).json({ message: list.error });
+
+    let limit = MAX_EXPORT_ROWS;
+    if (req.query.limit !== undefined && req.query.limit !== "") {
+      limit = Number(req.query.limit);
+      if (!Number.isInteger(limit) || limit < 1) {
+        return res.status(400).json({ message: "Rows to export must be a whole number, 1 or more." });
+      }
+      limit = Math.min(limit, MAX_EXPORT_ROWS);
+    }
+
+    const [orders, totalMatching] = await Promise.all([
+      sortedQuery(list).select(EXPORT_FIELDS).limit(limit).lean(),
+      Order.countDocuments(list.filter),
+    ]);
+
+    res.status(200).json({
+      orders,
+      totalMatching,
+      maxRows: MAX_EXPORT_ROWS,
+      // true when more orders match than this file holds
+      cutOff: orders.length < totalMatching,
     });
   } catch (error) {
     return next(error);

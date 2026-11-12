@@ -7,12 +7,13 @@ const {
   deleteOrder,
   trackOrder,
   bulkUploadOrders,
+  exportOrders,
 } = require("../controllers/orderController");
 const authenticate = require("../middlewares/authenticate");
 const loadUser = require("../middlewares/loadUser");
 const loadShop = require("../middlewares/loadShop");
 const { requireAdmin, requirePermission } = require("../middlewares/access");
-const { trackLimiter } = require("../middlewares/rateLimiter");
+const { trackLimiter, exportLimiter } = require("../middlewares/rateLimiter");
 
 const router = express.Router();
 
@@ -41,6 +42,17 @@ router.post(
 
 // Get one page of a shop's orders
 router.get("/shop/:shopId", authenticate, loadUser, loadShop, getOrdersByShop);
+
+// Orders for an Excel file (admin only): same search, filters and sort as the list
+router.get(
+  "/shop/:shopId/export",
+  authenticate,
+  loadUser,
+  loadShop,
+  requireAdmin,
+  exportLimiter,
+  exportOrders
+);
 
 // PUT /api/orders/:id => Update Order
 router.put(

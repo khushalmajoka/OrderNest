@@ -25,9 +25,11 @@ import { getErrorMessage } from "../../../common/utils/api";
 import { mapExcelRow } from "../utils/excelImport";
 import FilterPanel from "../components/FilterPanel";
 import FilterChips from "../components/FilterChips";
+import ExportDialog from "../components/ExportDialog";
 import {
   EMPTY_FILTERS,
   countActiveFilters,
+  filterChips,
   filtersToParams,
 } from "../utils/filters";
 import { SlidersHorizontal } from "lucide-react";
@@ -41,6 +43,7 @@ const Dashboard = () => {
   const [search, setSearch] = useState(""); // what is sent to the server
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
+  const [showExport, setShowExport] = useState(false);
   const [editOrder, setEditOrder] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showMappingModal, setShowMappingModal] = useState(false);
@@ -198,7 +201,7 @@ const Dashboard = () => {
     <div className="min-h-screen bg-orange-50 font-poppins">
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
       <div className="p-4 md:p-8">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2 text-xl md:text-2xl font-bold text-gray-800">
             <span className="text-orange-500 text-2xl md:text-3xl">📦</span> Orders
             Dashboard
@@ -233,6 +236,7 @@ const Dashboard = () => {
                   : null
               }
               onFileChange={isAdmin(account) ? handleBulkUpload : null}
+              onExportClick={isAdmin(account) ? () => setShowExport(true) : null}
             />
           </div>
         </div>
@@ -279,6 +283,24 @@ const Dashboard = () => {
               onDelete={handleOrderDeleted}
             />
           </div>
+        )}
+
+        {showExport && (
+          <ExportDialog
+            shopId={shop._id}
+            totalOrders={totalOrders}
+            params={{
+              search: search || undefined,
+              sortBy: sortField || undefined,
+              sortDir: sortField ? sortOrder : undefined,
+              ...filtersToParams(filters),
+            }}
+            summary={[
+              ...(search ? [`Search: ${search}`] : []),
+              ...filterChips(filters).map((chip) => chip.label),
+            ]}
+            onClose={() => setShowExport(false)}
+          />
         )}
 
         {showFilters && (

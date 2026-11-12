@@ -71,7 +71,17 @@ const changePasswordLimiter = rateLimit({
   message: { error: "Too many attempts. Please try again in 15 minutes." },
 });
 
+// Excel export is heavy: a few per minute is plenty.
+const exportLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000,
+  limit: 15,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { message: "Too many exports. Please wait a few minutes." },
+});
+
 module.exports = {
+  exportLimiter,
   changePasswordLimiter,
   forgotLimiter,
   resetLimiter,

@@ -1,7 +1,9 @@
-import { Pencil, Share2, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Pencil, Share2, Trash2, Truck } from "lucide-react";
 import moment from "moment";
 import { motion, AnimatePresence } from "framer-motion";
 import OrderShareDialog from "./OrderShareDialog";
+import DeliverySlipDialog from "./DeliverySlipDialog";
 import { useOrderShare } from "../hooks/useOrderShare";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
 import { getStatusStyle } from "../../../common/utils/statusColors";
@@ -19,6 +21,7 @@ const OrderTableRow = ({
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
     useOrderShare(order);
 
+  const [showSlip, setShowSlip] = useState(false);
   const isExpanded = activeOrderId === order._id;
   const countdown = deliveryCountdown(order.expectedDeliveryDate, order.status);
   const statusStyle = getStatusStyle(shop, order.status);
@@ -98,8 +101,17 @@ const OrderTableRow = ({
             <button
               onClick={() => setIsShareOpen(true)}
               className="text-green-500 hover:text-green-600"
+              title="Share order"
             >
               <Share2 size={18} />
+            </button>
+            <button
+              onClick={() => setShowSlip(true)}
+              className="text-gray-600 hover:text-gray-900"
+              title="Delivery slip"
+              aria-label="Delivery slip"
+            >
+              <Truck size={18} />
             </button>
           </div>
         </td>
@@ -123,6 +135,9 @@ const OrderTableRow = ({
                 className="overflow-hidden p-4 bg-orange-50"
               >
                 <p className="mb-2">
+                  <strong>Address:</strong> {order.address || "-"}
+                </p>
+                <p className="mb-2">
                   <strong>Created Date:</strong>{" "}
                   {moment(order.createdAt).format("DD MMM, hh:mm A")}
                 </p>
@@ -135,6 +150,14 @@ const OrderTableRow = ({
           </motion.tr>
         )}
       </AnimatePresence>
+
+      {showSlip && (
+        <DeliverySlipDialog
+          order={order}
+          shop={shop}
+          onClose={() => setShowSlip(false)}
+        />
+      )}
 
       <OrderShareDialog
         isOpen={isShareOpen}

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Pencil, Share2, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Pencil, Share2, Trash2, Truck } from "lucide-react";
 import moment from "moment";
 import OrderShareDialog from "./OrderShareDialog";
+import DeliverySlipDialog from "./DeliverySlipDialog";
 import { useOrderShare } from "../hooks/useOrderShare";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
 import { getStatusStyle } from "../../../common/utils/statusColors";
@@ -18,6 +19,7 @@ const OrderMobileCard = ({
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
     useOrderShare(order);
   const [showMore, setShowMore] = useState(false);
+  const [showSlip, setShowSlip] = useState(false);
 
   const countdown = deliveryCountdown(order.expectedDeliveryDate, order.status);
   const statusStyle = getStatusStyle(shop, order.status);
@@ -100,6 +102,9 @@ const OrderMobileCard = ({
 
       {showMore && (
         <div className="mt-3 p-3 bg-orange-50 rounded text-gray-600 space-y-1">
+          <p className="break-words">
+            <strong>Address:</strong> {order.address || "-"}
+          </p>
           <p>
             <strong>Created:</strong>{" "}
             {moment(order.createdAt).format("DD MMM, hh:mm A")}
@@ -117,6 +122,13 @@ const OrderMobileCard = ({
       >
         {showMore ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         {showMore ? "Less details" : "More details"}
+      </button>
+
+      <button
+        onClick={() => setShowSlip(true)}
+        className="w-full mt-3 flex items-center justify-center gap-1 py-2 rounded border text-gray-700"
+      >
+        <Truck size={16} /> Delivery slip
       </button>
 
       <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t">
@@ -145,6 +157,14 @@ const OrderMobileCard = ({
           <Trash2 size={16} /> Delete
         </button>
       </div>
+
+      {showSlip && (
+        <DeliverySlipDialog
+          order={order}
+          shop={shop}
+          onClose={() => setShowSlip(false)}
+        />
+      )}
 
       <OrderShareDialog
         isOpen={isShareOpen}

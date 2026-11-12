@@ -8,6 +8,7 @@ const ORDER_FIELDS = [
   ["customerName", "Customer Name"],
   ["item", "Product"],
   ["phone", "Phone"],
+  ["address", "Address"],
   ["total", "Total"],
   ["advance", "Advance"],
   ["status", "Status"],

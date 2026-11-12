@@ -26,6 +26,11 @@ const orderSchema = new mongoose.Schema(
     phone: {
       type: String,
     },
+    // Where to deliver (printed on the delivery slip)
+    address: {
+      type: String,
+      maxlength: 500,
+    },
     total: {
       type: Number,
       required: true,

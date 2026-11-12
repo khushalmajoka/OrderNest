@@ -11,6 +11,7 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
     customerName: "",
     item: "",
     phone: "",
+    address: "",
     total: 0,
     advance: 0,
     orderExecutive: "",
@@ -27,6 +28,7 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
         customerName: order.customerName || "",
         item: order.item || "",
         phone: order.phone || "",
+        address: order.address || "",
         total: order.total || 0,
         advance: order.advance || 0,
         orderExecutive: order.orderExecutive || "",
@@ -141,6 +143,16 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
           placeholder="WhatsApp/Phone"
           value={formData.phone}
           onChange={handleChange}
+          className="w-full border p-2 rounded"
+        />
+
+        <textarea
+          name="address"
+          placeholder="Delivery Address (optional)"
+          value={formData.address}
+          onChange={handleChange}
+          rows={2}
+          maxLength={500}
           className="w-full border p-2 rounded"
         />
 

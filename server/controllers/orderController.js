@@ -54,7 +54,8 @@ exports.trackOrder = async (req, res, next) => {
 
 exports.createOrder = async (req, res, next) => {
   try {
-    const { item, customerName, phone, status, orderExecutive } = req.body;
+    const { item, customerName, phone, address, status, orderExecutive } =
+      req.body;
 
     const checked = checkOrderInput(req.body);
     if (checked.error) return res.status(400).json({ message: checked.error });
@@ -75,6 +76,7 @@ exports.createOrder = async (req, res, next) => {
           item,
           customerName,
           phone,
+          address,
           ...checked.values,
           status,
           orderExecutive,
@@ -101,7 +103,8 @@ exports.createOrder = async (req, res, next) => {
 // @desc Update Order
 exports.updateOrder = async (req, res, next) => {
   try {
-    const { customerName, item, phone, status, orderExecutive } = req.body;
+    const { customerName, item, phone, address, status, orderExecutive } =
+      req.body;
 
     const checked = checkOrderInput(req.body);
     if (checked.error) return res.status(400).json({ message: checked.error });
@@ -113,6 +116,7 @@ exports.updateOrder = async (req, res, next) => {
         customerName,
         item,
         phone,
+        address,
         ...checked.values,
         status,
         orderExecutive,
@@ -169,7 +173,12 @@ exports.bulkUploadOrders = async (req, res, next) => {
     // them whichever way they type the ID, and so the duplicate checks work.
     const orders = rows.map((row) => {
       const typedId = String(row?.orderId ?? "").trim().toUpperCase();
-      return { ...row, orderId: typedId || undefined };
+      // Excel can hand over numbers where we expect text
+      const address =
+        row?.address === undefined || row?.address === null
+          ? undefined
+          : String(row.address);
+      return { ...row, orderId: typedId || undefined, address };
     });
 
     // Check DB-level duplicate orderIds (within this shop only)
@@ -242,6 +251,7 @@ exports.bulkUploadOrders = async (req, res, next) => {
       item: order.item,
       customerName: order.customerName,
       phone: order.phone,
+      address: order.address,
       ...cleanValues[index],
       status: order.status || "Order Received",
       orderExecutive: order.orderExecutive,

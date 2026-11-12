@@ -24,9 +24,18 @@ const parseDeliveryDate = (raw) => {
   return Number.isNaN(date.getTime()) ? { error: true } : { value: date };
 };
 
+const MAX_ADDRESS = 500;
+
 // Returns { values } with clean numbers/balance, or { error: "message" }.
 // `totalRequired`: create/edit need a total; Excel rows may leave it empty (0).
 const checkOrderInput = (input, { totalRequired = true } = {}) => {
+  if (input.address !== undefined && input.address !== null) {
+    if (typeof input.address !== "string") return { error: "Address must be text." };
+    if (input.address.length > MAX_ADDRESS) {
+      return { error: `Address is too long (${MAX_ADDRESS} letters at most).` };
+    }
+  }
+
   const total = parseAmount(input.total);
   const advance = parseAmount(input.advance);
   const date = parseDeliveryDate(input.expectedDeliveryDate);

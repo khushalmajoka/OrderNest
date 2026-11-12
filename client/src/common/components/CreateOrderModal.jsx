@@ -12,6 +12,7 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
     item: "",
     customerName: "",
     phone: "",
+    address: "",
     total: "",
     advance: "",
     orderExecutive: "",
@@ -140,6 +141,16 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
           pattern="[6-9]{1}[0-9]{9}"
           title="Enter a valid 10-digit Mobile Number"
           required
+          className="w-full border p-2 rounded"
+        />
+
+        <textarea
+          name="address"
+          placeholder="Delivery Address (optional)"
+          value={formData.address}
+          onChange={handleChange}
+          rows={2}
+          maxLength={500}
           className="w-full border p-2 rounded"
         />
 

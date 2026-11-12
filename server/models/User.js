@@ -35,6 +35,13 @@ const UserSchema = new mongoose.Schema({
     requestedAt: Date,
     approvedUntil: Date,
   },
+  // Admin forgot-password: only a fingerprint of the emailed code is kept
+  resetCode: {
+    hash: String,
+    expiresAt: Date,
+    attempts: { type: Number, default: 0 },
+    sentAt: Date,
+  },
   // Logins made before this moment stop working (set when a password changes)
   passwordChangedAt: Date,
 });

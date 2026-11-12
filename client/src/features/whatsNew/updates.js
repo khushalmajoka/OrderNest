@@ -2,35 +2,31 @@
 //
 // To announce a new update later: change WHATS_NEW_VERSION (any new text) and
 // edit the list below. Everyone then sees the popup once more.
-export const WHATS_NEW_VERSION = "2026-11-07-mobile";
+export const WHATS_NEW_VERSION = "2026-11-12-staff-filters-slip";
 
 export const WHATS_NEW_ITEMS = [
   {
-    title: "Now works on your mobile phone",
-    text: "You can now use OrderNest on your phone. Orders show as easy cards with Edit, Share and Delete buttons, and your customers can track their orders from their phones too.",
+    title: "Staff logins",
+    text: "The admin can now add staff in the new Staff page. Each staff member logs in with a username and can only do what the admin allows: view, create, edit, delete, or print slips. A staff member who wants a new password must ask the admin to approve it first.",
   },
   {
-    title: "Orders open faster",
-    text: "The dashboard now shows 50 orders per page. Search and sorting work across all your orders, not only the page you are looking at.",
+    title: "Filters",
+    text: "Use the new Filters button to find orders by status, amount, dates, order number, phone, customer and more. Overdue orders and orders with balance due are one tap away.",
   },
   {
-    title: "Order IDs are now yours alone",
-    text: "Each shop has its own order numbers, counting up one by one. The date in the order ID follows Indian time.",
+    title: "Status colours",
+    text: "Orders are now coloured by status, for example Pending in yellow. In Settings the admin can choose a colour for each status, or switch the colour off.",
   },
   {
-    title: "Delivery date fixed",
-    text: "The expected delivery date now saves the exact day you pick. Before, it could save one day early. Orders saved earlier may still show one day early.",
+    title: "Delivery slip",
+    text: "Print a delivery slip for any order, ready to paste on the parcel. It shows the customer name, phone, delivery address, and the amount to collect. You can now save an address on every order, also from Excel.",
   },
   {
-    title: "Customer tracking needs the phone number",
-    text: "Customers now track an order with the Order ID and the phone number. Please save the phone number on every order, or the customer will not be able to track it.",
+    title: "Forgot password",
+    text: "If the admin forgets the password, tap \"Forgot password?\" on the login page. A 6-digit code is sent to the admin's email.",
   },
   {
-    title: "Safer for your data",
-    text: "Only you can see and change your shop's orders. Passwords are no longer sent back to the app.",
-  },
-  {
-    title: "Easier shop setup",
-    text: "Shop logo and address are optional now, and there are more shop categories to choose from.",
+    title: "Overdue orders",
+    text: "Orders past their delivery date now show \"N days late\" in red, instead of 0 days. Excel upload now saves the delivery date and amounts correctly.",
   },
 ];

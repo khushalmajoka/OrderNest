@@ -112,8 +112,13 @@ const Login = () => {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
               required
             />
-            <div className="text-right text-xs text-orange-600 hover:underline cursor-pointer mt-1">
-              Forgot password?
+            <div className="text-right text-xs mt-1">
+              <Link
+                to="/shop/forgot-password"
+                className="text-orange-600 hover:underline"
+              >
+                Forgot password?
+              </Link>
             </div>
           </div>
           <button

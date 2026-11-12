@@ -45,7 +45,25 @@ const staffPasswordLimiter = rateLimit({
   message: { error: "Too many attempts. Please try again in 15 minutes." },
 });
 
+// Forgot password: limits how many codes can be asked for / guessed.
+const forgotLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Too many requests. Please try again in 15 minutes." },
+});
+const resetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Too many attempts. Please try again in 15 minutes." },
+});
+
 module.exports = {
+  forgotLimiter,
+  resetLimiter,
   trackLimiter,
   loginLimiter,
   registerLimiter,

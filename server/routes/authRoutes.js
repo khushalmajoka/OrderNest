@@ -2,6 +2,7 @@ const express = require('express');
 const {
   register,
   login,
+  changePassword,
   verifyEmail,
   resendVerification,
   requestEmailChange,
@@ -14,6 +15,7 @@ const {
   registerLimiter,
   forgotLimiter,
   resetLimiter,
+  changePasswordLimiter,
 } = require('../middlewares/rateLimiter');
 const authenticate = require('../middlewares/authenticate');
 const loadUser = require('../middlewares/loadUser');
@@ -22,6 +24,7 @@ const router = express.Router();
 
 router.post('/register', registerLimiter, register);
 router.post('/login', loginLimiter, login);
+router.post('/change-password', authenticate, loadUser, requireAdmin, changePasswordLimiter, changePassword);
 router.post('/verify-email', resetLimiter, verifyEmail);
 router.post('/resend-verification', forgotLimiter, resendVerification);
 router.post('/forgot-password', forgotLimiter, forgotPassword);

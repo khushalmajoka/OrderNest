@@ -61,7 +61,18 @@ const resetLimiter = rateLimit({
   message: { error: "Too many attempts. Please try again in 15 minutes." },
 });
 
+// Logged-in admin changing their password: limits guessing of the current one.
+const changePasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  skipSuccessfulRequests: true,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { error: "Too many attempts. Please try again in 15 minutes." },
+});
+
 module.exports = {
+  changePasswordLimiter,
   forgotLimiter,
   resetLimiter,
   trackLimiter,

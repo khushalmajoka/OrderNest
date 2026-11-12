@@ -172,6 +172,41 @@ const login = async (req, res, next) => {
   }
 };
 
+// ---------- Change the password (logged-in admin) ----------
+
+// POST /api/auth/change-password   { currentPassword, newPassword }
+// Logins on other devices stop working; this one gets a fresh token.
+const changePassword = async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+    const user = await User.findById(req.account.id).select("+password");
+
+    if (
+      typeof currentPassword !== "string" ||
+      !(await bcrypt.compare(currentPassword, user.password))
+    ) {
+      return res.status(400).json({ error: "Your current password is not right." });
+    }
+    const problem = passwordProblem(newPassword);
+    if (problem) return res.status(400).json({ error: problem });
+    if (newPassword === currentPassword) {
+      return res.status(400).json({ error: "The new password must be different." });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.passwordChangedAt = new Date(); // logs out every older login
+    user.resetCode = undefined; // an unused forgot-password code must not work any more
+    await user.save();
+
+    res.status(200).json({
+      message: "Password changed. Other devices were logged out.",
+      token: generateToken(user._id),
+    });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 // ---------- Confirm the email after sign-up ----------
 
 // POST /api/auth/verify-email   { email, code }
@@ -367,6 +402,7 @@ const resetPassword = async (req, res, next) => {
 module.exports = {
   register,
   login,
+  changePassword,
   verifyEmail,
   resendVerification,
   requestEmailChange,

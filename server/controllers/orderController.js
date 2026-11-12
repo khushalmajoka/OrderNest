@@ -2,6 +2,10 @@ const Order = require("../models/Order");
 const reserveOrderIds = require("../utils/reserveOrderIds");
 const { checkOrderInput } = require("../utils/orderInput");
 const buildOrderFilters = require("../utils/orderFilters");
+const { logActivity, diffOrder, money } = require("../utils/activity");
+
+// Text for the Activity history: no stray spaces, "-" when empty
+const shown = (value) => String(value ?? "").trim() || "-";
 
 const lastTenDigits = (value) =>
   String(value ?? "")
@@ -94,6 +98,13 @@ exports.createOrder = async (req, res, next) => {
       throw new Error("Could not allocate a unique order ID");
     }
 
+    logActivity(req, {
+      kind: "order",
+      action: "order.create",
+      targetLabel: newOrder.orderId,
+      summary: `Created order ${newOrder.orderId} for ${shown(newOrder.customerName)} (${money(newOrder.total)})`,
+    });
+
     res.status(201).json({ message: "Order created", order: newOrder });
   } catch (error) {
     return next(error);
@@ -108,6 +119,12 @@ exports.updateOrder = async (req, res, next) => {
 
     const checked = checkOrderInput(req.body);
     if (checked.error) return res.status(400).json({ message: checked.error });
+
+    // The order as it was, to tell what this edit changed
+    const before = await Order.findOne({
+      _id: req.params.id,
+      shop: req.shop._id,
+    }).lean();
 
     // Only match an order that belongs to the caller's own shop
     const updatedOrder = await Order.findOneAndUpdate(
@@ -128,6 +145,17 @@ exports.updateOrder = async (req, res, next) => {
       return res.status(404).json({ message: "Order not found" });
     }
 
+    const changes = before ? diffOrder(before, updatedOrder.toObject()) : [];
+    if (changes.length) {
+      logActivity(req, {
+        kind: "order",
+        action: "order.update",
+        targetLabel: updatedOrder.orderId,
+        summary: `Edited order ${updatedOrder.orderId} (${shown(updatedOrder.customerName)})`,
+        changes,
+      });
+    }
+
     res.status(200).json({ message: "Order updated", order: updatedOrder });
   } catch (error) {
     return next(error);
@@ -145,6 +173,13 @@ exports.deleteOrder = async (req, res, next) => {
     if (!deletedOrder) {
       return res.status(404).json({ message: "Order not found" });
     }
+
+    logActivity(req, {
+      kind: "order",
+      action: "order.delete",
+      targetLabel: deletedOrder.orderId,
+      summary: `Deleted order ${deletedOrder.orderId} (${shown(deletedOrder.customerName)}, ${shown(deletedOrder.item)}, ${money(deletedOrder.total)})`,
+    });
 
     res.status(200).json({ message: "Order deleted successfully" });
   } catch (error) {
@@ -258,6 +293,13 @@ exports.bulkUploadOrders = async (req, res, next) => {
     }));
 
     const insertedOrders = await Order.insertMany(newOrders);
+
+    logActivity(req, {
+      kind: "order",
+      action: "order.bulk_upload",
+      targetLabel: `${insertedOrders.length} orders`,
+      summary: `Uploaded ${insertedOrders.length} orders from Excel`,
+    });
 
     res.status(201).json({
       message: `${insertedOrders.length} orders uploaded successfully.`,

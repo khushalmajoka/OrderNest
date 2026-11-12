@@ -1,4 +1,4 @@
-import { LayoutDashboard, Settings, LogOut, Users, X } from "lucide-react";
+import { History, LayoutDashboard, Settings, LogOut, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -64,6 +64,19 @@ const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin }) => {
           >
             <Users className="text-orange-600" size={20} />
             Staff
+          </button>
+        )}
+
+        {isAdmin && (
+          <button
+            onClick={() => {
+              navigate("/shop/activity");
+              onClose();
+            }}
+            className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-orange-100 transition"
+          >
+            <History className="text-orange-600" size={20} />
+            Activity
           </button>
         )}
 

@@ -17,6 +17,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import Settings from "./features/shop/pages/Settings";
 import StaffPage from "./features/shop/pages/StaffPage";
+import ActivityPage from "./features/shop/pages/ActivityPage";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
           <Route path="/shop/onboarding" element={<Onboarding />} />
           <Route path="/shop/settings" element={<Settings />} />
           <Route path="/shop/staff" element={<StaffPage />} />
+          <Route path="/shop/activity" element={<ActivityPage />} />
 
           {/* Unknown URL -> customer page instead of a blank screen */}
           <Route path="*" element={<Navigate to="/" replace />} />

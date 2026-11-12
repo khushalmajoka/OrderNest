@@ -5,6 +5,7 @@ const authRoutes = require('./routes/authRoutes');
 const shopRoutes = require("./routes/shopRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const staffRoutes = require("./routes/staffRoutes");
+const activityRoutes = require("./routes/activityRoutes");
 const cors = require('cors');
 const errorHandler = require('./middlewares/errorHandler');
 
@@ -28,6 +29,7 @@ app.use('/api/auth', authRoutes);
 app.use("/api/shop", shopRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/staff", staffRoutes);
+app.use("/api/activity", activityRoutes);
 
 app.use(errorHandler);
 

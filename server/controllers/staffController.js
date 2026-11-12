@@ -2,13 +2,32 @@
 // decides about their password. Staff can only ask to change their password.
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
-const { cleanPermissions } = require("../utils/permissions");
+const { cleanPermissions, PERMISSION_KEYS } = require("../utils/permissions");
+const { logActivity } = require("../utils/activity");
 
 const USERNAME_PATTERN = /^[a-z0-9._-]{3,30}$/;
 const MIN_PASSWORD = 8;
 const MAX_PASSWORD = 72; // bcrypt ignores everything after 72 bytes
 const MAX_STAFF = 20;
 const APPROVAL_HOURS = 24;
+
+const POWER_LABELS = {
+  createOrders: "Create orders",
+  editOrders: "Edit orders",
+  deleteOrders: "Delete orders",
+  shareSlip: "Delivery slip and Share",
+};
+const onOff = (value) => (value ? "on" : "off");
+
+// One line in the Activity history about a staff member
+const logStaff = (req, action, staff, summary, changes) =>
+  logActivity(req, {
+    kind: "staff",
+    action,
+    targetLabel: staff.name,
+    summary,
+    changes,
+  });
 
 const passwordProblem = (password) =>
   typeof password !== "string" ||
@@ -92,6 +111,8 @@ const createStaff = async (req, res, next) => {
       permissions: cleanPermissions(req.body.permissions),
     });
 
+    logStaff(req, "staff.create", staff, `Added staff ${staff.name} (@${staff.username})`);
+
     res.status(201).json({ staff: toStaffView(staff) });
   } catch (err) {
     if (err.code === 11000) {
@@ -108,6 +129,11 @@ const updateStaff = async (req, res, next) => {
     if (!staff) return res.status(404).json({ error: "Staff member not found." });
 
     const { name, permissions, active } = req.body || {};
+    const before = {
+      name: staff.name,
+      powers: cleanPermissions(staff.permissions || {}),
+      active: staff.active !== false,
+    };
     if (name !== undefined) {
       if (typeof name !== "string" || !name.trim()) {
         return res.status(400).json({ error: "Name cannot be empty." });
@@ -125,6 +151,25 @@ const updateStaff = async (req, res, next) => {
     }
 
     await staff.save();
+
+    // What this change did, for the Activity history
+    const changes = [];
+    if (staff.name !== before.name) {
+      changes.push({ field: "Name", from: before.name, to: staff.name });
+    }
+    const now = cleanPermissions(staff.permissions || {});
+    for (const key of PERMISSION_KEYS) {
+      if (now[key] !== before.powers[key]) {
+        changes.push({ field: POWER_LABELS[key], from: onOff(before.powers[key]), to: onOff(now[key]) });
+      }
+    }
+    if ((staff.active !== false) !== before.active) {
+      changes.push({ field: "Account", from: onOff(before.active), to: onOff(staff.active !== false) });
+    }
+    if (changes.length) {
+      logStaff(req, "staff.update", staff, `Changed staff ${staff.name} (@${staff.username})`, changes);
+    }
+
     res.status(200).json({ staff: toStaffView(staff) });
   } catch (err) {
     next(err);
@@ -137,6 +182,7 @@ const deleteStaff = async (req, res, next) => {
     const staff = await findStaff(req);
     if (!staff) return res.status(404).json({ error: "Staff member not found." });
     await staff.deleteOne();
+    logStaff(req, "staff.delete", staff, `Removed staff ${staff.name} (@${staff.username})`);
     res.status(200).json({ message: "Staff member removed." });
   } catch (err) {
     next(err);
@@ -156,6 +202,8 @@ const resetStaffPassword = async (req, res, next) => {
     staff.passwordChangedAt = new Date(); // logs them out everywhere
     staff.passwordChange = { status: "none" };
     await staff.save();
+
+    logStaff(req, "staff.password_set", staff, `Set a new password for staff ${staff.name} (@${staff.username})`);
 
     res.status(200).json({ staff: toStaffView(staff) });
   } catch (err) {
@@ -182,6 +230,13 @@ const decidePasswordRequest = (approve) => async (req, res, next) => {
       : { status: "none" };
     await staff.save();
 
+    logStaff(
+      req,
+      approve ? "staff.password_approved" : "staff.password_denied",
+      staff,
+      `${approve ? "Approved" : "Denied"} the password change for staff ${staff.name} (@${staff.username})`
+    );
+
     res.status(200).json({ staff: toStaffView(staff) });
   } catch (err) {
     next(err);
@@ -205,6 +260,7 @@ const requestPasswordChange = async (req, res, next) => {
 
     me.passwordChange = { status: "requested", requestedAt: new Date() };
     await me.save();
+    logStaff(req, "staff.password_requested", me, `${me.name} (@${me.username}) asked to change their password`);
     res.status(200).json({ passwordChange: toStaffView(me).passwordChange });
   } catch (err) {
     next(err);
@@ -240,6 +296,7 @@ const changeOwnPassword = async (req, res, next) => {
     me.passwordChangedAt = new Date();
     me.passwordChange = { status: "none" };
     await me.save();
+    logStaff(req, "staff.password_changed", me, `${me.name} (@${me.username}) changed their password`);
 
     res.status(200).json({ message: "Password changed. Please login again." });
   } catch (err) {

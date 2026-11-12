@@ -8,6 +8,7 @@ import Pagination from "./Pagination";
 import { useIsPhone } from "../../../common/hooks/useMediaQuery";
 import axios from "axios";
 import { can } from "../../../common/utils/permissions";
+import { resolveColumns } from "../utils/orderColumns";
 
 // Columns the phone view can sort by (same ones the table headers offer)
 const SORT_OPTIONS = [
@@ -49,6 +50,7 @@ const OrderList = ({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const isPhone = useIsPhone();
+  const { rowColumns, detailColumns } = resolveColumns(shop);
   // What this person may do with an order (the admin decides for staff)
   const access = {
     edit: can(account, "editOrders"),
@@ -132,8 +134,9 @@ const OrderList = ({
         </>
       ) : (
         <div className="overflow-auto border rounded shadow">
-          <table className="overflow-auto min-w-max bg-white rounded-lg shadow-md text-left w-full">
+          <table className="bg-white rounded-lg shadow-md text-left w-full">
             <OrderTableHeader
+              columns={rowColumns}
               setSortField={setSortField}
               setSortOrder={setSortOrder}
               sortField={sortField}
@@ -146,6 +149,8 @@ const OrderList = ({
                   order={order}
                   shop={shop}
                   access={access}
+                  rowColumns={rowColumns}
+                  detailColumns={detailColumns}
                   onEdit={onEdit}
                   setShowEditOrderModal={setShowEditOrderModal}
                   setShowDeleteModal={setShowDeleteModal}

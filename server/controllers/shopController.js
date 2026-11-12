@@ -2,6 +2,7 @@ const Shop = require("../models/Shop");
 const User = require("../models/User");
 const ORDER_STATUSES = require("../models/orderStatuses");
 const COLOR_NAMES = require("../models/statusColors");
+const TABLE_COLUMNS = require("../models/tableColumns");
 
 // POST /api/shop/setup
 const setupShop = async (req, res, next) => {
@@ -131,7 +132,36 @@ const saveStatusColors = async (req, res, next) => {
   }
 };
 
+// PUT /api/shop/settings/table-columns   { columns: ["orderId", "status", ...] }
+const saveTableColumns = async (req, res, next) => {
+  try {
+    const wanted = req.body?.columns;
+    if (!Array.isArray(wanted) || wanted.some((key) => typeof key !== "string")) {
+      return res.status(400).json({ error: "Please send the list of columns." });
+    }
+    const unknown = wanted.find((key) => !TABLE_COLUMNS.includes(key));
+    if (unknown) return res.status(400).json({ error: `Unknown column: ${unknown}` });
+
+    // Fixed order, no repeats, and the Order ID is always there
+    const columns = TABLE_COLUMNS.filter(
+      (key) => key === "orderId" || wanted.includes(key)
+    );
+
+    const shop = await Shop.findOneAndUpdate(
+      { owner: req.user.id },
+      { tableColumns: columns },
+      { new: true }
+    );
+    if (!shop) return res.status(404).json({ error: "Shop not found" });
+
+    res.status(200).json({ tableColumns: shop.tableColumns });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
+  saveTableColumns,
   setupShop,
   getShopByUserId,
   resetOrders,

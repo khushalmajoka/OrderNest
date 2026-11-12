@@ -7,6 +7,7 @@ import SettingCard from "../components/SettingCard";
 import StatusColorsCard from "../components/StatusColorsCard";
 import MyPasswordCard from "../components/MyPasswordCard";
 import ChangeEmailCard from "../components/ChangeEmailCard";
+import TableColumnsCard from "../components/TableColumnsCard";
 import { isAdmin } from "../../../common/utils/permissions";
 import ConfirmResetModal from "../../../common/components/ConfirmResetModal";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
@@ -72,6 +73,8 @@ const Settings = () => {
         {isAdmin(account) ? (
           <>
             <ChangeEmailCard email={account.email} onChanged={reload} />
+
+            <TableColumnsCard shop={shop} />
 
             <StatusColorsCard shop={shop} />
 

@@ -17,5 +17,6 @@ export const useMediaQuery = (query) => {
   return matches;
 };
 
-// Phones (and anything narrower than Tailwind's `md` breakpoint)
-export const useIsPhone = () => useMediaQuery("(max-width: 767px)");
+// Phones and small tablets: too narrow for the wide orders table, so orders
+// are shown as cards (anything narrower than Tailwind's `lg` breakpoint)
+export const useIsPhone = () => useMediaQuery("(max-width: 1023px)");

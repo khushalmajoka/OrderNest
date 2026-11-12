@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { Pencil, Share2, Trash2, Truck } from "lucide-react";
-import moment from "moment";
 import { motion, AnimatePresence } from "framer-motion";
 import OrderShareDialog from "./OrderShareDialog";
 import DeliverySlipDialog from "./DeliverySlipDialog";
 import { useOrderShare } from "../hooks/useOrderShare";
-import { deliveryCountdown } from "../../../common/utils/dateUtils";
 import { getStatusStyle } from "../../../common/utils/statusColors";
 
 const OrderTableRow = ({
@@ -18,21 +16,27 @@ const OrderTableRow = ({
   activeOrderId,
   setActiveOrderId,
   access,
+  rowColumns,
+  detailColumns,
 }) => {
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
     useOrderShare(order);
 
   const [showSlip, setShowSlip] = useState(false);
   const isExpanded = activeOrderId === order._id;
-  const countdown = deliveryCountdown(order.expectedDeliveryDate, order.status);
+  const hasDetails = detailColumns.length > 0;
   const statusStyle = getStatusStyle(shop, order.status);
+  // One colour for the row and its opened details
+  const rowTint = statusStyle ? statusStyle.row : "bg-orange-50";
 
   return (
     <>
       <motion.tr
         layout
         key={order._id}
-        className={`group border-t text-sm transition-all relative cursor-pointer ${
+        className={`group border-t text-sm transition-all relative ${
+          hasDetails ? "cursor-pointer" : ""
+        } ${
           statusStyle
             ? `${statusStyle.row} hover:brightness-95`
             : isExpanded
@@ -40,45 +44,24 @@ const OrderTableRow = ({
             : "hover:bg-orange-50"
         }`}
         onClick={(e) => {
-          if (e.target.closest("button")) return; // avoid conflicts
+          if (!hasDetails || e.target.closest("button")) return; // avoid conflicts
           setActiveOrderId(isExpanded ? null : order._id);
         }}
       >
-        <td
-          className={`px-4 py-2 border-l-4 ${
-            statusStyle ? statusStyle.strip : "border-l-transparent"
-          }`}
-        >
-          {order.orderId || order._id.slice(-6)}
-        </td>
-        <td className="px-4 py-2">{order.customerName}</td>
-        <td className="px-4 py-2">{order.item}</td>
-        <td className="px-4 py-2">{order.phone}</td>
-        <td className="px-4 py-2">₹{order.total}</td>
-        <td className="px-4 py-2">₹{order.advance}</td>
-        <td className="px-4 py-2">₹{order.balance}</td>
-        <td className="px-4 py-2">
-          {statusStyle ? (
-            <span
-              className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${statusStyle.badge}`}
-            >
-              {order.status}
-            </span>
-          ) : (
-            order.status
-          )}
-        </td>
-        <td className="px-4 py-2">
-          {order.expectedDeliveryDate
-            ? moment(order.expectedDeliveryDate).format("DD MMM YYYY")
-            : "-"}
-        </td>
-        <td
-          className={`px-4 py-2 ${countdown.late ? "text-red-600 font-medium" : ""}`}
-        >
-          {countdown.text}
-        </td>
-        <td className="px-4 py-2">{order.orderExecutive}</td>
+        {rowColumns.map((column, index) => (
+          <td
+            key={column.key}
+            className={`px-3 py-2 align-top ${
+              index === 0
+                ? `border-l-4 ${
+                    statusStyle ? statusStyle.strip : "border-l-transparent"
+                  }`
+                : ""
+            }`}
+          >
+            {column.cell(order, { statusStyle })}
+          </td>
+        ))}
         {(access.edit || access.delete || access.share) && (
           <td className="absolute right-0 group-hover:bg-orange-50 px-4 py-2 shadow-left rounded-md">
             <div className="flex gap-3 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity duration-200">
@@ -133,34 +116,32 @@ const OrderTableRow = ({
         )}
       </motion.tr>
 
-      {/* Expanded details row */}
+      {/* Opened row: the columns that are not in the row, in the same colour */}
       <AnimatePresence>
-        {isExpanded && (
+        {isExpanded && hasDetails && (
           <motion.tr
             layout
             key={`expand-${order._id}`}
-            className="bg-white text-sm"
+            className={`text-sm ${rowTint}`}
           >
-            <td colSpan="12" className="p-0">
-              {/* Wrapper for smooth expand/collapse */}
+            <td colSpan={rowColumns.length} className="p-0">
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
                 transition={{ duration: 0.35, ease: "easeInOut" }}
-                className="overflow-hidden p-4 bg-orange-50"
+                className={`overflow-hidden ${rowTint}`}
               >
-                <p className="mb-2">
-                  <strong>Address:</strong> {order.address || "-"}
-                </p>
-                <p className="mb-2">
-                  <strong>Created Date:</strong>{" "}
-                  {moment(order.createdAt).format("DD MMM, hh:mm A")}
-                </p>
-                <p>
-                  <strong>Updated Date:</strong>{" "}
-                  {moment(order.updatedAt).format("DD MMM, hh:mm A")}
-                </p>
+                <dl className="grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-3 px-6 py-4 border-t border-black/5">
+                  {detailColumns.map((column) => (
+                    <div key={column.key} className="min-w-0">
+                      <dt className="text-xs text-gray-500">{column.label}</dt>
+                      <dd className="break-words text-gray-800">
+                        {column.cell(order, { statusStyle })}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
               </motion.div>
             </td>
           </motion.tr>

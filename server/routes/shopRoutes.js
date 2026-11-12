@@ -5,6 +5,7 @@ const {
   getShopByUserId,
   resetOrders,
   saveStatusColors,
+  saveTableColumns,
 } = require("../controllers/shopController");
 const authenticate = require("../middlewares/authenticate");
 const loadUser = require("../middlewares/loadUser");
@@ -19,6 +20,14 @@ router.put(
   loadUser,
   requireAdmin,
   saveStatusColors
+);
+
+router.put(
+  "/settings/table-columns",
+  authenticate,
+  loadUser,
+  requireAdmin,
+  saveTableColumns
 );
 
 module.exports = router;

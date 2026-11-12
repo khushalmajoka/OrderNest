@@ -1,8 +1,8 @@
-import { LayoutDashboard, Settings, LogOut, X } from "lucide-react";
+import { LayoutDashboard, Settings, LogOut, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const SideDrawer = ({ isOpen, onClose, onLogout }) => {
+const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin }) => {
   const [showDrawer, setShowDrawer] = useState(false);
   const navigate = useNavigate();
 
@@ -53,6 +53,19 @@ const SideDrawer = ({ isOpen, onClose, onLogout }) => {
           <LayoutDashboard className="text-orange-600" size={20} />
           Dashboard
         </button>
+
+        {isAdmin && (
+          <button
+            onClick={() => {
+              navigate("/shop/staff");
+              onClose();
+            }}
+            className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-orange-100 transition"
+          >
+            <Users className="text-orange-600" size={20} />
+            Staff
+          </button>
+        )}
 
         <button
           onClick={() => {

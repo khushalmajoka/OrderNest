@@ -15,6 +15,7 @@ const OrderMobileCard = ({
   setShowEditOrderModal,
   setDeleteId,
   setShowDeleteModal,
+  access,
 }) => {
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
     useOrderShare(order);
@@ -124,39 +125,49 @@ const OrderMobileCard = ({
         {showMore ? "Less details" : "More details"}
       </button>
 
-      <button
-        onClick={() => setShowSlip(true)}
-        className="w-full mt-3 flex items-center justify-center gap-1 py-2 rounded border text-gray-700"
-      >
-        <Truck size={16} /> Delivery slip
-      </button>
+      {access.share && (
+        <button
+          onClick={() => setShowSlip(true)}
+          className="w-full mt-3 flex items-center justify-center gap-1 py-2 rounded border text-gray-700"
+        >
+          <Truck size={16} /> Delivery slip
+        </button>
+      )}
 
-      <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t">
-        <button
-          onClick={() => {
-            setShowEditOrderModal(true);
-            onEdit(order);
-          }}
-          className="flex items-center justify-center gap-1 py-2 rounded border text-blue-600"
-        >
-          <Pencil size={16} /> Edit
-        </button>
-        <button
-          onClick={() => setIsShareOpen(true)}
-          className="flex items-center justify-center gap-1 py-2 rounded border text-green-600"
-        >
-          <Share2 size={16} /> Share
-        </button>
-        <button
-          onClick={() => {
-            setDeleteId(order._id);
-            setShowDeleteModal(true);
-          }}
-          className="flex items-center justify-center gap-1 py-2 rounded border text-red-600"
-        >
-          <Trash2 size={16} /> Delete
-        </button>
-      </div>
+      {(access.edit || access.share || access.delete) && (
+        <div className="flex gap-2 mt-3 pt-3 border-t">
+          {access.edit && (
+            <button
+              onClick={() => {
+                setShowEditOrderModal(true);
+                onEdit(order);
+              }}
+              className="flex-1 flex items-center justify-center gap-1 py-2 rounded border text-blue-600"
+            >
+              <Pencil size={16} /> Edit
+            </button>
+          )}
+          {access.share && (
+            <button
+              onClick={() => setIsShareOpen(true)}
+              className="flex-1 flex items-center justify-center gap-1 py-2 rounded border text-green-600"
+            >
+              <Share2 size={16} /> Share
+            </button>
+          )}
+          {access.delete && (
+            <button
+              onClick={() => {
+                setDeleteId(order._id);
+                setShowDeleteModal(true);
+              }}
+              className="flex-1 flex items-center justify-center gap-1 py-2 rounded border text-red-600"
+            >
+              <Trash2 size={16} /> Delete
+            </button>
+          )}
+        </div>
+      )}
 
       {showSlip && (
         <DeliverySlipDialog

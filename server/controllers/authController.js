@@ -3,12 +3,18 @@ const bcrypt = require("bcryptjs");
 const generateToken = require("../utils/generateToken");
 
 // Only these fields are ever sent to the client (never the password hash)
-const toPublicUser = (user) => ({
-  _id: user._id,
-  name: user.name,
-  email: user.email,
-  shopId: user.shopId,
-});
+const toPublicUser = (user) => {
+  const role = user.role || "admin";
+  return {
+    _id: user._id,
+    name: user.name,
+    // Staff have no real email (the stored one is made up)
+    email: role === "admin" ? user.email : undefined,
+    username: user.username,
+    role,
+    shopId: user.shopId,
+  };
+};
 
 // Emails are compared without caring about upper/lower case. Older accounts
 // may have been saved with capitals, so look up case-insensitively too.
@@ -66,28 +72,39 @@ const register = async (req, res, next) => {
   }
 };
 
+// Admins log in with their email, staff with their username (same box).
+// The old field name `email` still works.
 const login = async (req, res, next) => {
   const { password } = req.body || {};
-  const email = cleanEmail(req.body?.email);
+  const typed = req.body?.identifier ?? req.body?.email;
+  const identifier = cleanEmail(typed); // trims and lower-cases any text
 
   try {
-    if (!email || typeof password !== "string" || !password) {
+    if (!identifier || typeof password !== "string" || !password) {
       return res
         .status(400)
-        .json({ error: "Please enter your email and password." });
+        .json({ error: "Please enter your email or username and password." });
     }
 
-    const user = await User.findOne({ email })
-      .collation(CASE_INSENSITIVE)
-      .select("+password");
+    const user = identifier.includes("@")
+      ? await User.findOne({ email: identifier })
+          .collation(CASE_INSENSITIVE)
+          .select("+password")
+      : await User.findOne({ username: identifier }).select("+password");
 
-    // Same answer for "no such email" and "wrong password"
+    // Same answer for "no such account" and "wrong password"
     const isMatch = await bcrypt.compare(
       password,
       user ? user.password : DUMMY_HASH
     );
     if (!user || !isMatch) {
-      return res.status(401).json({ error: "Wrong email or password." });
+      return res.status(401).json({ error: "Wrong email, username or password." });
+    }
+
+    if ((user.role || "admin") === "staff" && user.active === false) {
+      return res
+        .status(403)
+        .json({ error: "Your account is turned off. Please ask your admin." });
     }
 
     const token = generateToken(user._id);

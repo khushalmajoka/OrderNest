@@ -9,7 +9,9 @@ const {
   bulkUploadOrders,
 } = require("../controllers/orderController");
 const authenticate = require("../middlewares/authenticate");
+const loadUser = require("../middlewares/loadUser");
 const loadShop = require("../middlewares/loadShop");
+const { requireAdmin, requirePermission } = require("../middlewares/access");
 const { trackLimiter } = require("../middlewares/rateLimiter");
 
 const router = express.Router();
@@ -18,17 +20,46 @@ const router = express.Router();
 router.post("/track", trackLimiter, trackOrder);
 
 // Create Order
-router.post("/create", authenticate, loadShop, createOrder);
+router.post(
+  "/create",
+  authenticate,
+  loadUser,
+  loadShop,
+  requirePermission("createOrders"),
+  createOrder
+);
 
-router.post("/bulk-upload", authenticate, loadShop, bulkUploadOrders);
+// Excel upload: admin only
+router.post(
+  "/bulk-upload",
+  authenticate,
+  loadUser,
+  loadShop,
+  requireAdmin,
+  bulkUploadOrders
+);
 
 // Get one page of a shop's orders
-router.get("/shop/:shopId", authenticate, loadShop, getOrdersByShop);
+router.get("/shop/:shopId", authenticate, loadUser, loadShop, getOrdersByShop);
 
 // PUT /api/orders/:id => Update Order
-router.put("/:id", authenticate, loadShop, updateOrder);
+router.put(
+  "/:id",
+  authenticate,
+  loadUser,
+  loadShop,
+  requirePermission("editOrders"),
+  updateOrder
+);
 
 // DELETE /api/orders/:id => Delete Order
-router.delete("/:id", authenticate, loadShop, deleteOrder);
+router.delete(
+  "/:id",
+  authenticate,
+  loadUser,
+  loadShop,
+  requirePermission("deleteOrders"),
+  deleteOrder
+);
 
 module.exports = router;

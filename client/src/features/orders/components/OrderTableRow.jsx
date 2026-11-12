@@ -17,6 +17,7 @@ const OrderTableRow = ({
   setShowDeleteModal,
   activeOrderId,
   setActiveOrderId,
+  access,
 }) => {
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
     useOrderShare(order);
@@ -78,43 +79,58 @@ const OrderTableRow = ({
           {countdown.text}
         </td>
         <td className="px-4 py-2">{order.orderExecutive}</td>
-        <td className="absolute right-0 group-hover:bg-orange-50 px-4 py-2 shadow-left rounded-md">
-          <div className="flex gap-3 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity duration-200">
-            <button
-              onClick={() => {
-                setShowEditOrderModal(true);
-                onEdit(order);
-              }}
-              className="text-blue-500 hover:text-blue-600"
-            >
-              <Pencil size={18} />
-            </button>
-            <button
-              onClick={() => {
-                setDeleteId(order._id);
-                setShowDeleteModal(true);
-              }}
-              className="text-red-500 hover:text-red-600"
-            >
-              <Trash2 size={18} />
-            </button>
-            <button
-              onClick={() => setIsShareOpen(true)}
-              className="text-green-500 hover:text-green-600"
-              title="Share order"
-            >
-              <Share2 size={18} />
-            </button>
-            <button
-              onClick={() => setShowSlip(true)}
-              className="text-gray-600 hover:text-gray-900"
-              title="Delivery slip"
-              aria-label="Delivery slip"
-            >
-              <Truck size={18} />
-            </button>
-          </div>
-        </td>
+        {(access.edit || access.delete || access.share) && (
+          <td className="absolute right-0 group-hover:bg-orange-50 px-4 py-2 shadow-left rounded-md">
+            <div className="flex gap-3 opacity-0 group-hover:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity duration-200">
+              {access.edit && (
+                <button
+                  onClick={() => {
+                    setShowEditOrderModal(true);
+                    onEdit(order);
+                  }}
+                  className="text-blue-500 hover:text-blue-600"
+                  title="Edit order"
+                  aria-label="Edit order"
+                >
+                  <Pencil size={18} />
+                </button>
+              )}
+              {access.delete && (
+                <button
+                  onClick={() => {
+                    setDeleteId(order._id);
+                    setShowDeleteModal(true);
+                  }}
+                  className="text-red-500 hover:text-red-600"
+                  title="Delete order"
+                  aria-label="Delete order"
+                >
+                  <Trash2 size={18} />
+                </button>
+              )}
+              {access.share && (
+                <>
+                  <button
+                    onClick={() => setIsShareOpen(true)}
+                    className="text-green-500 hover:text-green-600"
+                    title="Share order"
+                    aria-label="Share order"
+                  >
+                    <Share2 size={18} />
+                  </button>
+                  <button
+                    onClick={() => setShowSlip(true)}
+                    className="text-gray-600 hover:text-gray-900"
+                    title="Delivery slip"
+                    aria-label="Delivery slip"
+                  >
+                    <Truck size={18} />
+                  </button>
+                </>
+              )}
+            </div>
+          </td>
+        )}
       </motion.tr>
 
       {/* Expanded details row */}

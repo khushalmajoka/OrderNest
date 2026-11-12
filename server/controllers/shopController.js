@@ -53,11 +53,20 @@ const getShopByUserId = async (req, res, next) => {
       return res.status(403).json({ error: "Forbidden" });
     }
 
-    const shop = await Shop.findOne({ owner: userId });
+    // The owner's own shop, or the shop a staff member works for
+    const shop =
+      req.account.role === "staff"
+        ? await Shop.findById(req.account.shopId)
+        : await Shop.findOne({ owner: userId });
 
     if (!shop) return res.status(404).json({ error: "Shop not found" });
 
-    res.status(200).json({ shop });
+    // `account` tells the screen what this person may do
+    const { id, role, name, username, permissions, passwordChange } = req.account;
+    res.status(200).json({
+      shop,
+      account: { id, role, name, username, permissions, passwordChange },
+    });
   } catch (error) {
     return next(error);
   }

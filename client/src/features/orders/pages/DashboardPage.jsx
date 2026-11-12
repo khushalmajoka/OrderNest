@@ -31,9 +31,10 @@ import {
   filtersToParams,
 } from "../utils/filters";
 import { SlidersHorizontal } from "lucide-react";
+import { can, isAdmin } from "../../../common/utils/permissions";
 
 const Dashboard = () => {
-  const { shop, error: shopError, reload: reloadShop } = useShop();
+  const { shop, account, error: shopError, reload: reloadShop } = useShop();
   const navigate = useNavigate();
 
   const [searchInput, setSearchInput] = useState(""); // what is typed
@@ -195,7 +196,7 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-orange-50 font-poppins">
-      <Navbar shop={shop} onLogout={handleLogout} />
+      <Navbar shop={shop} account={account} onLogout={handleLogout} />
       <div className="p-4 md:p-8">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2 text-xl md:text-2xl font-bold text-gray-800">
@@ -226,8 +227,12 @@ const Dashboard = () => {
               </button>
             </div>
             <ActionsBar
-              onCreateClick={() => setShowCreateModal(true)}
-              onFileChange={handleBulkUpload}
+              onCreateClick={
+                can(account, "createOrders")
+                  ? () => setShowCreateModal(true)
+                  : null
+              }
+              onFileChange={isAdmin(account) ? handleBulkUpload : null}
             />
           </div>
         </div>
@@ -258,6 +263,7 @@ const Dashboard = () => {
             <OrderList
               orders={orders}
               shop={shop}
+              account={account}
               totalOrders={totalOrders}
               searching={Boolean(search) || filterCount > 0}
               ordersPerPage={ordersPerPage}

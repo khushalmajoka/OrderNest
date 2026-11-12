@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 
 const Login = () => {
   const [form, setForm] = useState({
-    email: "",
+    identifier: "", // email (admin) or username (staff)
     password: "",
   });
   const [loading, setLoading] = useState(false);
@@ -85,14 +85,16 @@ const Login = () => {
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
+              Email or username
             </label>
             <input
-              type="email"
-              name="email"
-              value={form.email}
+              type="text"
+              name="identifier"
+              autoComplete="username"
+              autoCapitalize="none"
+              value={form.identifier}
               onChange={handleChange}
-              placeholder="you@example.com"
+              placeholder="you@example.com or your username"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
               required
             />

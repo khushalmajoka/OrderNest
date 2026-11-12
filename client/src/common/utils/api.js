@@ -34,7 +34,9 @@ export const setupAuthInterceptor = () => {
       const hadLogin = Boolean(localStorage.getItem("token"));
       if (error?.response?.status === 401 && hadLogin) {
         clearSession();
-        toast.error("Session expired. Please login again.");
+        toast.error(
+          error.response.data?.error || "Session expired. Please login again."
+        );
         window.location.assign("/shop");
       }
       return Promise.reject(error);

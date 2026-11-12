@@ -4,6 +4,7 @@ const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
 const shopRoutes = require("./routes/shopRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const staffRoutes = require("./routes/staffRoutes");
 const cors = require('cors');
 const errorHandler = require('./middlewares/errorHandler');
 
@@ -26,6 +27,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use('/api/auth', authRoutes);
 app.use("/api/shop", shopRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/staff", staffRoutes);
 
 app.use(errorHandler);
 

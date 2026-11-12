@@ -7,6 +7,7 @@ import OrderMobileCard from "./OrderMobileCard";
 import Pagination from "./Pagination";
 import { useIsPhone } from "../../../common/hooks/useMediaQuery";
 import axios from "axios";
+import { can } from "../../../common/utils/permissions";
 
 // Columns the phone view can sort by (same ones the table headers offer)
 const SORT_OPTIONS = [
@@ -28,6 +29,7 @@ const SORT_OPTIONS = [
 const OrderList = ({
   orders,
   shop,
+  account,
   totalOrders,
   searching,
   ordersPerPage,
@@ -47,6 +49,12 @@ const OrderList = ({
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const isPhone = useIsPhone();
+  // What this person may do with an order (the admin decides for staff)
+  const access = {
+    edit: can(account, "editOrders"),
+    delete: can(account, "deleteOrders"),
+    share: can(account, "shareSlip"),
+  };
 
   if (!orders.length)
     return (
@@ -113,6 +121,7 @@ const OrderList = ({
                 key={order._id}
                 order={order}
                 shop={shop}
+                access={access}
                 onEdit={onEdit}
                 setShowEditOrderModal={setShowEditOrderModal}
                 setShowDeleteModal={setShowDeleteModal}
@@ -136,6 +145,7 @@ const OrderList = ({
                   key={order._id}
                   order={order}
                   shop={shop}
+                  access={access}
                   onEdit={onEdit}
                   setShowEditOrderModal={setShowEditOrderModal}
                   setShowDeleteModal={setShowDeleteModal}

@@ -3,7 +3,7 @@ import { useState } from "react";
 import SideDrawer from "./SideDrawer";
 import { getShopLogo } from "../../../common/utils/utils";
 
-const Navbar = ({ shop, onLogout }) => {
+const Navbar = ({ shop, account, onLogout }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -32,6 +32,7 @@ const Navbar = ({ shop, onLogout }) => {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         onLogout={onLogout}
+        isAdmin={account?.role === "admin"}
       />
     </>
   );

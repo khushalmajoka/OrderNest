@@ -5,6 +5,8 @@ import toast from "react-hot-toast";
 import Navbar from "../components/Navbar";
 import SettingCard from "../components/SettingCard";
 import StatusColorsCard from "../components/StatusColorsCard";
+import MyPasswordCard from "../components/MyPasswordCard";
+import { isAdmin } from "../../../common/utils/permissions";
 import ConfirmResetModal from "../../../common/components/ConfirmResetModal";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
 import { useShop } from "../hooks/useShop";
@@ -13,7 +15,7 @@ import loadingGif from "../../../assets/Loading.gif";
 
 const Settings = () => {
   const navigate = useNavigate();
-  const { shop, error, reload } = useShop();
+  const { shop, account, error, reload } = useShop();
   const [showModal, setShowModal] = useState(false);
 
   const handleLogout = () => {
@@ -61,27 +63,39 @@ const Settings = () => {
 
   return (
     <div className="min-h-screen bg-orange-50 font-poppins">
-      <Navbar shop={shop} onLogout={handleLogout} />
+      <Navbar shop={shop} account={account} onLogout={handleLogout} />
 
       <div className="p-4 md:p-8 space-y-6">
         <h1 className="text-2xl font-bold text-orange-700 mb-6">Settings</h1>
 
-        <StatusColorsCard shop={shop} />
+        {isAdmin(account) ? (
+          <>
+            <StatusColorsCard shop={shop} />
 
-        <SettingCard
-          title="Order Management"
-          description={
-            <>
-              Resetting will set{" "}
-              <span className="font-semibold">total order count</span> to 0 and
-              clear{" "}
-              <span className="font-semibold">daily order count records</span>{" "}
-              including past ones.
-            </>
-          }
-          actionLabel="Reset Total Order Count"
-          onAction={() => setShowModal(true)}
-        />
+            <SettingCard
+              title="Order Management"
+              description={
+                <>
+                  Resetting will set{" "}
+                  <span className="font-semibold">total order count</span> to 0
+                  and clear{" "}
+                  <span className="font-semibold">
+                    daily order count records
+                  </span>{" "}
+                  including past ones.
+                </>
+              }
+              actionLabel="Reset Total Order Count"
+              onAction={() => setShowModal(true)}
+            />
+          </>
+        ) : (
+          <MyPasswordCard
+            account={account}
+            onRefresh={reload}
+            onPasswordChanged={handleLogout}
+          />
+        )}
       </div>
 
       {showModal && (

@@ -9,7 +9,7 @@ const RETRY_DELAY_MS = 3000;
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Loads the logged-in user's shop.
-// Returns { shop, error, reload }:
+// Returns { shop, account, error, reload }:
 //  - not logged in            -> goes to the login page
 //  - login no longer valid    -> the app logs out (see setupAuthInterceptor)
 //  - no shop set up yet       -> goes to the shop setup page
@@ -17,6 +17,7 @@ const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 //    (the user stays logged in)
 export const useShop = () => {
   const [shop, setShop] = useState(null);
+  const [account, setAccount] = useState(null); // role and permissions
   const [error, setError] = useState(null);
   const [attempt, setAttempt] = useState(0);
   const navigate = useNavigate();
@@ -46,7 +47,10 @@ export const useShop = () => {
             `${process.env.REACT_APP_BASE_URL}/api/shop/${userId}`,
             { headers }
           );
-          if (!cancelled) setShop(res.data.shop);
+          if (!cancelled) {
+            setShop(res.data.shop);
+            setAccount(res.data.account);
+          }
           return;
         } catch (err) {
           const status = err.response?.status;
@@ -73,5 +77,5 @@ export const useShop = () => {
     };
   }, [navigate, attempt]);
 
-  return { shop, error, reload };
+  return { shop, account, error, reload };
 };

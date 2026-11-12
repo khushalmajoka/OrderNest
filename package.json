@@ -3,9 +3,6 @@
     "start": "concurrently -n server,client -c cyan,green \"npm --prefix server run dev\" \"npm --prefix client start\"",
     "install:all": "npm install && npm --prefix server install && npm --prefix client install"
   },
-  "dependencies": {
-    "@material-tailwind/react": "^2.1.10"
-  },
   "devDependencies": {
     "concurrently": "^10.0.6"
   }

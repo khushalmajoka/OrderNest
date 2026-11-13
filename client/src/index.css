@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+/* The app's page colour on the whole page, so the area that shows when you
+   pull the page down (or the notch area on a phone) is the same colour as the
+   screen, not grey. Same value as Tailwind's orange-50. */
+html {
+  background-color: #fff7ed;
+  color-scheme: light;
+}
+
 /* General body styling for a clean background */
 body {
   margin: 0;
@@ -10,7 +18,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f0f2f5; /* Light grey background */
+  background-color: #fff7ed;
   color: #333; /* Default text color */
 }
 

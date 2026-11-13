@@ -24,6 +24,8 @@ const OrderMobileCard = ({
 
   const countdown = deliveryCountdown(order.expectedDeliveryDate, order.status);
   const statusStyle = getStatusStyle(shop, order.status);
+  // Blocks inside the card are a slightly darker shade of the card's own colour
+  const tile = statusStyle ? "bg-black/5" : "bg-orange-50";
 
   return (
     <div
@@ -65,15 +67,15 @@ const OrderMobileCard = ({
       </div>
 
       <div className="grid grid-cols-3 gap-2 mt-3 text-center">
-        <div className="bg-orange-50 rounded p-2">
+        <div className={`${tile} rounded p-2`}>
           <p className="text-xs text-gray-500">Total</p>
           <p className="font-semibold">₹{order.total}</p>
         </div>
-        <div className="bg-orange-50 rounded p-2">
+        <div className={`${tile} rounded p-2`}>
           <p className="text-xs text-gray-500">Advance</p>
           <p className="font-semibold">₹{order.advance}</p>
         </div>
-        <div className="bg-orange-50 rounded p-2">
+        <div className={`${tile} rounded p-2`}>
           <p className="text-xs text-gray-500">Balance</p>
           <p className="font-semibold text-red-500">₹{order.balance}</p>
         </div>
@@ -102,7 +104,7 @@ const OrderMobileCard = ({
       </div>
 
       {showMore && (
-        <div className="mt-3 p-3 bg-orange-50 rounded text-gray-600 space-y-1">
+        <div className={`mt-3 p-3 ${tile} rounded text-gray-600 space-y-1`}>
           <p className="break-words">
             <strong>Address:</strong> {order.address || "-"}
           </p>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
-import loadingGif from "../../../assets/Loading.gif";
+import LoadingScreen from "../../../common/components/LoadingScreen";
 
 import { useShop } from "../../shop/hooks/useShop";
 import { useOrders } from "../hooks/useOrders";
@@ -190,11 +190,7 @@ const Dashboard = () => {
   }
 
   if (!shop) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#FACFBC] font-poppins">
-        <img src={loadingGif} alt="loading" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

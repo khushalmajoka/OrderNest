@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 import Navbar from "../components/Navbar";
-import loadingGif from "../../../assets/Loading.gif";
+import LoadingScreen from "../../../common/components/LoadingScreen";
 import { useShop } from "../hooks/useShop";
 import { getErrorMessage } from "../../../common/utils/api";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
@@ -370,11 +370,7 @@ const StaffPage = () => {
     );
   }
   if (!shop || !isAdminAccount) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#FACFBC] font-poppins">
-        <img src={loadingGif} alt="loading" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

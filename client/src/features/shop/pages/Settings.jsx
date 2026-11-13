@@ -9,7 +9,7 @@ import SlipSettingsCard from "../components/SlipSettingsCard";
 import { isAdmin } from "../../../common/utils/permissions";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
 import { useShop } from "../hooks/useShop";
-import loadingGif from "../../../assets/Loading.gif";
+import LoadingScreen from "../../../common/components/LoadingScreen";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -35,11 +35,7 @@ const Settings = () => {
   }
 
   if (!shop) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-[#FACFBC] font-poppins">
-        <img src={loadingGif} alt="loading" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (

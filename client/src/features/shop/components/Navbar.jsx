@@ -8,7 +8,7 @@ const Navbar = ({ shop, account, onLogout }) => {
 
   return (
     <>
-      <nav className="sticky top-0 z-10 backdrop-blur-lg bg-white/30 border-b border-orange-200 shadow-md px-4 md:px-6 py-3 flex justify-between items-center gap-3">
+      <nav className="sticky top-0 z-10 bg-orange-50 border-b border-orange-200 shadow-md px-4 md:px-6 py-3 flex justify-between items-center gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <img
             src={getShopLogo(shop)}

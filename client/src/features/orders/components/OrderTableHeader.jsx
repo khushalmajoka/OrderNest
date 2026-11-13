@@ -47,8 +47,8 @@ const OrderTableHeader = ({
           )
         )}
         {showActions && (
-          <th className="px-2 py-3 text-xs font-medium text-gray-500 whitespace-nowrap">
-            Actions
+          <th className="px-2 py-3">
+            <span className="sr-only">Actions</span>
           </th>
         )}
       </tr>

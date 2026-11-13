@@ -4,6 +4,7 @@ import html2canvas from "html2canvas";
 import toast from "react-hot-toast";
 import DeliverySlip from "./DeliverySlip";
 import { slipToPdf } from "../utils/slipPdf";
+import { Bar, SkeletonRegion } from "../../../common/components/Skeleton";
 import { SLIP_GROUPS, resolveSlip } from "../../../common/utils/slipFields";
 
 const inputClass =
@@ -151,9 +152,26 @@ const DeliverySlipDialog = ({ order, shop, onClose }) => {
                 Could not make the slip. Please close and try again.
               </p>
             ) : (
-              <div className="flex justify-center py-16">
-                <div className="w-8 h-8 border-4 border-orange-500 border-dashed rounded-full animate-spin"></div>
-              </div>
+              <SkeletonRegion label="Making the slip">
+                <div className="bg-white border shadow p-5 space-y-4" style={{ aspectRatio: "105 / 148" }}>
+                  <div className="flex items-center gap-3 pb-3 border-b">
+                    <Bar className="h-12 w-12 shrink-0" />
+                    <div className="space-y-2 flex-1">
+                      <Bar className="h-4 w-1/2" />
+                      <Bar className="h-3 w-2/3" />
+                    </div>
+                  </div>
+                  <Bar className="h-5 w-2/3" />
+                  <div className="border rounded p-3 space-y-2">
+                    <Bar className="h-3 w-1/4" />
+                    <Bar className="h-6 w-3/4" />
+                    <Bar className="h-4 w-1/2" />
+                    <Bar className="h-4 w-full" />
+                  </div>
+                  <Bar className="h-3 w-3/4" />
+                  <Bar className="h-14 w-full" />
+                </div>
+              </SkeletonRegion>
             )}
 
             <button

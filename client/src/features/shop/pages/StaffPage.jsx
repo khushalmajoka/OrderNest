@@ -4,6 +4,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import Navbar from "../components/Navbar";
 import LoadingScreen from "../../../common/components/LoadingScreen";
+import { Bar, SkeletonRegion } from "../../../common/components/Skeleton";
 import { useShop } from "../hooks/useShop";
 import { getErrorMessage } from "../../../common/utils/api";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
@@ -330,6 +331,33 @@ const StaffCard = ({ member, onChanged }) => {
   );
 };
 
+// ---- Shape of the staff list while it loads
+const StaffSkeleton = () => (
+  <SkeletonRegion label="Loading your staff" className="space-y-6">
+    {[0, 1].map((i) => (
+      <div key={i} className="bg-white rounded-xl shadow-md p-4 sm:p-6 space-y-4 mb-6">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-2 w-1/2">
+            <Bar className="h-4 w-2/3" />
+            <Bar className="h-3 w-1/2" />
+          </div>
+          <Bar className="h-6 w-11 rounded-full" />
+        </div>
+        <div className="space-y-3">
+          <Bar className="h-4 w-36" />
+          <Bar className="h-4 w-32" />
+          <Bar className="h-4 w-40" />
+          <Bar className="h-4 w-44" />
+        </div>
+        <div className="flex gap-2 pt-3 border-t">
+          <Bar className="h-9 w-36" />
+          <Bar className="h-9 w-20" />
+        </div>
+      </div>
+    ))}
+  </SkeletonRegion>
+);
+
 // ---- The page (admin only)
 const StaffPage = () => {
   const navigate = useNavigate();
@@ -370,7 +398,7 @@ const StaffPage = () => {
     );
   }
   if (!shop || !isAdminAccount) {
-    return <LoadingScreen />;
+    return <LoadingScreen message="Opening your staff" />;
   }
 
   return (
@@ -389,9 +417,7 @@ const StaffPage = () => {
         <AddStaffForm onAdded={load} />
 
         {staff === null ? (
-          <div className="flex justify-center py-6">
-            <div className="w-8 h-8 border-4 border-orange-500 border-dashed rounded-full animate-spin"></div>
-          </div>
+          <StaffSkeleton />
         ) : staff.length === 0 ? (
           <p className="text-gray-500">No staff yet.</p>
         ) : (

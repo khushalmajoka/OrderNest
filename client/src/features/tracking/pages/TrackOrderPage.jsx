@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import OrderNestLogo from "../../../assets/OrderNestLogoWithoutBg.png";
+import { Bar, SkeletonRegion } from "../../../common/components/Skeleton";
 
 const TrackOrderPage = () => {
   const [orderId, setOrderId] = useState("");
@@ -39,9 +40,19 @@ const TrackOrderPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-100 to-white flex flex-col lg:flex-row items-center lg:items-start lg:justify-evenly gap-6 px-4 py-6 md:py-10">
-      {orders.length > 0 && searched && (
+      {(loading || (orders.length > 0 && searched)) && (
         <div className="order-2 lg:order-1 lg:mt-10 w-full lg:w-1/3 max-w-2xl lg:max-h-[600px] overflow-auto" style={{scrollbarWidth: "none", msOverflowStyle: "none"}}>
-          {loading && <p className="text-center text-gray-500">Searching...</p>}
+          {loading && (
+            <SkeletonRegion label="Looking for your order">
+              <div className="bg-white p-4 rounded shadow border border-orange-100 space-y-3">
+                <Bar className="h-4 w-1/2" />
+                <Bar className="h-4 w-3/5" />
+                <Bar className="h-4 w-2/3" />
+                <Bar className="h-4 w-1/2" />
+                <Bar className="h-4 w-3/5" />
+              </div>
+            </SkeletonRegion>
+          )}
           {!loading && searched && (
             <div className="space-y-4 overflow-auto scrollbar-hidden">
               {orders.map((order, index) => (

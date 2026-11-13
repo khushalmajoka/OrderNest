@@ -35,7 +35,7 @@ const Settings = () => {
   }
 
   if (!shop) {
-    return <LoadingScreen />;
+    return <LoadingScreen message="Opening your settings" />;
   }
 
   return (

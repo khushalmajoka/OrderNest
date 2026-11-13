@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import * as XLSX from "xlsx";
 import LoadingScreen from "../../../common/components/LoadingScreen";
+import TopProgressBar from "../../../common/components/TopProgressBar";
+import OrdersSkeleton from "../components/OrdersSkeleton";
 
 import { useShop } from "../../shop/hooks/useShop";
 import { useOrders } from "../hooks/useOrders";
@@ -190,11 +192,12 @@ const Dashboard = () => {
   }
 
   if (!shop) {
-    return <LoadingScreen />;
+    return <LoadingScreen message="Opening your dashboard" />;
   }
 
   return (
     <div className="min-h-screen bg-orange-50 font-poppins">
+      <TopProgressBar active={loading && loaded} />
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
       <div className="p-4 md:p-8">
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
@@ -254,9 +257,7 @@ const Dashboard = () => {
             </button>
           </div>
         ) : !loaded ? (
-          <div className="flex justify-center py-10">
-            <div className="w-8 h-8 border-4 border-orange-500 border-dashed rounded-full animate-spin"></div>
-          </div>
+          <OrdersSkeleton />
         ) : (
           // Keep the table on screen (dimmed) while the next page loads
           <div className={loading ? "opacity-60 transition-opacity" : ""}>

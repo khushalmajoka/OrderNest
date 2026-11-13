@@ -4,6 +4,8 @@ import axios from "axios";
 import moment from "moment";
 import Navbar from "../components/Navbar";
 import LoadingScreen from "../../../common/components/LoadingScreen";
+import TopProgressBar from "../../../common/components/TopProgressBar";
+import { Bar, SkeletonRegion } from "../../../common/components/Skeleton";
 import { useShop } from "../hooks/useShop";
 import { getErrorMessage } from "../../../common/utils/api";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
@@ -51,6 +53,26 @@ const Entry = ({ item, myId }) => {
     </li>
   );
 };
+
+// Shape of the activity list while it loads
+const ActivitySkeleton = () => (
+  <SkeletonRegion label="Loading the activity" className="space-y-5">
+    <div>
+      <Bar className="h-3.5 w-16 mb-3" />
+      <div className="space-y-2">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="bg-white rounded-lg shadow-sm border border-orange-100 p-3 sm:p-4 space-y-2"
+          >
+            <Bar className={`h-4 ${i % 2 ? "w-3/5" : "w-4/5"}`} />
+            <Bar className="h-3 w-1/3" />
+          </div>
+        ))}
+      </div>
+    </div>
+  </SkeletonRegion>
+);
 
 // Who did what: orders created, edited, deleted, uploaded, and staff changes.
 // Admin only. Lines are kept for 6 months.
@@ -125,7 +147,7 @@ const ActivityPage = () => {
     );
   }
   if (!shop || !isAdminAccount) {
-    return <LoadingScreen />;
+    return <LoadingScreen message="Opening your activity" />;
   }
 
   // Group the lines by day, keeping the newest first
@@ -139,6 +161,7 @@ const ActivityPage = () => {
 
   return (
     <div className="min-h-screen bg-orange-50 font-poppins">
+      <TopProgressBar active={loading && items !== null} />
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
 
       <div className="p-4 md:p-8 space-y-4 max-w-2xl">
@@ -185,9 +208,7 @@ const ActivityPage = () => {
         )}
 
         {items === null ? (
-          <div className="flex justify-center py-8">
-            <div className="w-8 h-8 border-4 border-orange-500 border-dashed rounded-full animate-spin"></div>
-          </div>
+          <ActivitySkeleton />
         ) : items.length === 0 && !loadError ? (
           <p className="text-gray-500 py-6">
             {search || kind ? "Nothing matches." : "Nothing has happened yet."}

@@ -1,9 +1,5 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import toast from "react-hot-toast";
 import Navbar from "../components/Navbar";
-import SettingCard from "../components/SettingCard";
 import StatusColorsCard from "../components/StatusColorsCard";
 import MyPasswordCard from "../components/MyPasswordCard";
 import ChangeEmailCard from "../components/ChangeEmailCard";
@@ -11,36 +7,17 @@ import TableColumnsCard from "../components/TableColumnsCard";
 import ChangePasswordCard from "../components/ChangePasswordCard";
 import SlipSettingsCard from "../components/SlipSettingsCard";
 import { isAdmin } from "../../../common/utils/permissions";
-import ConfirmResetModal from "../../../common/components/ConfirmResetModal";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
 import { useShop } from "../hooks/useShop";
-import { getErrorMessage } from "../../../common/utils/api";
 import loadingGif from "../../../assets/Loading.gif";
 
 const Settings = () => {
   const navigate = useNavigate();
   const { shop, account, error, reload } = useShop();
-  const [showModal, setShowModal] = useState(false);
 
   const handleLogout = () => {
     clearSession();
     navigate("/shop");
-  };
-
-  const handleReset = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `${process.env.REACT_APP_BASE_URL}/api/shop/settings/reset`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      toast.success("Total order count reset successfully!");
-      setShowModal(false);
-    } catch (err) {
-      toast.error(getErrorMessage(err, "Failed to reset orders."));
-    }
   };
 
   if (!shop && error) {
@@ -83,23 +60,6 @@ const Settings = () => {
             <StatusColorsCard shop={shop} />
 
             <SlipSettingsCard shop={shop} />
-
-            <SettingCard
-              title="Order Management"
-              description={
-                <>
-                  Resetting will set{" "}
-                  <span className="font-semibold">total order count</span> to 0
-                  and clear{" "}
-                  <span className="font-semibold">
-                    daily order count records
-                  </span>{" "}
-                  including past ones.
-                </>
-              }
-              actionLabel="Reset Total Order Count"
-              onAction={() => setShowModal(true)}
-            />
           </>
         ) : (
           <MyPasswordCard
@@ -109,15 +69,6 @@ const Settings = () => {
           />
         )}
       </div>
-
-      {showModal && (
-        <ConfirmResetModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          onConfirm={handleReset}
-          title="Reset Total Order Count"
-        />
-      )}
     </div>
   );
 };

@@ -3,7 +3,6 @@ const router = express.Router();
 const {
   setupShop,
   getShopByUserId,
-  resetOrders,
   saveStatusColors,
   saveTableColumns,
   saveSlipSettings,
@@ -14,7 +13,6 @@ const { requireAdmin } = require("../middlewares/access");
 
 router.post("/setup", authenticate, loadUser, requireAdmin, setupShop);
 router.get("/:userId", authenticate, loadUser, getShopByUserId);
-router.post("/settings/reset", authenticate, loadUser, requireAdmin, resetOrders);
 router.put(
   "/settings/status-colors",
   authenticate,

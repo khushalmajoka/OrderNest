@@ -74,27 +74,6 @@ const getShopByUserId = async (req, res, next) => {
   }
 };
 
-// POST /api/shop/settings/reset
-const resetOrders = async (req, res, next) => {
-  try {
-    const userId = req.user?.id;
-    const shop = await Shop.findOne({ owner: userId });
-
-    if (!shop) return res.status(404).json({ error: "Shop not found" });
-
-    // Reset both
-    shop.totalOrderCount = 0;
-    // A brand-new shop has no daily counts yet (nothing to clear)
-    if (shop.dailyOrderCounts) shop.dailyOrderCounts.clear();
-
-    await shop.save();
-
-    res.status(200).json({ message: "Total and daily order counts reset successfully" });
-  } catch (error) {
-    return next(error);
-  }
-};
-
 // PUT /api/shop/settings/status-colors
 // Body: { statusColors: { "Pending": { enabled: true, color: "yellow" }, ... } }
 const saveStatusColors = async (req, res, next) => {
@@ -205,6 +184,5 @@ module.exports = {
   saveTableColumns,
   setupShop,
   getShopByUserId,
-  resetOrders,
   saveStatusColors,
 };

@@ -58,7 +58,8 @@ const OrderTableRow = ({
   const hasActions = menuItems.length > 0;
   const statusStyle = getStatusStyle(shop, order.status);
   // One colour for the row and its opened details
-  const rowTint = editing ? "bg-orange-50" : statusStyle ? statusStyle.row : "bg-orange-50";
+  // (the same while editing: the row keeps its status colour; only an outline shows it is being edited)
+  const rowTint = statusStyle ? statusStyle.row : "bg-orange-50";
 
   // What a column shows: a box when editing and it can be edited, otherwise
   // the value (greyed out while editing, so it is clear it cannot be changed)
@@ -92,14 +93,12 @@ const OrderTableRow = ({
         } ${
           hasDetails || access.edit ? "cursor-pointer" : ""
         } ${
-          editing
-            ? "bg-orange-50 ring-2 ring-inset ring-orange-300"
-            : statusStyle
-            ? `${statusStyle.row} hover:brightness-95`
-            : isExpanded
+          statusStyle
+            ? `${statusStyle.row} ${editing ? "" : "hover:brightness-95"}`
+            : isExpanded || editing
             ? "bg-orange-50"
             : "hover:bg-orange-50"
-        }`}
+        } ${editing ? "ring-2 ring-inset ring-orange-300" : ""}`}
         onClick={(e) => {
           if (editing || !hasDetails || e.target.closest(INTERACTIVE)) return; // avoid conflicts
           setActiveOrderId(isExpanded ? null : order._id);
@@ -123,11 +122,7 @@ const OrderTableRow = ({
             className={`px-2 py-2 align-top ${
               index === 0
                 ? `border-l-4 ${
-                    editing
-                      ? "border-l-orange-400"
-                      : statusStyle
-                      ? statusStyle.strip
-                      : "border-l-transparent"
+                    statusStyle ? statusStyle.strip : "border-l-transparent"
                   }`
                 : ""
             }`}

@@ -47,7 +47,12 @@ const OrderMobileCard = ({
           if (e.key === "Escape") edit.cancel();
         }}
       >
-        <div className="rounded-lg shadow border-2 border-orange-300 bg-orange-50 p-4 text-sm">
+        {/* keeps the card's status colour; only the outline shows it is being edited */}
+        <div
+          className={`rounded-lg shadow border-2 border-orange-300 p-4 text-sm ${
+            statusStyle ? statusStyle.row : "bg-white"
+          }`}
+        >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs text-gray-500 inline-flex items-center gap-1" title="This cannot be edited">

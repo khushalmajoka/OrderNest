@@ -91,3 +91,18 @@ export const resolveColumns = (shop, { amounts = true } = {}) => {
     detailColumns: ORDER_COLUMNS.filter((column) => allowed(column) && !inRow(column)),
   };
 };
+
+// Which columns can be edited in place, and with what kind of box. The ones
+// not listed here (Order ID, Balance, Created, Updated) are worked out by the
+// app and cannot be edited.
+export const COLUMN_EDITORS = {
+  customerName: { field: "customerName", type: "text", max: 100 },
+  item: { field: "item", type: "text", max: 200 },
+  phone: { field: "phone", type: "phone" },
+  total: { field: "total", type: "money" },
+  advance: { field: "advance", type: "money" },
+  status: { field: "status", type: "status" },
+  delivery: { field: "expectedDeliveryDate", type: "date" },
+  orderExecutive: { field: "orderExecutive", type: "executive" },
+  address: { field: "address", type: "textarea", max: 500 },
+};

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Pencil, Share2, Trash2, Truck } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Lock, Pencil, Share2, Trash2, Truck } from "lucide-react";
 import { formatDay, formatDateTime } from "../../../common/utils/formatDate";
 import { DeliverySlipDialog, OrderShareDialog, WithOpening } from "../lazyDialogs";
 import { useOrderShare } from "../hooks/useOrderShare";
 import { useFlashOnChange } from "../hooks/useFlashOnChange";
-import { MASK } from "../utils/orderColumns";
+import { MASK, ORDER_COLUMNS } from "../utils/orderColumns";
+import FieldEditor from "./FieldEditor";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
 import { getStatusStyle } from "../../../common/utils/statusColors";
 
@@ -12,8 +13,8 @@ import { getStatusStyle } from "../../../common/utils/statusColors";
 const OrderMobileCard = ({
   order,
   shop,
-  onEdit,
-  setShowEditOrderModal,
+  edit, // null, or the edit state of THIS order: { form, set, dirty, saving, save, cancel }
+  onStartEdit,
   setDeleteId,
   setShowDeleteModal,
   access,
@@ -31,9 +32,89 @@ const OrderMobileCard = ({
   // Blocks inside the card are a slightly darker shade of the card's own colour
   const tile = statusStyle ? "bg-black/5" : "bg-orange-50";
 
+  // ----- Being edited: the card turns into a form (Double-tap or the Edit button)
+  if (edit) {
+    const keys = [
+      "customerName", "item", "phone",
+      ...(access.amounts ? ["total", "advance"] : []),
+      "status", "delivery", "orderExecutive", "address",
+    ];
+    const left = Math.max(0, (Number(edit.form.total) || 0) - (Number(edit.form.advance) || 0));
+    return (
+      <div
+        className="animate-fade-up motion-reduce:animate-none"
+        onKeyDown={(e) => {
+          if (e.key === "Escape") edit.cancel();
+        }}
+      >
+        <div className="rounded-lg shadow border-2 border-orange-300 bg-orange-50 p-4 text-sm">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs text-gray-500 inline-flex items-center gap-1" title="This cannot be edited">
+                <Lock size={12} aria-hidden="true" /> Order ID
+              </p>
+              <p className="font-semibold text-gray-500 break-all">{order.orderId || order._id.slice(-6)}</p>
+            </div>
+            <span className="shrink-0 px-2 py-1 rounded-full text-xs font-medium bg-orange-200 text-orange-900">
+              Editing
+            </span>
+          </div>
+
+          <div className="mt-3 space-y-3">
+            {keys.map((key) => {
+              const column = ORDER_COLUMNS.find((c) => c.key === key);
+              return (
+                <div key={key}>
+                  <span className="block text-xs text-gray-600 mb-1">{column.label}</span>
+                  <FieldEditor column={column} form={edit.form} set={edit.set} shopId={shop._id} large onEnter={edit.save} />
+                </div>
+              );
+            })}
+            {access.amounts && (
+              <div>
+                <span className="block text-xs text-gray-600 mb-1">Balance</span>
+                <p className="text-gray-400" title="Worked out from Total and Advance">₹{left}</p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2 mt-4">
+            {/* The tick shows only once something was changed */}
+            {edit.dirty && (
+              <button
+                type="button"
+                onClick={edit.save}
+                disabled={edit.saving}
+                className="flex-1 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded bg-green-500 text-white font-medium hover:bg-green-600 disabled:bg-green-300"
+              >
+                <Check size={18} strokeWidth={3} /> {edit.saving ? "Saving..." : "Save"}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={edit.cancel}
+              disabled={edit.saving}
+              className="flex-1 py-2.5 min-h-[44px] rounded border border-gray-400 text-gray-700 bg-white"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     // The outer box fades the card in; the inner card lights up when edited
-    <div className="animate-fade-up motion-reduce:animate-none">
+    <div
+      className="animate-fade-up motion-reduce:animate-none"
+      // double tap = edit (touch-action keeps the phone from zooming on a double tap)
+      style={{ touchAction: "manipulation" }}
+      onDoubleClick={(e) => {
+        if (!access.edit || e.target.closest("button, a, input, select, textarea, label")) return;
+        onStartEdit(order);
+      }}
+    >
     <div
       className={`rounded-lg shadow border border-orange-100 border-l-4 p-4 text-sm ${
         statusStyle
@@ -148,10 +229,7 @@ const OrderMobileCard = ({
         <div className="flex gap-2 mt-3 pt-3 border-t">
           {access.edit && (
             <button
-              onClick={() => {
-                setShowEditOrderModal(true);
-                onEdit(order);
-              }}
+              onClick={() => onStartEdit(order)}
               className="flex-1 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border text-blue-600"
             >
               <Pencil size={16} /> Edit

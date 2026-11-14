@@ -8,7 +8,6 @@ import { lazyWithRetry } from "../../common/utils/lazyWithRetry";
 // once.
 const loaders = {
   create: () => import("../../common/components/CreateOrderModal"),
-  edit: () => import("../../common/components/EditOrderModal"),
   mapping: () => import("../../common/components/MappingModal"),
   export: () => import("./components/ExportDialog"),
   slip: () => import("./components/DeliverySlipDialog"),
@@ -16,16 +15,14 @@ const loaders = {
 };
 
 export const CreateOrderModal = lazyWithRetry(loaders.create);
-export const EditOrderModal = lazyWithRetry(loaders.edit);
 export const MappingModal = lazyWithRetry(loaders.mapping);
 export const ExportDialog = lazyWithRetry(loaders.export);
 export const DeliverySlipDialog = lazyWithRetry(loaders.slip);
 export const OrderShareDialog = lazyWithRetry(loaders.share);
 
-// Create and Edit are used all the time: fetch them quietly once the page is up
+// Create is used all the time: fetch it quietly once the page is up
 export const preloadSmallDialogs = () => {
   loaders.create().catch(() => {});
-  loaders.edit().catch(() => {});
 };
 
 // Shown for a moment if a window's code is still on its way

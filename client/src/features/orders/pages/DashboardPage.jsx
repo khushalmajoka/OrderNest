@@ -17,7 +17,6 @@ import ActionsBar from "../../../common/components/ActionsBar";
 import OrderList from "../components/OrderList";
 import {
   CreateOrderModal,
-  EditOrderModal,
   ExportDialog,
   MappingModal,
   WithOpening,
@@ -52,10 +51,8 @@ const Dashboard = () => {
   const [filters, setFilters] = useState(EMPTY_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
   const [showExport, setShowExport] = useState(false);
-  const [editOrder, setEditOrder] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showMappingModal, setShowMappingModal] = useState(false);
-  const [showEditOrderModal, setShowEditOrderModal] = useState(false);
   const [excelHeaders, setExcelHeaders] = useState([]);
   const [excelData, setExcelData] = useState([]);
   const [bulkUploading, setBulkUploading] = useState(false);
@@ -136,6 +133,15 @@ const Dashboard = () => {
     } else {
       refetch();
     }
+  };
+
+  // An order was saved from its row: update it where it is (the row lights up),
+  // and when the list is in its usual "latest activity first" order, bring the
+  // list up to date so the edited order moves to the top
+  const handleOrderUpdated = (updated) => {
+    refreshSummary();
+    setOrders((prev) => prev.map((order) => (order._id === updated._id ? updated : order)));
+    if (!sortField) showFirstPageAgain();
   };
 
   const showFirstPageAgain = () => {
@@ -319,8 +325,7 @@ const Dashboard = () => {
               sortOrder={sortOrder}
               setSortField={handleSortField}
               setSortOrder={handleSortOrder}
-              onEdit={setEditOrder}
-              setShowEditOrderModal={setShowEditOrderModal}
+              onUpdated={handleOrderUpdated}
               onDelete={handleOrderDeleted}
             />
           </div>
@@ -351,27 +356,6 @@ const Dashboard = () => {
             defaultExecutive={account?.name || ""}
             onClose={() => setShowCreateModal(false)}
             onOrderCreated={showFirstPageAgain}
-          />
-        )}
-
-        {showEditOrderModal && (
-          <EditOrderModal
-            shopId={shop._id}
-            canSeeAmounts={canSeeAmounts}
-            order={editOrder}
-            onClose={() => setShowEditOrderModal(false)}
-            onUpdate={(updated) => {
-              refreshSummary();
-              // Update it where it is now (the row lights up) ...
-              setOrders((prev) =>
-                prev.map((order) =>
-                  order._id === updated._id ? updated : order
-                )
-              );
-              // ... and when the list is in its usual "latest activity first"
-              // order, bring the list up to date so the edited order moves to the top
-              if (!sortField) showFirstPageAgain();
-            }}
           />
         )}
 

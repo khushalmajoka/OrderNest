@@ -10,6 +10,7 @@ import axios from "axios";
 import { can } from "../../../common/utils/permissions";
 import { getErrorMessage } from "../../../common/utils/api";
 import { resolveColumns } from "../utils/orderColumns";
+import { useInlineEdit } from "../hooks/useInlineEdit";
 
 // Columns the phone view can sort by (same ones the table headers offer)
 const SORT_OPTIONS = [
@@ -42,9 +43,8 @@ const OrderList = ({
   sortOrder,
   setSortField,
   setSortOrder,
-  onEdit,
+  onUpdated,
   onDelete,
-  setShowEditOrderModal,
   maskAmounts,
 }) => {
   const [deleteId, setDeleteId] = useState(null);
@@ -61,6 +61,19 @@ const OrderList = ({
     share: can(account, "shareSlip"),
     amounts: canSeeAmounts,
   };
+  // Editing an order right where it is shown (double-click / double-tap)
+  const inline = useInlineEdit({ orders, canSeeAmounts, onSaved: onUpdated });
+  const editFor = (order) =>
+    inline.editing && inline.editing.id === order._id
+      ? {
+          form: inline.editing.form,
+          set: inline.set,
+          dirty: inline.dirty,
+          saving: inline.saving,
+          save: inline.save,
+          cancel: inline.cancel,
+        }
+      : null;
 
   if (!orders.length)
     return (
@@ -92,6 +105,13 @@ const OrderList = ({
 
   return (
     <>
+      {access.edit && (
+        <p className="text-xs text-gray-500 mb-2">
+          {isPhone
+            ? "Tip: double-tap a card, or tap Edit, to change an order right here."
+            : "Tip: double-click an order to edit it right here."}
+        </p>
+      )}
       {isPhone ? (
         <>
           {/* Phones have no column headers to tap, so sorting is a dropdown */}
@@ -129,8 +149,8 @@ const OrderList = ({
                 shop={shop}
                 access={access}
                 maskAmounts={maskAmounts}
-                onEdit={onEdit}
-                setShowEditOrderModal={setShowEditOrderModal}
+                edit={editFor(order)}
+                onStartEdit={inline.start}
                 setShowDeleteModal={setShowDeleteModal}
                 setDeleteId={setDeleteId}
               />
@@ -158,8 +178,8 @@ const OrderList = ({
                   rowColumns={rowColumns}
                   detailColumns={detailColumns}
                   maskAmounts={maskAmounts}
-                  onEdit={onEdit}
-                  setShowEditOrderModal={setShowEditOrderModal}
+                  edit={editFor(order)}
+                  onStartEdit={inline.start}
                   setShowDeleteModal={setShowDeleteModal}
                   setDeleteId={setDeleteId}
                   activeOrderId={activeOrderId}

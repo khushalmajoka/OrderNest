@@ -12,7 +12,11 @@ const ADD_NEW = "__add_new__";
 //   shopId: where to load the list from
 //   preferred: the name to select at the start when nothing is chosen yet
 //   onDefault(name): called for that first automatic choice (not a change by the user)
-const ExecutivePicker = ({ shopId, value, onChange, onDefault, preferred = "" }) => {
+const ExecutivePicker = ({ shopId, value, onChange, onDefault, preferred = "", compact = false }) => {
+  // compact: a smaller box, for inside a table row
+  const boxClass = compact
+    ? "w-full h-8 px-1 text-sm border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+    : inputClass;
   const [names, setNames] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -94,13 +98,13 @@ const ExecutivePicker = ({ shopId, value, onChange, onDefault, preferred = "" })
               setAdding(false);
             }
           }}
-          className={`${inputClass} min-w-0`}
+          className={`${boxClass} min-w-0`}
         />
         <button
           type="button"
           onClick={confirmNew}
           disabled={!draft.trim()}
-          className="px-3 min-h-[44px] sm:min-h-0 rounded bg-orange-500 text-white hover:bg-orange-600 disabled:bg-orange-300"
+          className="px-3 min-h-[44px] sm:min-h-0 rounded bg-orange-500 text-white text-sm hover:bg-orange-600 disabled:bg-orange-300"
         >
           Add
         </button>
@@ -128,7 +132,7 @@ const ExecutivePicker = ({ shopId, value, onChange, onDefault, preferred = "" })
         if (e.target.value === ADD_NEW) setAdding(true);
         else onChange(e.target.value);
       }}
-      className={inputClass}
+      className={boxClass}
     >
       <option value="" disabled>
         {loaded ? "Choose a name" : "Loading names..."}

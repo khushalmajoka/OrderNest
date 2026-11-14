@@ -5,7 +5,7 @@ import toast from "react-hot-toast";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { isValid } from "date-fns";
 import { fromDateString, toDateString } from "../utils/dateUtils";
-import TextField from "@mui/material/TextField";
+import { getErrorMessage } from "../utils/api";
 
 const CreateOrderModal = ({ onClose, onOrderCreated }) => {
   const [formData, setFormData] = useState({
@@ -88,7 +88,7 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
       onClose();
     } catch (error) {
       console.error("Order creation failed:", error);
-      toast.error("Failed to create order. Try again.");
+      toast.error(getErrorMessage(error, "Failed to create order. Try again."));
     } finally {
       setLoading(false);
     }
@@ -187,8 +187,11 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
           label="Expected Delivery Date"
           value={fromDateString(formData.expectedDeliveryDate)}
           onChange={(date) => {
-            // Ignore empty or half-typed dates (an Invalid Date would throw)
-            if (date && isValid(date)) {
+            // Cleared: remove the date. A half-typed date is ignored (an
+            // Invalid Date would throw).
+            if (date === null) {
+              setFormData((prev) => ({ ...prev, expectedDeliveryDate: "" }));
+            } else if (isValid(date)) {
               setFormData((prev) => ({
                 ...prev,
                 expectedDeliveryDate: toDateString(date),
@@ -196,15 +199,10 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
             }
           }}
           disablePast
-          renderInput={(params) => (
-            <TextField
-              fullWidth
-              {...params}
-              name="expectedDeliveryDate"
-              variant="outlined"
-              size="small"
-            />
-          )}
+          slotProps={{
+            field: { clearable: true },
+            textField: { fullWidth: true, size: "small", name: "expectedDeliveryDate" },
+          }}
         />
 
         <div className="flex justify-end gap-2 pt-2">

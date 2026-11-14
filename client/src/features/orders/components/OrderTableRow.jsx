@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Pencil, Share2, Trash2, Truck } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import OrderShareDialog from "./OrderShareDialog";
 import DeliverySlipDialog from "./DeliverySlipDialog";
 import RowActionsMenu from "./RowActionsMenu";

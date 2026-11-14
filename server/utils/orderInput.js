@@ -26,9 +26,41 @@ const parseDeliveryDate = (raw) => {
 
 const MAX_ADDRESS = 500;
 
+// Longest text each field may hold (Excel can hand over numbers: those count as text)
+const TEXT_LIMITS = [
+  ["customerName", "Customer name", 100],
+  ["item", "Item", 200],
+  ["orderExecutive", "Order executive", 100],
+];
+
+// Phone: 10 digits, or with a country/zero prefix (+91, 91, 0). Spaces, dashes
+// and brackets are allowed. Empty is allowed (old orders have no phone).
+const phoneProblem = (raw) => {
+  if (raw === undefined || raw === null || raw === "") return null;
+  if (typeof raw !== "string" && typeof raw !== "number") return "Phone must be text or a number.";
+  const digits = String(raw).trim().replace(/[\s\-()]/g, "").replace(/^\+/, "");
+  if (digits === "") return null;
+  if (!/^\d{10,13}$/.test(digits)) {
+    return "Phone number must be 10 digits (a +91 or 0 in front is fine).";
+  }
+  return null;
+};
+
 // Returns { values } with clean numbers/balance, or { error: "message" }.
 // `totalRequired`: create/edit need a total; Excel rows may leave it empty (0).
+// `clearDate` is true when the date was sent empty on purpose (remove it).
 const checkOrderInput = (input, { totalRequired = true } = {}) => {
+  for (const [key, label, max] of TEXT_LIMITS) {
+    const value = input[key];
+    if (value === undefined || value === null) continue;
+    if (typeof value === "object") return { error: `${label} must be text.` };
+    if (String(value).length > max) {
+      return { error: `${label} is too long (${max} letters at most).` };
+    }
+  }
+  const badPhone = phoneProblem(input.phone);
+  if (badPhone) return { error: badPhone };
+
   if (input.address !== undefined && input.address !== null) {
     if (typeof input.address !== "string") return { error: "Address must be text." };
     if (input.address.length > MAX_ADDRESS) {
@@ -70,6 +102,9 @@ const checkOrderInput = (input, { totalRequired = true } = {}) => {
       balance: totalValue - advanceValue, // always worked out here, never trusted from the client
       expectedDeliveryDate: date.value,
     },
+    clearDate:
+      date.value === undefined &&
+      (input.expectedDeliveryDate === "" || input.expectedDeliveryDate === null),
   };
 };
 

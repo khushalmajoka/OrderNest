@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { isValid } from "date-fns";
 import { fromDateString, toDateString } from "../utils/dateUtils";
-import TextField from "@mui/material/TextField";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { getErrorMessage } from "../utils/api";
 
 const EditOrderModal = ({ order, onClose, onUpdate }) => {
   const [formData, setFormData] = useState({
@@ -65,7 +65,12 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "total" || name === "advance" ? Number(value) : value,
+      [name]:
+        name === "total" || name === "advance"
+          ? Number(value)
+          : name === "phone"
+          ? value.replace(/\D/g, "").slice(0, 10) // digits only, like the Create window
+          : value,
     }));
   };
 
@@ -73,6 +78,15 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
     e.preventDefault();
 
     if (loading) return;
+
+    // A phone typed or changed here must be a proper 10-digit mobile number.
+    // An old phone that is left alone is not checked, so old orders can still
+    // be saved.
+    const phone = formData.phone.trim();
+    if (phone && phone !== (order.phone || "") && !/^[6-9]\d{9}$/.test(phone)) {
+      toast.error("Please enter a valid 10-digit mobile number.");
+      return;
+    }
     setLoading(true);
 
     const token = localStorage.getItem("token");
@@ -93,7 +107,7 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
       onClose();
     } catch (error) {
       console.error("Order updation failed:", error);
-      toast.error("Failed to update order. Try again.");
+      toast.error(getErrorMessage(error, "Failed to update order. Try again."));
     } finally {
       setLoading(false);
     }
@@ -207,24 +221,21 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
           label="Expected Delivery Date"
           value={fromDateString(formData.expectedDeliveryDate)}
           onChange={(date) => {
-            // Ignore empty or half-typed dates (an Invalid Date would throw)
-            if (date && isValid(date)) {
+            // Cleared: remove the date. A half-typed date is ignored (an
+            // Invalid Date would throw).
+            if (date === null) {
+              setFormData((prev) => ({ ...prev, expectedDeliveryDate: "" }));
+            } else if (isValid(date)) {
               setFormData((prev) => ({
                 ...prev,
                 expectedDeliveryDate: toDateString(date),
               }));
             }
           }}
-          disablePast
-          renderInput={(params) => (
-            <TextField
-              fullWidth
-              {...params}
-              name="expectedDeliveryDate"
-              variant="outlined"
-              size="small"
-            />
-          )}
+          slotProps={{
+            field: { clearable: true },
+            textField: { fullWidth: true, size: "small", name: "expectedDeliveryDate" },
+          }}
         />
 
         <div className="flex justify-end gap-2 pt-2">

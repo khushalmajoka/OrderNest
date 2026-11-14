@@ -132,24 +132,34 @@ const Dashboard = () => {
   };
 
   const handleBulkUpload = (e) => {
-    const file = e.target.files[0];
+    const input = e.target;
+    const file = input.files[0];
+    // Forget the chosen file, so choosing the same file again works
+    // (a broken file can be fixed and picked again)
+    input.value = "";
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      const workbook = XLSX.read(event.target.result, { type: "binary" });
-      const data = XLSX.utils.sheet_to_json(
-        workbook.Sheets[workbook.SheetNames[0]]
-      );
-      if (!Array.isArray(data) || data.length === 0) {
-        return toast.error("Excel sheet is empty or invalid.");
-      }
+      try {
+        const workbook = XLSX.read(event.target.result, { type: "array" });
+        const data = XLSX.utils.sheet_to_json(
+          workbook.Sheets[workbook.SheetNames[0]]
+        );
+        if (!Array.isArray(data) || data.length === 0) {
+          return toast.error("Excel sheet is empty or invalid.");
+        }
 
-      setExcelHeaders(Object.keys(data[0]));
-      setExcelData(data);
-      setShowMappingModal(true);
+        setExcelHeaders(Object.keys(data[0]));
+        setExcelData(data);
+        setShowMappingModal(true);
+      } catch (err) {
+        console.error("Could not read the Excel file:", err);
+        toast.error("Could not read this file. Please use a valid .xlsx, .xls or .csv file.");
+      }
     };
-    reader.readAsBinaryString(file);
+    reader.onerror = () => toast.error("Could not open this file. Please try again.");
+    reader.readAsArrayBuffer(file);
   };
 
   const handleMappingConfirm = async (fieldMap) => {

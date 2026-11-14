@@ -8,6 +8,7 @@ import Pagination from "./Pagination";
 import { useIsPhone } from "../../../common/hooks/useMediaQuery";
 import axios from "axios";
 import { can } from "../../../common/utils/permissions";
+import { getErrorMessage } from "../../../common/utils/api";
 import { resolveColumns } from "../utils/orderColumns";
 
 // Columns the phone view can sort by (same ones the table headers offer)
@@ -79,7 +80,7 @@ const OrderList = ({
       toast.success("Order deleted successfully!");
     } catch (error) {
       console.error("Order deletion failed:", error);
-      toast.error("Failed to delete order. Please try again.");
+      toast.error(getErrorMessage(error, "Failed to delete order. Please try again."));
     } finally {
       setShowDeleteModal(false);
       setIsDeleting(false);

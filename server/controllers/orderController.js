@@ -126,10 +126,10 @@ exports.updateOrder = async (req, res, next) => {
       shop: req.shop._id,
     }).lean();
 
-    // Only match an order that belongs to the caller's own shop
-    const updatedOrder = await Order.findOneAndUpdate(
-      { _id: req.params.id, shop: req.shop._id },
-      {
+    // An empty delivery date sent on purpose means "remove it" (a date that is
+    // simply not sent stays as it is)
+    const updateDoc = {
+      $set: {
         customerName,
         item,
         phone,
@@ -138,6 +138,16 @@ exports.updateOrder = async (req, res, next) => {
         status,
         orderExecutive,
       },
+    };
+    if (checked.clearDate) {
+      delete updateDoc.$set.expectedDeliveryDate;
+      updateDoc.$unset = { expectedDeliveryDate: 1 };
+    }
+
+    // Only match an order that belongs to the caller's own shop
+    const updatedOrder = await Order.findOneAndUpdate(
+      { _id: req.params.id, shop: req.shop._id },
+      updateDoc,
       { new: true, runValidators: true }
     );
 

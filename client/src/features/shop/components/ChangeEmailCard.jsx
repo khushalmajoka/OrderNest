@@ -52,7 +52,7 @@ const ChangeEmailCard = ({ email, onChanged }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 max-w-md">
+    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 w-full">
       <h2 className="text-lg font-semibold text-gray-800 mb-2">My email</h2>
       <p className="text-sm text-gray-600 mb-1">You login with this email.</p>
       <p className="text-sm font-medium text-gray-800 break-all mb-4">{email}</p>

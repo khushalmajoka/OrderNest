@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import moment from "moment";
+import { formatDateTime, formatDayHeading } from "../../../common/utils/formatDate";
 import Navbar from "../components/Navbar";
 import LoadingScreen from "../../../common/components/LoadingScreen";
 import TopProgressBar from "../../../common/components/TopProgressBar";
@@ -15,14 +15,6 @@ const TABS = [
   { value: "order", label: "Orders" },
   { value: "staff", label: "Staff" },
 ];
-
-const dayTitle = (iso) => {
-  const day = moment(iso).startOf("day");
-  const today = moment().startOf("day");
-  if (day.isSame(today)) return "Today";
-  if (day.isSame(today.clone().subtract(1, "day"))) return "Yesterday";
-  return day.format("DD MMM YYYY");
-};
 
 const Entry = ({ item, myId }) => {
   const mine = String(item.actor?.id) === String(myId);
@@ -48,7 +40,7 @@ const Entry = ({ item, myId }) => {
         {who}
         {item.actor?.role === "staff" && !mine ? " (staff)" : ""}
         {" · "}
-        {moment(item.createdAt).format("DD MMM, hh:mm A")}
+        {formatDateTime(item.createdAt)}
       </p>
     </li>
   );
@@ -153,7 +145,7 @@ const ActivityPage = () => {
   // Group the lines by day, keeping the newest first
   const groups = [];
   for (const item of items || []) {
-    const title = dayTitle(item.createdAt);
+    const title = formatDayHeading(item.createdAt);
     const last = groups[groups.length - 1];
     if (last && last.title === title) last.items.push(item);
     else groups.push({ title, items: [item] });
@@ -164,7 +156,7 @@ const ActivityPage = () => {
       <TopProgressBar active={loading && items !== null} />
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
 
-      <div className="p-4 md:p-8 space-y-4 max-w-2xl">
+      <div className="p-4 md:p-8 space-y-4 max-w-2xl mx-auto">
         <div>
           <h1 className="text-2xl font-bold text-orange-700">Activity</h1>
           <p className="text-sm text-gray-600 mt-1">

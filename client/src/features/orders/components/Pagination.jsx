@@ -21,7 +21,7 @@ const Pagination = ({
             setOrdersPerPage(Number(e.target.value));
             setCurrentPage(0);
           }}
-          className="border px-2 py-1 rounded"
+          className="border px-2 py-2 md:py-1 rounded min-h-[44px] md:min-h-0"
         >
           <option value={50}>50</option>
           <option value={100}>100</option>
@@ -34,7 +34,7 @@ const Pagination = ({
         <button
           onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
           disabled={currentPage === 0}
-          className="px-3 py-2 md:py-1 border rounded text-sm disabled:opacity-50 bg-white"
+          className="px-4 py-2 md:px-3 md:py-1 min-h-[44px] md:min-h-0 border rounded text-sm disabled:opacity-50 bg-white"
         >
           Prev
         </button>
@@ -48,7 +48,7 @@ const Pagination = ({
             setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))
           }
           disabled={currentPage >= totalPages - 1}
-          className="px-3 py-2 md:py-1 border rounded text-sm disabled:opacity-50 bg-white"
+          className="px-4 py-2 md:px-3 md:py-1 min-h-[44px] md:min-h-0 border rounded text-sm disabled:opacity-50 bg-white"
         >
           Next
         </button>

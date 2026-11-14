@@ -20,12 +20,16 @@ const EMPTY_ORDER = {
   expectedDeliveryDate: "",
 };
 
-const CreateOrderModal = ({ onClose, onOrderCreated }) => {
-  const [formData, setFormData] = useState(EMPTY_ORDER);
+// `defaultExecutive`: the logged-in person's name, put in "Order executive" to
+// save typing (it can be changed)
+const CreateOrderModal = ({ onClose, onOrderCreated, defaultExecutive = "" }) => {
+  const start = { ...EMPTY_ORDER, orderExecutive: defaultExecutive };
+  const [initial] = useState(start);
+  const [formData, setFormData] = useState(start);
   const [loading, setLoading] = useState(false);
 
   // Anything typed yet? Then tapping outside or Escape will not close the window
-  const dirty = JSON.stringify(formData) !== JSON.stringify(EMPTY_ORDER);
+  const dirty = JSON.stringify(formData) !== JSON.stringify(initial);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

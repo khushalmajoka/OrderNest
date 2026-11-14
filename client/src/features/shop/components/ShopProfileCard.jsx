@@ -87,7 +87,7 @@ const ShopProfileCard = ({ shop, onSaved }) => {
   };
 
   return (
-    <form onSubmit={handleSave} className="bg-white rounded-xl shadow-md p-4 sm:p-6 max-w-md">
+    <form onSubmit={handleSave} className="bg-white rounded-xl shadow-md p-4 sm:p-6 w-full">
       <h2 className="text-lg font-semibold text-gray-800 mb-2">Shop details</h2>
       <p className="text-sm text-gray-600 mb-4">
         Your shop's name, logo, phone and address. They show at the top of the

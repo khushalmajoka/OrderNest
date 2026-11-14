@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import * as XLSX from "xlsx";
 import LoadingScreen from "../../../common/components/LoadingScreen";
 import TopProgressBar from "../../../common/components/TopProgressBar";
 import OrdersSkeleton from "../components/OrdersSkeleton";
@@ -15,9 +14,14 @@ import Navbar from "../../shop/components/Navbar";
 import SearchBar from "../../../common/components/SearchBar";
 import ActionsBar from "../../../common/components/ActionsBar";
 import OrderList from "../components/OrderList";
-import EditOrderModal from "../../../common/components/EditOrderModal";
-import CreateOrderModal from "../../../common/components/CreateOrderModal";
-import MappingModal from "../../../common/components/MappingModal";
+import {
+  CreateOrderModal,
+  EditOrderModal,
+  ExportDialog,
+  MappingModal,
+  WithOpening,
+  preloadSmallDialogs,
+} from "../lazyDialogs";
 import WhatsNewModal from "../../whatsNew/WhatsNewModal";
 import {
   hasSeenWhatsNew,
@@ -29,7 +33,6 @@ import { getErrorMessage } from "../../../common/utils/api";
 import { mapExcelRow } from "../utils/excelImport";
 import FilterPanel from "../components/FilterPanel";
 import FilterChips from "../components/FilterChips";
-import ExportDialog from "../components/ExportDialog";
 import {
   EMPTY_FILTERS,
   countActiveFilters,
@@ -81,6 +84,12 @@ const Dashboard = () => {
     sortOrder,
     filterParams: filtersToParams(filters),
   });
+
+  // Fetch the Create and Edit windows quietly, so they open at once
+  useEffect(() => {
+    const timer = setTimeout(preloadSmallDialogs, 1500);
+    return () => clearTimeout(timer);
+  }, []);
 
   // The numbers above the orders: asked again whenever an order is created,
   // edited or deleted
@@ -150,8 +159,10 @@ const Dashboard = () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
+        // The Excel reader is a big library: downloaded only when a file is chosen
+        const XLSX = await import("xlsx");
         const workbook = XLSX.read(event.target.result, { type: "array" });
         const data = XLSX.utils.sheet_to_json(
           workbook.Sheets[workbook.SheetNames[0]]
@@ -234,7 +245,7 @@ const Dashboard = () => {
               />
               <button
                 onClick={() => setShowFilters(true)}
-                className={`relative shrink-0 flex items-center gap-1 px-3 py-2 rounded-md border shadow-sm text-sm md:text-base ${
+                className={`relative shrink-0 flex items-center gap-1 px-3 py-2 min-h-[44px] md:min-h-0 rounded-md border shadow-sm text-sm md:text-base ${
                   filterCount
                     ? "bg-orange-100 border-orange-400 text-orange-800"
                     : "bg-white border-gray-300 text-gray-700"
@@ -304,6 +315,7 @@ const Dashboard = () => {
           </div>
         )}
 
+        <WithOpening>
         {showExport && (
           <ExportDialog
             shopId={shop._id}
@@ -322,16 +334,9 @@ const Dashboard = () => {
           />
         )}
 
-        {showFilters && (
-          <FilterPanel
-            filters={filters}
-            onApply={applyFilters}
-            onClose={() => setShowFilters(false)}
-          />
-        )}
-
         {showCreateModal && (
           <CreateOrderModal
+            defaultExecutive={account?.name || ""}
             onClose={() => setShowCreateModal(false)}
             onOrderCreated={showFirstPageAgain}
           />
@@ -357,6 +362,15 @@ const Dashboard = () => {
             headers={excelHeaders}
             onConfirm={handleMappingConfirm}
             onClose={() => setShowMappingModal(false)}
+          />
+        )}
+        </WithOpening>
+
+        {showFilters && (
+          <FilterPanel
+            filters={filters}
+            onApply={applyFilters}
+            onClose={() => setShowFilters(false)}
           />
         )}
 

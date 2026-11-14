@@ -43,29 +43,38 @@ const Settings = () => {
     <div className="min-h-screen bg-orange-50 font-poppins">
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
 
-      <div className="p-4 md:p-8 space-y-6">
+      <div className="p-4 md:p-8 max-w-5xl mx-auto">
         <h1 className="text-2xl font-bold text-orange-700 mb-6">Settings</h1>
 
         {isAdmin(account) ? (
-          <>
-            <ShopProfileCard shop={shop} onSaved={reload} />
+          <div className="space-y-6">
+            {/* Two columns on a wide screen, one on a phone */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+              <div className="space-y-6 min-w-0">
+                <ShopProfileCard shop={shop} onSaved={reload} />
 
-            <ChangeEmailCard email={account.email} onChanged={reload} />
+                <ChangeEmailCard email={account.email} onChanged={reload} />
 
-            <ChangePasswordCard />
+                <ChangePasswordCard />
+              </div>
 
-            <TableColumnsCard shop={shop} />
+              <div className="space-y-6 min-w-0">
+                <TableColumnsCard shop={shop} />
 
-            <StatusColorsCard shop={shop} />
+                <StatusColorsCard shop={shop} />
+              </div>
+            </div>
 
             <SlipSettingsCard shop={shop} />
-          </>
+          </div>
         ) : (
-          <MyPasswordCard
-            account={account}
-            onRefresh={reload}
-            onPasswordChanged={handleLogout}
-          />
+          <div className="max-w-md">
+            <MyPasswordCard
+              account={account}
+              onRefresh={reload}
+              onPasswordChanged={handleLogout}
+            />
+          </div>
         )}
       </div>
     </div>

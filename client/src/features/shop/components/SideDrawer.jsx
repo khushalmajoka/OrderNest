@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin }) => {
   const [showDrawer, setShowDrawer] = useState(false);
+  const [confirmingLogout, setConfirmingLogout] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,6 +15,18 @@ const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin }) => {
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
+
+  // Escape closes the question first, then the menu
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKey = (e) => {
+      if (e.key !== "Escape") return;
+      if (confirmingLogout) setConfirmingLogout(false);
+      else onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen, confirmingLogout, onClose]);
 
   if (!isOpen && !showDrawer) return null;
 
@@ -29,6 +42,9 @@ const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin }) => {
 
       {/* Drawer */}
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu"
         className={`w-64 bg-gradient-to-b from-orange-50 to-white h-full shadow-lg p-6 flex flex-col transform transition-transform duration-300 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
@@ -37,7 +53,8 @@ const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin }) => {
           <h2 className="text-xl font-bold text-orange-700">Menu</h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-md hover:bg-orange-100 transition"
+            aria-label="Close menu"
+            className="p-2.5 rounded-md hover:bg-orange-100 transition"
           >
             <X className="text-orange-700" size={22} />
           </button>
@@ -93,7 +110,7 @@ const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin }) => {
 
         <div className="mt-auto">
           <button
-            onClick={onLogout}
+            onClick={() => setConfirmingLogout(true)}
             className="flex items-center gap-3 w-full px-4 py-3 rounded-md bg-orange-500 hover:bg-orange-600 text-white font-medium shadow"
           >
             <LogOut size={20} />
@@ -101,6 +118,42 @@ const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin }) => {
           </button>
         </div>
       </div>
+
+      {confirmingLogout && (
+        <div
+          className="fixed inset-0 z-30 flex items-center justify-center bg-black/40 p-4"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setConfirmingLogout(false);
+          }}
+        >
+          <div
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="logout-title"
+            className="bg-white rounded-lg shadow-lg w-full max-w-xs p-6 animate-fade-up motion-reduce:animate-none"
+          >
+            <h2 id="logout-title" className="text-lg font-semibold text-gray-800 mb-2">
+              Log out?
+            </h2>
+            <p className="text-sm text-gray-600 mb-5">You will need to login again.</p>
+            <div className="flex justify-end gap-3">
+              <button
+                autoFocus
+                onClick={() => setConfirmingLogout(false)}
+                className="px-4 py-2 min-h-[44px] text-gray-700 border rounded hover:bg-gray-100"
+              >
+                Stay
+              </button>
+              <button
+                onClick={onLogout}
+                className="px-4 py-2 min-h-[44px] text-white rounded bg-orange-500 hover:bg-orange-600"
+              >
+                Log out
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

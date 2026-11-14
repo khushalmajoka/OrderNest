@@ -1,5 +1,4 @@
 import { useRef, useState } from "react";
-import html2canvas from "html2canvas";
 import toast from "react-hot-toast";
 
 // Turns an order's hidden "Thank you" card into an image and downloads it.
@@ -11,6 +10,8 @@ export const useOrderShare = (order) => {
 
   const generateImage = async () => {
     if (!cardRef.current) return;
+    // The picture maker is a big library: downloaded only when it is needed
+    const { default: html2canvas } = await import("html2canvas");
     const canvas = await html2canvas(cardRef.current, {
       scale: 3,
       useCORS: true,

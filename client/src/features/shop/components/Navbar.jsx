@@ -22,7 +22,9 @@ const Navbar = ({ shop, account, onLogout }) => {
 
         <button
           onClick={() => setIsOpen(true)}
-          className="p-2 rounded-md hover:bg-orange-100 transition"
+          aria-label="Open menu"
+          aria-haspopup="dialog"
+          className="p-2.5 rounded-md hover:bg-orange-100 transition"
         >
           <Menu size={24} className="text-orange-700" />
         </button>

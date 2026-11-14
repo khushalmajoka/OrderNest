@@ -37,6 +37,7 @@ See `server/.env.example`. The important ones:
 | `MONGO_URI` | database address |
 | `JWT_SECRET` | secret used for logins |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | the email account that sends codes (for Gmail, `SMTP_PASS` is an App password) |
+| `CORS_ORIGINS` | optional: your website's address (e.g. `https://your-app.vercel.app`, several allowed, comma separated). Only those websites may call the API from a browser. Leave it out to allow every website |
 
 Without the `SMTP_*` settings no emails are sent: sign-up, forgot password and
 change email show that email is not set up.

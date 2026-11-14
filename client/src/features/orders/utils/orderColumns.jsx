@@ -1,4 +1,4 @@
-import moment from "moment";
+import { formatDay, formatDateTime } from "../../../common/utils/formatDate";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
 
 // The one list of table columns. The table row, the header and the opened
@@ -38,7 +38,7 @@ export const ORDER_COLUMNS = [
       return (
         <>
           <span className="whitespace-nowrap">
-            {moment(o.expectedDeliveryDate).format("DD MMM YYYY")}
+            {formatDay(o.expectedDeliveryDate)}
           </span>
           {countdown.text !== "-" && (
             <span
@@ -55,8 +55,8 @@ export const ORDER_COLUMNS = [
   },
   { key: "orderExecutive", label: "Executive", sort: "orderExecutive", cell: (o) => o.orderExecutive || "-" },
   { key: "address", label: "Address", sort: null, cell: (o) => o.address || "-" },
-  { key: "createdAt", label: "Created", sort: "createdAt", cell: (o) => moment(o.createdAt).format("DD MMM, hh:mm A") },
-  { key: "updatedAt", label: "Updated", sort: "updatedAt", cell: (o) => moment(o.updatedAt).format("DD MMM, hh:mm A") },
+  { key: "createdAt", label: "Created", sort: "createdAt", cell: (o) => formatDateTime(o.createdAt) },
+  { key: "updatedAt", label: "Updated", sort: "updatedAt", cell: (o) => formatDateTime(o.updatedAt) },
 ];
 
 // In the row until the admin changes it in Settings

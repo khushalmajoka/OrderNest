@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { ChevronDown, ChevronUp, Pencil, Share2, Trash2, Truck } from "lucide-react";
-import moment from "moment";
-import OrderShareDialog from "./OrderShareDialog";
-import DeliverySlipDialog from "./DeliverySlipDialog";
+import { formatDay, formatDateTime } from "../../../common/utils/formatDate";
+import { DeliverySlipDialog, OrderShareDialog, WithOpening } from "../lazyDialogs";
 import { useOrderShare } from "../hooks/useOrderShare";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
 import { getStatusStyle } from "../../../common/utils/statusColors";
@@ -59,7 +58,7 @@ const OrderMobileCard = ({
         {order.phone && (
           <a
             href={`tel:${order.phone}`}
-            className="block w-fit pt-1 text-blue-600 underline"
+            className="inline-flex items-center w-fit min-h-[44px] text-blue-600 underline"
           >
             {order.phone}
           </a>
@@ -86,7 +85,7 @@ const OrderMobileCard = ({
           <strong>Delivery:</strong>{" "}
           {order.expectedDeliveryDate ? (
             <>
-              {moment(order.expectedDeliveryDate).format("DD MMM YYYY")}
+              {formatDay(order.expectedDeliveryDate)}
               {countdown.text !== "-" && (
                 <span className={countdown.late ? "text-red-600 font-medium" : ""}>
                   {" "}
@@ -110,18 +109,18 @@ const OrderMobileCard = ({
           </p>
           <p>
             <strong>Created:</strong>{" "}
-            {moment(order.createdAt).format("DD MMM, hh:mm A")}
+            {formatDateTime(order.createdAt)}
           </p>
           <p>
             <strong>Updated:</strong>{" "}
-            {moment(order.updatedAt).format("DD MMM, hh:mm A")}
+            {formatDateTime(order.updatedAt)}
           </p>
         </div>
       )}
 
       <button
         onClick={() => setShowMore((open) => !open)}
-        className="mt-3 flex items-center gap-1 text-xs text-orange-600"
+        className="mt-1 flex items-center gap-1 min-h-[44px] px-1 text-sm text-orange-600"
       >
         {showMore ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         {showMore ? "Less details" : "More details"}
@@ -130,7 +129,7 @@ const OrderMobileCard = ({
       {access.share && (
         <button
           onClick={() => setShowSlip(true)}
-          className="w-full mt-3 flex items-center justify-center gap-1 py-2 rounded border text-gray-700"
+          className="w-full mt-3 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border text-gray-700"
         >
           <Truck size={16} /> Delivery slip
         </button>
@@ -144,7 +143,7 @@ const OrderMobileCard = ({
                 setShowEditOrderModal(true);
                 onEdit(order);
               }}
-              className="flex-1 flex items-center justify-center gap-1 py-2 rounded border text-blue-600"
+              className="flex-1 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border text-blue-600"
             >
               <Pencil size={16} /> Edit
             </button>
@@ -152,7 +151,7 @@ const OrderMobileCard = ({
           {access.share && (
             <button
               onClick={() => setIsShareOpen(true)}
-              className="flex-1 flex items-center justify-center gap-1 py-2 rounded border text-green-600"
+              className="flex-1 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border text-green-600"
             >
               <Share2 size={16} /> Share
             </button>
@@ -163,7 +162,7 @@ const OrderMobileCard = ({
                 setDeleteId(order._id);
                 setShowDeleteModal(true);
               }}
-              className="flex-1 flex items-center justify-center gap-1 py-2 rounded border text-red-600"
+              className="flex-1 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border text-red-600"
             >
               <Trash2 size={16} /> Delete
             </button>
@@ -172,21 +171,27 @@ const OrderMobileCard = ({
       )}
 
       {showSlip && (
-        <DeliverySlipDialog
-          order={order}
-          shop={shop}
-          onClose={() => setShowSlip(false)}
-        />
+        <WithOpening>
+          <DeliverySlipDialog
+            order={order}
+            shop={shop}
+            onClose={() => setShowSlip(false)}
+          />
+        </WithOpening>
       )}
 
-      <OrderShareDialog
-        isOpen={isShareOpen}
-        order={order}
-        shop={shop}
-        cardRef={cardRef}
-        onClose={() => setIsShareOpen(false)}
-        onShare={handleShare}
-      />
+      {isShareOpen && (
+        <WithOpening>
+          <OrderShareDialog
+            isOpen={isShareOpen}
+            order={order}
+            shop={shop}
+            cardRef={cardRef}
+            onClose={() => setIsShareOpen(false)}
+            onShare={handleShare}
+          />
+        </WithOpening>
+      )}
     </div>
   );
 };

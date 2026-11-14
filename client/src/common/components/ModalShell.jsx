@@ -1,4 +1,6 @@
 import { useEffect, useId, useRef } from "react";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
 // The frame of a form window (Create / Edit order): dark backdrop, white card,
 // title with a back arrow.
@@ -90,7 +92,9 @@ const ModalShell = ({ title, dirty, onClose, onSubmit, children }) => {
           </button>
           {title}
         </h2>
-        {children}
+        {/* Needed by the date box inside; only these windows use dates, so it
+            lives here and not at the top of the whole app */}
+        <LocalizationProvider dateAdapter={AdapterDateFns}>{children}</LocalizationProvider>
       </form>
     </div>
   );

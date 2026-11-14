@@ -14,7 +14,7 @@ const lastTenDigits = (value) =>
     .slice(-10);
 
 // @desc Public Track Order: needs BOTH the Order ID and the customer's phone.
-// Returns only what the tracking page shows. A wrong phone and an unknown ID
+// Returns only what the tracking page shows (never the amounts or the phone). A wrong phone and an unknown ID
 // give the same empty answer, so nobody can probe which IDs exist.
 exports.trackOrder = async (req, res, next) => {
   try {
@@ -35,7 +35,7 @@ exports.trackOrder = async (req, res, next) => {
     const candidates = await Order.find({
       orderId: { $in: [...new Set([typedId, typedId.toUpperCase()])] },
     })
-      .populate("shop", "name")
+      .populate("shop", "name phone")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -47,7 +47,10 @@ exports.trackOrder = async (req, res, next) => {
         item: order.item,
         status: order.status,
         orderExecutive: order.orderExecutive,
+        expectedDeliveryDate: order.expectedDeliveryDate,
         shopName: order.shop ? order.shop.name : undefined,
+        // so the customer can call the shop
+        shopPhone: order.shop ? order.shop.phone : undefined,
       }));
 
     res.status(200).json({ orders });

@@ -39,7 +39,7 @@ const ChangePasswordCard = () => {
   return (
     <form
       onSubmit={submit}
-      className="bg-white rounded-xl shadow-md p-4 sm:p-6 max-w-md space-y-3"
+      className="bg-white rounded-xl shadow-md p-4 sm:p-6 w-full space-y-3"
     >
       <h2 className="text-lg font-semibold text-gray-800">Change password</h2>
       <p className="text-sm text-gray-600">

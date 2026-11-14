@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Pencil, Share2, Trash2, Truck } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import OrderShareDialog from "./OrderShareDialog";
-import DeliverySlipDialog from "./DeliverySlipDialog";
+import { DeliverySlipDialog, OrderShareDialog, WithOpening } from "../lazyDialogs";
 import RowActionsMenu from "./RowActionsMenu";
 import { useOrderShare } from "../hooks/useOrderShare";
 import { getStatusStyle } from "../../../common/utils/statusColors";
@@ -134,21 +133,27 @@ const OrderTableRow = ({
       </AnimatePresence>
 
       {showSlip && (
-        <DeliverySlipDialog
-          order={order}
-          shop={shop}
-          onClose={() => setShowSlip(false)}
-        />
+        <WithOpening>
+          <DeliverySlipDialog
+            order={order}
+            shop={shop}
+            onClose={() => setShowSlip(false)}
+          />
+        </WithOpening>
       )}
 
-      <OrderShareDialog
-        isOpen={isShareOpen}
-        order={order}
-        shop={shop}
-        cardRef={cardRef}
-        onClose={() => setIsShareOpen(false)}
-        onShare={handleShare}
-      />
+      {isShareOpen && (
+        <WithOpening>
+          <OrderShareDialog
+            isOpen={isShareOpen}
+            order={order}
+            shop={shop}
+            cardRef={cardRef}
+            onClose={() => setIsShareOpen(false)}
+            onShare={handleShare}
+          />
+        </WithOpening>
+      )}
     </>
   );
 };

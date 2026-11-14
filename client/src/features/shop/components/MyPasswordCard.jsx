@@ -58,7 +58,7 @@ const MyPasswordCard = ({ account, onRefresh, onPasswordChanged }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 max-w-md">
+    <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 w-full">
       <h2 className="text-lg font-semibold text-gray-800 mb-2">My password</h2>
 
       {status === "none" && (

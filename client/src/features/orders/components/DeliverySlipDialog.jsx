@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import html2canvas from "html2canvas";
 import toast from "react-hot-toast";
 import DeliverySlip from "./DeliverySlip";
 import { slipToPdf } from "../utils/slipPdf";
@@ -37,6 +36,7 @@ const DeliverySlipDialog = ({ order, shop, onClose }) => {
     setRendering(true);
     const timer = setTimeout(async () => {
       try {
+        const { default: html2canvas } = await import("html2canvas");
         const picture = await html2canvas(slipRef.current, {
           scale: 3,
           useCORS: true,

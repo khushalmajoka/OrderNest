@@ -1,5 +1,5 @@
 import React from "react";
-import moment from "moment";
+import { formatDay, formatDate } from "../../../common/utils/formatDate";
 import { getShopLogo } from "../../../common/utils/utils";
 
 // The slip that is printed and stuck on the parcel (A6 shape, 420px wide).
@@ -25,8 +25,7 @@ const DeliverySlip = React.forwardRef(({ order, shop, fields, edits = {}, note }
   const showShop = fields.logo || fields.shopName || fields.shopPhone || fields.shopAddress;
   const showTo = fields.customerName || fields.customerPhone || fields.deliveryAddress;
   const showMoney = fields.amount || fields.totals;
-  const day = (value) => moment(String(value).slice(0, 10)).format("DD MMM YYYY");
-
+  
   return (
     <div
       ref={ref}
@@ -96,12 +95,12 @@ const DeliverySlip = React.forwardRef(({ order, shop, fields, edits = {}, note }
           {fields.expectedDelivery && (
             <p>
               <b>Expected delivery:</b>{" "}
-              {order.expectedDeliveryDate ? day(order.expectedDeliveryDate) : "-"}
+              {order.expectedDeliveryDate ? formatDay(order.expectedDeliveryDate) : "-"}
             </p>
           )}
           {fields.orderDate && (
             <p>
-              <b>Order date:</b> {moment(order.createdAt).format("DD MMM YYYY")}
+              <b>Order date:</b> {formatDate(order.createdAt)}
             </p>
           )}
           {fields.executive && order.orderExecutive && (

@@ -405,7 +405,7 @@ const StaffPage = () => {
     <div className="min-h-screen bg-orange-50 font-poppins">
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
 
-      <div className="p-4 md:p-8 space-y-6 max-w-2xl">
+      <div className="p-4 md:p-8 space-y-6 max-w-2xl mx-auto">
         <div>
           <h1 className="text-2xl font-bold text-orange-700">Staff</h1>
           <p className="text-sm text-gray-600 mt-1">

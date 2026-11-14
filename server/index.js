@@ -20,7 +20,24 @@ const app = express();
 app.set('trust proxy', 1);
 
 // Middleware
-app.use(cors());
+// Which websites may call this API from a browser. Set CORS_ORIGINS on the
+// server (comma separated, e.g. https://your-app.vercel.app) to allow only
+// those; when it is not set, every website is allowed (as before).
+const allowedOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+app.use(
+  cors(
+    allowedOrigins.length
+      ? {
+          origin: (origin, callback) =>
+            // no Origin header = not a browser page (health checks, tools)
+            callback(null, !origin || allowedOrigins.includes(origin)),
+        }
+      : undefined
+  )
+);
 app.use(express.json({ limit: '10mb' }));
 
 

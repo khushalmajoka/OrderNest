@@ -100,7 +100,7 @@ const OrderList = ({
                 setSortField(e.target.value || null);
                 setSortOrder(e.target.value ? "asc" : "desc");
               }}
-              className="flex-1 min-w-0 border rounded-md px-3 py-2 bg-white text-sm"
+              className="flex-1 min-w-0 border rounded-md px-3 py-2 min-h-[44px] bg-white text-sm"
             >
               {SORT_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -111,7 +111,7 @@ const OrderList = ({
             {sortField && (
               <button
                 onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
-                className="px-3 py-2 border rounded-md bg-white text-sm"
+                className="px-3 py-2 min-h-[44px] border rounded-md bg-white text-sm"
               >
                 {sortOrder === "asc" ? "A → Z ↑" : "Z → A ↓"}
               </button>
@@ -175,7 +175,10 @@ const OrderList = ({
 
       {showDeleteModal && (
         <DeleteConfirmModal
-          setDeleteId={setDeleteId}
+          onCancel={() => {
+            setDeleteId(null);
+            setShowDeleteModal(false);
+          }}
           handleDelete={handleDelete}
           deleteId={deleteId}
           isDeleting={isDeleting}

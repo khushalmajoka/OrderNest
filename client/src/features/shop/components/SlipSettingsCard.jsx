@@ -1,3 +1,5 @@
+import { useSavedFlash } from "../../../common/hooks/useSavedFlash";
+import SavedLabel from "../../../common/components/SavedLabel";
 import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -33,6 +35,7 @@ const SlipSettingsCard = ({ shop }) => {
   const [fields, setFields] = useState(initial.fields);
   const [note, setNote] = useState(initial.note);
   const [saving, setSaving] = useState(false);
+  const [saved, flashSaved] = useSavedFlash();
 
   const handleSave = async () => {
     setSaving(true);
@@ -43,6 +46,7 @@ const SlipSettingsCard = ({ shop }) => {
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
       toast.success("Delivery slip settings saved.");
+      flashSaved();
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not save the slip settings."));
     } finally {
@@ -142,7 +146,7 @@ const SlipSettingsCard = ({ shop }) => {
             saving ? "bg-orange-300" : "bg-orange-500 hover:bg-orange-600"
           }`}
         >
-          {saving ? "Saving..." : "Save"}
+          {saving ? "Saving..." : saved ? <SavedLabel /> : "Save"}
         </button>
       </div>
     </div>

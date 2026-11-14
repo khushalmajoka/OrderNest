@@ -64,7 +64,7 @@ const ModalShell = ({ title, dirty, onClose, onSubmit, children }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in motion-reduce:animate-none"
       onMouseDown={(e) => {
         // Only a tap on the dark area itself (not inside the card, not on the
         // date picker's calendar), and only if nothing was typed
@@ -79,7 +79,7 @@ const ModalShell = ({ title, dirty, onClose, onSubmit, children }) => {
         tabIndex={-1}
         onSubmit={onSubmit}
         onKeyDown={keepFocusInside}
-        className="bg-white rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto space-y-4 relative outline-none"
+        className="bg-white rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto space-y-4 relative outline-none animate-fade-up motion-reduce:animate-none"
       >
         <h2 id={titleId} className="text-xl font-bold text-center text-gray-800">
           <button

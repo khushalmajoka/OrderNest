@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { DeliverySlipDialog, OrderShareDialog, WithOpening } from "../lazyDialogs";
 import RowActionsMenu from "./RowActionsMenu";
 import { useOrderShare } from "../hooks/useOrderShare";
+import { useFlashOnChange } from "../hooks/useFlashOnChange";
 import { getStatusStyle } from "../../../common/utils/statusColors";
 
 const OrderTableRow = ({
@@ -23,6 +24,8 @@ const OrderTableRow = ({
     useOrderShare(order);
 
   const [showSlip, setShowSlip] = useState(false);
+  // the row lights up for a moment after it was edited
+  const flash = useFlashOnChange(order.updatedAt);
   const isExpanded = activeOrderId === order._id;
   const hasDetails = detailColumns.length > 0;
   // Edit is one tap; the rest go in the menu (Delete last, in red)
@@ -50,7 +53,9 @@ const OrderTableRow = ({
       <motion.tr
         layout
         key={order._id}
-        className={`border-t text-sm transition-all ${
+        className={`border-t text-sm transition-all animate-fade-in motion-reduce:animate-none ${
+          flash ? "[&>td]:animate-flash-cell" : ""
+        } ${
           hasDetails ? "cursor-pointer" : ""
         } ${
           statusStyle

@@ -12,6 +12,7 @@ const {
 } = require('../controllers/authController');
 const {
   loginLimiter,
+  loginAccountLimiter,
   registerLimiter,
   forgotLimiter,
   resetLimiter,
@@ -23,7 +24,7 @@ const { requireAdmin } = require('../middlewares/access');
 const router = express.Router();
 
 router.post('/register', registerLimiter, register);
-router.post('/login', loginLimiter, login);
+router.post('/login', loginLimiter, loginAccountLimiter, login);
 router.post('/change-password', authenticate, loadUser, requireAdmin, changePasswordLimiter, changePassword);
 router.post('/verify-email', resetLimiter, verifyEmail);
 router.post('/resend-verification', forgotLimiter, resendVerification);

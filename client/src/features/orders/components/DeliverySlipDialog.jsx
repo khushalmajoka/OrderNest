@@ -120,8 +120,8 @@ const DeliverySlipDialog = ({ order, shop, onClose }) => {
         />
       </div>
 
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-lg shadow-lg w-full max-w-md max-h-[92vh] flex flex-col">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in motion-reduce:animate-none">
+        <div className="bg-white rounded-lg shadow-lg w-full max-w-md max-h-[92vh] flex flex-col animate-fade-up motion-reduce:animate-none">
           <div className="flex items-center justify-between px-4 py-3 border-b">
             <h2 className="text-lg font-bold text-gray-800">Delivery slip</h2>
             <button

@@ -85,6 +85,8 @@ const Onboarding = () => {
           type="text"
           name="name"
           placeholder="Shop Name"
+          aria-label="Shop name"
+          maxLength={100}
           value={formData.name}
           onChange={handleChange}
           required
@@ -134,11 +136,15 @@ const Onboarding = () => {
         </select>
 
         <input
-          type="text"
+          type="tel"
+          inputMode="tel"
           name="phone"
           placeholder="Phone Number"
+          aria-label="Shop phone number"
           value={formData.phone}
-          onChange={handleChange}
+          onChange={(e) =>
+            setFormData({ ...formData, phone: e.target.value.replace(/[^\d+\s\-()]/g, "") })
+          }
           required
           className="w-full px-4 py-2 border rounded-md"
         />
@@ -147,6 +153,8 @@ const Onboarding = () => {
           type="text"
           name="address"
           placeholder="Address (optional)"
+          aria-label="Shop address"
+          maxLength={300}
           value={formData.address}
           onChange={handleChange}
           className="w-full px-4 py-2 border rounded-md"

@@ -71,10 +71,10 @@ const FilterPanel = ({ filters, onApply, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 sm:p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end sm:items-center justify-center z-50 sm:p-4 animate-fade-in motion-reduce:animate-none">
       <form
         onSubmit={handleSubmit}
-        className="bg-white w-full sm:max-w-xl max-h-[92vh] flex flex-col rounded-t-xl sm:rounded-lg shadow-lg"
+        className="bg-white w-full sm:max-w-xl max-h-[92vh] flex flex-col rounded-t-xl sm:rounded-lg shadow-lg animate-fade-up motion-reduce:animate-none"
       >
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b">
           <h2 className="text-lg font-bold text-gray-800">Filter orders</h2>

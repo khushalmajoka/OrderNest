@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Pencil, Share2, Trash2, Truck } from "lucide-re
 import { formatDay, formatDateTime } from "../../../common/utils/formatDate";
 import { DeliverySlipDialog, OrderShareDialog, WithOpening } from "../lazyDialogs";
 import { useOrderShare } from "../hooks/useOrderShare";
+import { useFlashOnChange } from "../hooks/useFlashOnChange";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
 import { getStatusStyle } from "../../../common/utils/statusColors";
 
@@ -20,6 +21,8 @@ const OrderMobileCard = ({
     useOrderShare(order);
   const [showMore, setShowMore] = useState(false);
   const [showSlip, setShowSlip] = useState(false);
+  // the row lights up for a moment after it was edited
+  const flash = useFlashOnChange(order.updatedAt);
 
   const countdown = deliveryCountdown(order.expectedDeliveryDate, order.status);
   const statusStyle = getStatusStyle(shop, order.status);
@@ -27,12 +30,14 @@ const OrderMobileCard = ({
   const tile = statusStyle ? "bg-black/5" : "bg-orange-50";
 
   return (
+    // The outer box fades the card in; the inner card lights up when edited
+    <div className="animate-fade-up motion-reduce:animate-none">
     <div
       className={`rounded-lg shadow border border-orange-100 border-l-4 p-4 text-sm ${
         statusStyle
           ? `${statusStyle.row} ${statusStyle.strip}`
           : "bg-white border-l-orange-100"
-      }`}
+      } ${flash ? "animate-flash-ring" : ""}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -192,6 +197,7 @@ const OrderMobileCard = ({
           />
         </WithOpening>
       )}
+    </div>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 // rateLimiter.js
-const rateLimit = require("express-rate-limit");
+const { rateLimit, ipKeyGenerator } = require("express-rate-limit");
 
 // Public order tracking: limits guessing of order IDs / phone numbers.
 // Counted per client IP (index.js sets `trust proxy` so this is the real IP).
@@ -21,6 +21,28 @@ const loginLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     error: "Too many failed attempts. Please try again in 15 minutes.",
+  },
+});
+
+// Login, counted per ACCOUNT (the email or username typed) on top of the
+// per-address limit above. Someone guessing one password from many different
+// internet addresses is stopped here. The number is high on purpose: it is far
+// too few guesses to find a real password, but a person who mistypes a few
+// times is never blocked. Only failed logins count. Unknown accounts are
+// counted the same way, so the answer never shows which accounts exist.
+const loginAccountLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 30,
+  skipSuccessfulRequests: true,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  keyGenerator: (req) => {
+    const typed = req.body?.identifier ?? req.body?.email;
+    const who = typeof typed === "string" ? typed.trim().toLowerCase().slice(0, 200) : "";
+    return who ? `account:${who}` : ipKeyGenerator(req.ip);
+  },
+  message: {
+    error: "Too many failed attempts for this account. Please try again in an hour, or use Forgot password.",
   },
 });
 
@@ -87,6 +109,7 @@ module.exports = {
   resetLimiter,
   trackLimiter,
   loginLimiter,
+  loginAccountLimiter,
   registerLimiter,
   staffPasswordLimiter,
 };

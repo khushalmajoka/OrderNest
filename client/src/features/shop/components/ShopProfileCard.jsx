@@ -1,3 +1,5 @@
+import { useSavedFlash } from "../../../common/hooks/useSavedFlash";
+import SavedLabel from "../../../common/components/SavedLabel";
 import { useRef, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -29,10 +31,13 @@ const ShopProfileCard = ({ shop, onSaved }) => {
   const saved = useRef(start); // what the server has now
   const [form, setForm] = useState(start);
   const [saving, setSaving] = useState(false);
+  const [justSaved, flashSaved] = useSavedFlash();
   const fileInput = useRef(null);
 
   const set = (key, value) => setForm((f) => ({ ...f, [key]: value }));
   const changed = JSON.stringify(form) !== JSON.stringify(saved.current);
+  // the green tick only while nothing new has been changed since
+  const showSaved = justSaved && !changed;
 
   // An older shop may have a category that is not in today's list
   const categories = SHOP_CATEGORIES.includes(form.category) || !form.category
@@ -78,6 +83,7 @@ const ShopProfileCard = ({ shop, onSaved }) => {
       saved.current = now;
       setForm(now);
       toast.success("Shop details saved.");
+      flashSaved();
       onSaved();
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not save the shop details."));
@@ -182,9 +188,13 @@ const ShopProfileCard = ({ shop, onSaved }) => {
         <button
           type="submit"
           disabled={saving || !changed}
-          className="px-5 py-2 rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600 disabled:bg-orange-300 disabled:cursor-not-allowed"
+          className={`px-5 py-2 min-h-[44px] sm:min-h-0 rounded-lg text-white font-medium transition-colors disabled:cursor-not-allowed ${
+            showSaved
+              ? "bg-green-500 disabled:bg-green-500"
+              : "bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300"
+          }`}
         >
-          {saving ? "Saving..." : "Save"}
+          {saving ? "Saving..." : showSaved ? <SavedLabel /> : "Save"}
         </button>
       </div>
     </form>

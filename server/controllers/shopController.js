@@ -4,18 +4,24 @@ const ORDER_STATUSES = require("../models/orderStatuses");
 const COLOR_NAMES = require("../models/statusColors");
 const TABLE_COLUMNS = require("../models/tableColumns");
 const SLIP_FIELDS = require("../models/slipFields");
+const { checkShopProfile } = require("../utils/shopInput");
 
 // POST /api/shop/setup
 const setupShop = async (req, res, next) => {
   try {
-    const { name, logo, address, phone, category } = req.body;
+    const body = req.body || {};
     const userId = req.user?.id; // Set by auth middleware
 
-    if (!name || !phone || !category) {
+    if (!body.name || !body.phone || !body.category) {
       return res
         .status(400)
         .json({ error: "Shop name, phone and category are required" });
     }
+
+    // Same rules as Settings -> Shop details (lengths, phone, logo picture)
+    const checked = checkShopProfile(body);
+    if (checked.error) return res.status(400).json({ error: checked.error });
+    const { name, phone, category, address, logo } = checked.values;
 
     // Check if shop already exists for this user
     const existingShop = await Shop.findOne({ owner: userId });
@@ -183,51 +189,11 @@ const saveSlipSettings = async (req, res, next) => {
 // The shop's own details (shown in the top bar and printed on delivery slips).
 // `logo` is a small picture as text ("data:image/..."); "" removes it and
 // leaving it out keeps the current one.
-const MAX_LOGO_CHARS = 300 * 1024;
 const saveShopProfile = async (req, res, next) => {
   try {
-    const body = req.body || {};
-    const text = (value) => (typeof value === "string" ? value.trim() : null);
-
-    const name = text(body.name);
-    const phone = text(body.phone);
-    const category = text(body.category);
-    const address = body.address === undefined ? "" : text(body.address);
-
-    if (!name) return res.status(400).json({ error: "Please enter the shop name." });
-    if (name.length > 100) {
-      return res.status(400).json({ error: "Shop name is too long (100 letters at most)." });
-    }
-    if (!phone) return res.status(400).json({ error: "Please enter the shop phone number." });
-    // A shop may give a landline with an area code, so only check it is a
-    // number of a sensible length (spaces, dashes, brackets and a + are fine)
-    const digits = phone.replace(/[\s\-()]/g, "").replace(/^\+/, "");
-    if (!/^\d{6,15}$/.test(digits)) {
-      return res.status(400).json({ error: "Phone number must have 6 to 15 digits." });
-    }
-    if (!category || category.length > 60) {
-      return res.status(400).json({ error: "Please choose the shop category." });
-    }
-    if (address === null || address.length > 300) {
-      return res.status(400).json({ error: "Address is too long (300 letters at most)." });
-    }
-
-    const update = { name, phone, category, address };
-
-    if (body.logo !== undefined) {
-      if (typeof body.logo !== "string") {
-        return res.status(400).json({ error: "The logo must be a picture." });
-      }
-      if (body.logo !== "") {
-        if (!/^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+$/.test(body.logo)) {
-          return res.status(400).json({ error: "The logo must be a PNG, JPG, WEBP or GIF picture." });
-        }
-        if (body.logo.length > MAX_LOGO_CHARS) {
-          return res.status(400).json({ error: "The logo picture is too big. Please choose a smaller one." });
-        }
-      }
-      update.logo = body.logo;
-    }
+    const checked = checkShopProfile(req.body);
+    if (checked.error) return res.status(400).json({ error: checked.error });
+    const update = checked.values;
 
     const shop = await Shop.findOneAndUpdate(
       { owner: req.user.id },

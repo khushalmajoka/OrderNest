@@ -38,8 +38,8 @@ const MappingModal = ({ headers, onConfirm, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div role="dialog" aria-modal="true" aria-label="Map Excel columns" className="bg-white p-4 sm:p-6 rounded shadow-lg w-full md:w-[500px] max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in motion-reduce:animate-none">
+      <div role="dialog" aria-modal="true" aria-label="Map Excel columns" className="bg-white p-4 sm:p-6 rounded shadow-lg w-full md:w-[500px] max-h-[90vh] overflow-y-auto animate-fade-up motion-reduce:animate-none">
         <h2 className="text-xl font-semibold mb-4">Map Excel Columns</h2>
         {headers.map((header) => (
           <div key={header} className="mb-3">

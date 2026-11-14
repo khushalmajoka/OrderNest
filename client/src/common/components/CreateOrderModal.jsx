@@ -1,5 +1,5 @@
 // src/components/CreateOrderModal.jsx
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -7,6 +7,7 @@ import { isValid } from "date-fns";
 import { fromDateString, toDateString } from "../utils/dateUtils";
 import { getErrorMessage } from "../utils/api";
 import ModalShell, { Field, inputClass } from "./ModalShell";
+import SavedLabel from "./SavedLabel";
 
 const EMPTY_ORDER = {
   item: "",
@@ -27,6 +28,14 @@ const CreateOrderModal = ({ onClose, onOrderCreated, defaultExecutive = "" }) =>
   const [initial] = useState(start);
   const [formData, setFormData] = useState(start);
   const [loading, setLoading] = useState(false);
+  // After a good save the button shows a tick for a moment, then the window closes
+  const [done, setDone] = useState(false);
+  const closeTimer = useRef(null);
+  useEffect(() => () => clearTimeout(closeTimer.current), []);
+  const showDoneThenClose = () => {
+    setDone(true);
+    closeTimer.current = setTimeout(onClose, 700);
+  };
 
   // Anything typed yet? Then tapping outside or Escape will not close the window
   const dirty = JSON.stringify(formData) !== JSON.stringify(initial);
@@ -45,7 +54,7 @@ const CreateOrderModal = ({ onClose, onOrderCreated, defaultExecutive = "" }) =>
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (loading) return;
+    if (loading || done) return;
     setLoading(true);
 
     const token = localStorage.getItem("token");
@@ -63,7 +72,7 @@ const CreateOrderModal = ({ onClose, onOrderCreated, defaultExecutive = "" }) =>
 
       toast.success("Order created successfully!");
       onOrderCreated(res.data.order);
-      onClose();
+      showDoneThenClose();
     } catch (error) {
       console.error("Order creation failed:", error);
       toast.error(getErrorMessage(error, "Failed to create order. Try again."));
@@ -209,14 +218,16 @@ const CreateOrderModal = ({ onClose, onOrderCreated, defaultExecutive = "" }) =>
         </button>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || done}
           className={`px-4 py-2 rounded text-white transition ${
-            loading
+            done
+              ? "bg-green-500"
+              : loading
               ? "bg-orange-300 cursor-not-allowed"
               : "bg-orange-500 hover:bg-orange-600"
           }`}
         >
-          {loading ? "Creating..." : "Create"}
+          {loading ? "Creating..." : done ? <SavedLabel>Created</SavedLabel> : "Create"}
         </button>
       </div>
     </ModalShell>

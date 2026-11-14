@@ -27,12 +27,30 @@ module.exports = {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
         },
+        // The tick after Save: pops in with a little bounce
+        pop: {
+          "0%": { transform: "scale(0.3)", opacity: "0" },
+          "60%": { transform: "scale(1.2)", opacity: "1" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        // An order that was just changed lights up and fades back
+        "flash-cell": {
+          "0%": { backgroundColor: "rgba(249, 115, 22, 0.32)" },
+          "100%": { backgroundColor: "rgba(249, 115, 22, 0)" },
+        },
+        "flash-ring": {
+          "0%": { boxShadow: "0 0 0 4px rgba(249, 115, 22, 0.7)" },
+          "100%": { boxShadow: "0 0 0 4px rgba(249, 115, 22, 0)" },
+        },
       },
       animation: {
         drive: "drive 2.6s linear infinite",
         slide: "slide 1.3s ease-in-out infinite",
-        "fade-up": "fade-up 0.3s ease-out both",
-        "fade-in": "fade-in 0.2s ease-out both",
+        "fade-up": "fade-up 0.3s ease-out backwards",
+        "fade-in": "fade-in 0.2s ease-out backwards",
+        pop: "pop 0.35s ease-out backwards",
+        "flash-cell": "flash-cell 1.4s ease-out",
+        "flash-ring": "flash-ring 1.4s ease-out",
       },
     },
   },

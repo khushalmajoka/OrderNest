@@ -48,10 +48,10 @@ const ExportDialog = ({ shopId, params, totalOrders, summary, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 animate-fade-in motion-reduce:animate-none">
       <form
         onSubmit={handleDownload}
-        className="bg-white rounded-lg shadow-lg w-full max-w-md max-h-[92vh] overflow-y-auto p-5 space-y-4"
+        className="bg-white rounded-lg shadow-lg w-full max-w-md max-h-[92vh] overflow-y-auto p-5 space-y-4 animate-fade-up motion-reduce:animate-none"
       >
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-gray-800">Export to Excel</h2>

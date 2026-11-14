@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { isValid } from "date-fns";
 import { fromDateString, toDateString } from "../utils/dateUtils";
@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { getErrorMessage } from "../utils/api";
 import ModalShell, { Field, inputClass } from "./ModalShell";
+import SavedLabel from "./SavedLabel";
 
 // The order's saved values as the form boxes show them (numbers as text, so an
 // emptied box stays empty instead of turning into 0)
@@ -25,6 +26,14 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
   const initial = useRef(toForm(order)).current;
   const [formData, setFormData] = useState(initial);
   const [loading, setLoading] = useState(false);
+  // After a good save the button shows a tick for a moment, then the window closes
+  const [done, setDone] = useState(false);
+  const closeTimer = useRef(null);
+  useEffect(() => () => clearTimeout(closeTimer.current), []);
+  const showDoneThenClose = () => {
+    setDone(true);
+    closeTimer.current = setTimeout(onClose, 700);
+  };
 
   // Anything changed yet? Then tapping outside or Escape will not close the window
   const dirty = JSON.stringify(formData) !== JSON.stringify(initial);
@@ -43,7 +52,7 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (loading) return;
+    if (loading || done) return;
 
     // A phone typed or changed here must be a proper 10-digit mobile number.
     // An old phone that is left alone is not checked, so old orders can still
@@ -70,7 +79,7 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
 
       toast.success("Order updated successfully!");
       onUpdate(res.data.order);
-      onClose();
+      showDoneThenClose();
     } catch (error) {
       console.error("Order updation failed:", error);
       toast.error(getErrorMessage(error, "Failed to update order. Try again."));
@@ -228,14 +237,16 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
         </button>
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || done}
           className={`px-4 py-2 rounded text-white transition ${
-            loading
+            done
+              ? "bg-green-500"
+              : loading
               ? "bg-orange-300 cursor-not-allowed"
               : "bg-orange-500 hover:bg-orange-600"
           }`}
         >
-          {loading ? "Saving Changes..." : "Save Changes"}
+          {loading ? "Saving Changes..." : done ? <SavedLabel>Saved</SavedLabel> : "Save Changes"}
         </button>
       </div>
     </ModalShell>

@@ -1,3 +1,5 @@
+import { useSavedFlash } from "../../../common/hooks/useSavedFlash";
+import SavedLabel from "../../../common/components/SavedLabel";
 import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -14,6 +16,7 @@ import { getErrorMessage } from "../../../common/utils/api";
 const StatusColorsCard = ({ shop }) => {
   const [choices, setChoices] = useState(() => resolveStatusColors(shop));
   const [saving, setSaving] = useState(false);
+  const [saved, flashSaved] = useSavedFlash();
 
   const change = (status, patch) =>
     setChoices((prev) => ({ ...prev, [status]: { ...prev[status], ...patch } }));
@@ -27,6 +30,7 @@ const StatusColorsCard = ({ shop }) => {
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
       toast.success("Status colours saved.");
+      flashSaved();
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not save the colours."));
     } finally {
@@ -112,7 +116,7 @@ const StatusColorsCard = ({ shop }) => {
             saving ? "bg-orange-300" : "bg-orange-500 hover:bg-orange-600"
           }`}
         >
-          {saving ? "Saving..." : "Save"}
+          {saving ? "Saving..." : saved ? <SavedLabel /> : "Save"}
         </button>
       </div>
     </div>

@@ -105,14 +105,30 @@ const saveStatusColors = async (req, res, next) => {
       clean[status] = { enabled: choice.enabled, color: choice.color };
     }
 
+    // The main switches are optional; when sent they must be on or off
+    const update = { statusColors: clean };
+    for (const [key, field] of [["master", "colorMaster"], ["row", "colorRow"], ["strip", "colorStrip"]]) {
+      const value = req.body?.[key];
+      if (value === undefined) continue;
+      if (typeof value !== "boolean") {
+        return res.status(400).json({ error: `The ${key} switch must be on or off.` });
+      }
+      update[field] = value;
+    }
+
     const shop = await Shop.findOneAndUpdate(
       { owner: req.user.id },
-      { statusColors: clean },
+      update,
       { new: true }
     );
     if (!shop) return res.status(404).json({ error: "Shop not found" });
 
-    res.status(200).json({ statusColors: shop.statusColors });
+    res.status(200).json({
+      statusColors: shop.statusColors,
+      master: shop.colorMaster !== false,
+      row: shop.colorRow !== false,
+      strip: shop.colorStrip !== false,
+    });
   } catch (error) {
     return next(error);
   }

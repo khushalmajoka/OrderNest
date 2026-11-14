@@ -17,6 +17,11 @@ const shopSchema = new mongoose.Schema({
   // Row colour per order status: { "Pending": { enabled: true, color: "yellow" } }
   // Statuses missing here use the app's defaults.
   statusColors: { type: mongoose.Schema.Types.Mixed },
+  // Main switches for the colouring: all colouring, the whole-row tint, and the
+  // coloured line at the start of a row. Not set = on (as it always was).
+  colorMaster: { type: Boolean },
+  colorRow: { type: Boolean },
+  colorStrip: { type: Boolean },
 
   // Which table columns sit in the order row (the rest show when a row is
   // opened). Not set = the app's default.

@@ -4,6 +4,7 @@ import { formatDay, formatDateTime } from "../../../common/utils/formatDate";
 import { DeliverySlipDialog, OrderShareDialog, WithOpening } from "../lazyDialogs";
 import { useOrderShare } from "../hooks/useOrderShare";
 import { useFlashOnChange } from "../hooks/useFlashOnChange";
+import { MASK } from "../utils/orderColumns";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
 import { getStatusStyle } from "../../../common/utils/statusColors";
 
@@ -16,6 +17,7 @@ const OrderMobileCard = ({
   setDeleteId,
   setShowDeleteModal,
   access,
+  maskAmounts,
 }) => {
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
     useOrderShare(order);
@@ -70,20 +72,22 @@ const OrderMobileCard = ({
         )}
       </div>
 
+      {access.amounts && (
       <div className="grid grid-cols-3 gap-2 mt-3 text-center">
         <div className={`${tile} rounded p-2`}>
           <p className="text-xs text-gray-500">Total</p>
-          <p className="font-semibold">₹{order.total}</p>
+          <p className="font-semibold">{maskAmounts ? MASK : `₹${order.total}`}</p>
         </div>
         <div className={`${tile} rounded p-2`}>
           <p className="text-xs text-gray-500">Advance</p>
-          <p className="font-semibold">₹{order.advance}</p>
+          <p className="font-semibold">{maskAmounts ? MASK : `₹${order.advance}`}</p>
         </div>
         <div className={`${tile} rounded p-2`}>
           <p className="text-xs text-gray-500">Balance</p>
-          <p className="font-semibold text-red-500">₹{order.balance}</p>
+          <p className="font-semibold text-red-500">{maskAmounts ? MASK : `₹${order.balance}`}</p>
         </div>
       </div>
+      )}
 
       <div className="mt-3 text-gray-600 space-y-1">
         <p>

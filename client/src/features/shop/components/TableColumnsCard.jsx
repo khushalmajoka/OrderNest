@@ -49,7 +49,7 @@ const TableColumnsCard = ({ shop }) => {
         row. Fewer columns means no sideways scrolling.
       </p>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-3">
         {ORDER_COLUMNS.map((column) => {
           const on = column.fixed || inRow.includes(column.key);
           return (

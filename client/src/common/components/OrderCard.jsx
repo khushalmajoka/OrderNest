@@ -40,20 +40,26 @@ const OrderCard = React.forwardRef(({ order, shop }, ref) => {
             <p>
               <b>Item:</b> {order.item}
             </p>
-            <p>
-              <b>Balance:</b>{" "}
-              <span className="text-red-500">₹{order.balance}</span>
-            </p>
+            {order.balance !== undefined && (
+              <p>
+                <b>Balance:</b>{" "}
+                <span className="text-red-500">₹{order.balance}</span>
+              </p>
+            )}
           </div>
 
-          <p>
-            <b>Total Amount:</b>{" "}
-            <span className="font-semibold text-green-600">₹{order.total}</span>
-          </p>
+          {order.total !== undefined && (
+            <>
+              <p>
+                <b>Total Amount:</b>{" "}
+                <span className="font-semibold text-green-600">₹{order.total}</span>
+              </p>
 
-          <p>
-            <b>Advance:</b> ₹{order.advance}
-          </p>
+              <p>
+                <b>Advance:</b> ₹{order.advance}
+              </p>
+            </>
+          )}
           <p>
             <b>Date of Booking:</b>{" "}
             {new Date(order.createdAt).toLocaleDateString()}

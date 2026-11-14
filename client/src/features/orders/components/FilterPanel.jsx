@@ -53,7 +53,7 @@ const Text = ({ label, name, draft, set }) => (
 );
 
 // The filter window. Choices are only applied when "Show orders" is pressed.
-const FilterPanel = ({ filters, onApply, onClose }) => {
+const FilterPanel = ({ filters, onApply, onClose, showAmounts = true }) => {
   const [draft, setDraft] = useState(filters);
   const set = (key, value) => setDraft((d) => ({ ...d, [key]: value }));
 
@@ -115,9 +115,9 @@ const FilterPanel = ({ filters, onApply, onClose }) => {
           <Section title="Quick filters">
             {[
               ["overdue", "Overdue (delivery date passed, not delivered)"],
-              ["hasBalance", "Balance still to collect"],
+              showAmounts && ["hasBalance", "Balance still to collect"],
               ["noPhone", "Phone number missing"],
-            ].map(([key, label]) => (
+            ].filter(Boolean).map(([key, label]) => (
               <label key={key} className="flex items-center gap-2 text-sm text-gray-700">
                 <input
                   type="checkbox"
@@ -130,11 +130,13 @@ const FilterPanel = ({ filters, onApply, onClose }) => {
             ))}
           </Section>
 
+          {showAmounts && (
           <Section title="Amount (₹)">
             <Pair label="Total" a="totalMin" b="totalMax" draft={draft} set={set} placeholders={["Min", "Max"]} />
             <Pair label="Advance" a="advanceMin" b="advanceMax" draft={draft} set={set} placeholders={["Min", "Max"]} />
             <Pair label="Balance" a="balanceMin" b="balanceMax" draft={draft} set={set} placeholders={["Min", "Max"]} />
           </Section>
+          )}
 
           <Section title="Dates">
             <Pair label="Expected delivery" a="deliveryFrom" b="deliveryTo" draft={draft} set={set} type="date" />

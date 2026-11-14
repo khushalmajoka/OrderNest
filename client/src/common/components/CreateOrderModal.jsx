@@ -8,6 +8,7 @@ import { fromDateString, toDateString } from "../utils/dateUtils";
 import { getErrorMessage } from "../utils/api";
 import ModalShell, { Field, inputClass } from "./ModalShell";
 import SavedLabel from "./SavedLabel";
+import ExecutivePicker from "./ExecutivePicker";
 
 const EMPTY_ORDER = {
   item: "",
@@ -21,12 +22,11 @@ const EMPTY_ORDER = {
   expectedDeliveryDate: "",
 };
 
-// `defaultExecutive`: the logged-in person's name, put in "Order executive" to
-// save typing (it can be changed)
-const CreateOrderModal = ({ onClose, onOrderCreated, defaultExecutive = "" }) => {
-  const start = { ...EMPTY_ORDER, orderExecutive: defaultExecutive };
-  const [initial] = useState(start);
-  const [formData, setFormData] = useState(start);
+// `defaultExecutive`: the logged-in person's name, chosen in "Order executive"
+// to save a tap (it can be changed)
+const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = "" }) => {
+  const [initial, setInitial] = useState(EMPTY_ORDER);
+  const [formData, setFormData] = useState(EMPTY_ORDER);
   const [loading, setLoading] = useState(false);
   // After a good save the button shows a tick for a moment, then the window closes
   const [done, setDone] = useState(false);
@@ -167,18 +167,20 @@ const CreateOrderModal = ({ onClose, onOrderCreated, defaultExecutive = "" }) =>
         </Field>
       </div>
 
-      <Field label="Order executive">
-        <input
-          type="text"
-          name="orderExecutive"
-          placeholder="Who took this order"
+      <div>
+        <span className="block text-sm font-medium text-gray-700 mb-1">Order executive</span>
+        <ExecutivePicker
+          shopId={shopId}
           value={formData.orderExecutive}
-          onChange={handleChange}
-          required
-          maxLength={100}
-          className={inputClass}
+          preferred={defaultExecutive}
+          onDefault={(name) => {
+            // the automatic first choice is not "something typed"
+            setInitial((prev) => ({ ...prev, orderExecutive: name }));
+            setFormData((prev) => ({ ...prev, orderExecutive: name }));
+          }}
+          onChange={(name) => setFormData((prev) => ({ ...prev, orderExecutive: name }))}
         />
-      </Field>
+      </div>
 
       <DatePicker
         label="Expected delivery date"

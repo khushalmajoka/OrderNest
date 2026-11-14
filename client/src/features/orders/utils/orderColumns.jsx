@@ -1,6 +1,13 @@
 import { formatDay, formatDateTime } from "../../../common/utils/formatDate";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
 
+// "₹1500", or dots when amounts are hidden (the eye button on the dashboard)
+export const MASK = "₹ ••••";
+const money = (value, mask) => (mask ? MASK : `₹${value}`);
+
+// The columns that show money: not offered to people who may not see amounts
+export const AMOUNT_COLUMN_KEYS = ["total", "advance", "balance"];
+
 // The one list of table columns. The table row, the header and the opened
 // (expanded) row all use it, so a column can sit in the row or in the details.
 //   sort:  the field the server sorts by (null = cannot sort)
@@ -10,9 +17,9 @@ export const ORDER_COLUMNS = [
   { key: "customerName", label: "Customer", sort: "customerName", cell: (o) => o.customerName || "-" },
   { key: "item", label: "Product", sort: "item", cell: (o) => o.item || "-" },
   { key: "phone", label: "Phone", sort: "phone", cell: (o) => o.phone || "-" },
-  { key: "total", label: "Total", sort: "total", cell: (o) => `₹${o.total}` },
-  { key: "advance", label: "Advance", sort: "advance", cell: (o) => `₹${o.advance}` },
-  { key: "balance", label: "Balance", sort: "balance", cell: (o) => `₹${o.balance}` },
+  { key: "total", label: "Total", sort: "total", cell: (o, { mask } = {}) => money(o.total, mask) },
+  { key: "advance", label: "Advance", sort: "advance", cell: (o, { mask } = {}) => money(o.advance, mask) },
+  { key: "balance", label: "Balance", sort: "balance", cell: (o, { mask } = {}) => money(o.balance, mask) },
   {
     key: "status",
     label: "Status",
@@ -72,14 +79,15 @@ export const DEFAULT_ROW_COLUMNS = [
 ];
 
 // { rowColumns, detailColumns } for a shop, always in the fixed order
-export const resolveColumns = (shop) => {
+export const resolveColumns = (shop, { amounts = true } = {}) => {
   const chosen =
     Array.isArray(shop?.tableColumns) && shop.tableColumns.length
       ? shop.tableColumns
       : DEFAULT_ROW_COLUMNS;
   const inRow = (column) => column.fixed || chosen.includes(column.key);
+  const allowed = (column) => amounts || !AMOUNT_COLUMN_KEYS.includes(column.key);
   return {
-    rowColumns: ORDER_COLUMNS.filter(inRow),
-    detailColumns: ORDER_COLUMNS.filter((column) => !inRow(column)),
+    rowColumns: ORDER_COLUMNS.filter((column) => allowed(column) && inRow(column)),
+    detailColumns: ORDER_COLUMNS.filter((column) => allowed(column) && !inRow(column)),
   };
 };

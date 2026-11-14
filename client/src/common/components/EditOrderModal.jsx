@@ -7,6 +7,7 @@ import axios from "axios";
 import { getErrorMessage } from "../utils/api";
 import ModalShell, { Field, inputClass } from "./ModalShell";
 import SavedLabel from "./SavedLabel";
+import ExecutivePicker from "./ExecutivePicker";
 
 // The order's saved values as the form boxes show them (numbers as text, so an
 // emptied box stays empty instead of turning into 0)
@@ -22,7 +23,11 @@ const toForm = (order) => ({
   expectedDeliveryDate: order?.expectedDeliveryDate || "",
 });
 
-const EditOrderModal = ({ order, onClose, onUpdate }) => {
+// `canSeeAmounts` false: the Total and Advance boxes are not shown and the
+// order keeps the amounts it has
+const withoutMoney = ({ total, advance, ...rest }) => rest;
+
+const EditOrderModal = ({ order, shopId, canSeeAmounts = true, onClose, onUpdate }) => {
   const initial = useRef(toForm(order)).current;
   const [formData, setFormData] = useState(initial);
   const [loading, setLoading] = useState(false);
@@ -69,7 +74,7 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
     try {
       const res = await axios.put(
         `${process.env.REACT_APP_BASE_URL}/api/orders/${order._id}`,
-        { ...formData },
+        canSeeAmounts ? { ...formData } : withoutMoney(formData),
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -141,6 +146,7 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
         />
       </Field>
 
+      {canSeeAmounts && (
       <div className="grid grid-cols-2 gap-3">
         <Field label="Total amount (₹)">
           <input
@@ -167,18 +173,16 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
           />
         </Field>
       </div>
+      )}
 
-      <Field label="Order executive">
-        <input
-          type="text"
-          name="orderExecutive"
+      <div>
+        <span className="block text-sm font-medium text-gray-700 mb-1">Order executive</span>
+        <ExecutivePicker
+          shopId={shopId}
           value={formData.orderExecutive}
-          onChange={handleChange}
-          required
-          maxLength={100}
-          className={inputClass}
+          onChange={(name) => setFormData((prev) => ({ ...prev, orderExecutive: name }))}
         />
-      </Field>
+      </div>
 
       <Field label="Status">
         <select

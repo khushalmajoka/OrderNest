@@ -13,7 +13,7 @@ import { resolveColumns } from "../utils/orderColumns";
 
 // Columns the phone view can sort by (same ones the table headers offer)
 const SORT_OPTIONS = [
-  { value: "", label: "Newest first" },
+  { value: "", label: "Latest activity" },
   { value: "orderId", label: "Order ID" },
   { value: "customerName", label: "Customer" },
   { value: "item", label: "Product" },
@@ -45,18 +45,21 @@ const OrderList = ({
   onEdit,
   onDelete,
   setShowEditOrderModal,
+  maskAmounts,
 }) => {
   const [deleteId, setDeleteId] = useState(null);
   const [activeOrderId, setActiveOrderId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const isPhone = useIsPhone();
-  const { rowColumns, detailColumns } = resolveColumns(shop);
+  const canSeeAmounts = can(account, "viewAmounts");
+  const { rowColumns, detailColumns } = resolveColumns(shop, { amounts: canSeeAmounts });
   // What this person may do with an order (the admin decides for staff)
   const access = {
     edit: can(account, "editOrders"),
     delete: can(account, "deleteOrders"),
     share: can(account, "shareSlip"),
+    amounts: canSeeAmounts,
   };
 
   if (!orders.length)
@@ -102,7 +105,7 @@ const OrderList = ({
               }}
               className="flex-1 min-w-0 border rounded-md px-3 py-2 min-h-[44px] bg-white text-sm"
             >
-              {SORT_OPTIONS.map((option) => (
+              {SORT_OPTIONS.filter((option) => canSeeAmounts || !["total", "advance", "balance"].includes(option.value)).map((option) => (
                 <option key={option.value} value={option.value}>
                   Sort: {option.label}
                 </option>
@@ -125,6 +128,7 @@ const OrderList = ({
                 order={order}
                 shop={shop}
                 access={access}
+                maskAmounts={maskAmounts}
                 onEdit={onEdit}
                 setShowEditOrderModal={setShowEditOrderModal}
                 setShowDeleteModal={setShowDeleteModal}
@@ -153,6 +157,7 @@ const OrderList = ({
                   access={access}
                   rowColumns={rowColumns}
                   detailColumns={detailColumns}
+                  maskAmounts={maskAmounts}
                   onEdit={onEdit}
                   setShowEditOrderModal={setShowEditOrderModal}
                   setShowDeleteModal={setShowDeleteModal}

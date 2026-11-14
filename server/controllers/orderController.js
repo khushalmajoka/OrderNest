@@ -4,6 +4,22 @@ const { checkOrderInput } = require("../utils/orderInput");
 const buildOrderFilters = require("../utils/orderFilters");
 const { logActivity, diffOrder, money } = require("../utils/activity");
 const dateStamp = require("../utils/dateStamp");
+const { can } = require("../utils/permissions");
+
+// Money (Total, Advance, Balance) is only for people who may see it: the admin,
+// and staff the admin switched "See amounts" on for. Everyone else gets orders
+// without these fields, and cannot sort or filter by them either (that would
+// show the numbers by the back door).
+const AMOUNT_FIELDS = ["total", "advance", "balance"];
+const AMOUNT_QUERY_KEYS = [
+  "totalMin", "totalMax", "advanceMin", "advanceMax", "balanceMin", "balanceMax", "hasBalance",
+];
+const seesAmounts = (req) => can(req.account, "viewAmounts");
+const withoutAmounts = (order) => {
+  const plain = typeof order.toObject === "function" ? order.toObject() : { ...order };
+  AMOUNT_FIELDS.forEach((key) => delete plain[key]);
+  return plain;
+};
 
 // Text for the Activity history: no stray spaces, "-" when empty
 const shown = (value) => String(value ?? "").trim() || "-";
@@ -109,7 +125,10 @@ exports.createOrder = async (req, res, next) => {
       summary: `Created order ${newOrder.orderId} for ${shown(newOrder.customerName)} (${money(newOrder.total)})`,
     });
 
-    res.status(201).json({ message: "Order created", order: newOrder });
+    res.status(201).json({
+      message: "Order created",
+      order: seesAmounts(req) ? newOrder : withoutAmounts(newOrder),
+    });
   } catch (error) {
     return next(error);
   }
@@ -121,14 +140,19 @@ exports.updateOrder = async (req, res, next) => {
     const { customerName, item, phone, address, status, orderExecutive } =
       req.body;
 
-    const checked = checkOrderInput(req.body);
-    if (checked.error) return res.status(400).json({ message: checked.error });
-
     // The order as it was, to tell what this edit changed
     const before = await Order.findOne({
       _id: req.params.id,
       shop: req.shop._id,
     }).lean();
+
+    // Someone who may not see the amounts cannot change them either: the
+    // order keeps the amounts it has
+    const input = seesAmounts(req) || !before
+      ? req.body
+      : { ...req.body, total: before.total, advance: before.advance };
+    const checked = checkOrderInput(input);
+    if (checked.error) return res.status(400).json({ message: checked.error });
 
     // An empty delivery date sent on purpose means "remove it" (a date that is
     // simply not sent stays as it is)
@@ -170,7 +194,10 @@ exports.updateOrder = async (req, res, next) => {
       });
     }
 
-    res.status(200).json({ message: "Order updated", order: updatedOrder });
+    res.status(200).json({
+      message: "Order updated",
+      order: seesAmounts(req) ? updatedOrder : withoutAmounts(updatedOrder),
+    });
   } catch (error) {
     return next(error);
   }
@@ -357,24 +384,32 @@ const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // list and the Excel export so both always agree. Returns { filter, sortBy,
 // sortDir } or { error }.
 const readListQuery = (req) => {
+  // Without the right to see amounts, the amount filters and sorts are ignored
+  const q = { ...req.query };
+  if (!seesAmounts(req)) {
+    AMOUNT_QUERY_KEYS.forEach((key) => delete q[key]);
+    if (AMOUNT_FIELDS.includes(q.sortBy)) delete q.sortBy;
+  }
   const filter = { shop: req.shop._id };
 
   // Search is plain text, so special characters are matched literally
-  const search = String(req.query.search ?? "").trim().slice(0, 100);
+  const search = String(q.search ?? "").trim().slice(0, 100);
   if (search) {
     const pattern = new RegExp(escapeRegex(search), "i");
     filter.$or = SEARCH_FIELDS.map((field) => ({ [field]: pattern }));
   }
 
   // Filter panel choices (status, amounts, dates, ...), all must match
-  const filters = buildOrderFilters(req.query);
+  const filters = buildOrderFilters(q);
   if (filters.error) return { error: filters.error };
   if (filters.conditions.length) filter.$and = filters.conditions;
 
-  const sortBy = SORTABLE_FIELDS.includes(req.query.sortBy)
-    ? req.query.sortBy
-    : "createdAt";
-  const sortDir = req.query.sortDir === "asc" ? 1 : -1;
+  // Without a chosen sort: the order with the latest activity (created or
+  // changed most recently) comes first
+  const sortBy = SORTABLE_FIELDS.includes(q.sortBy)
+    ? q.sortBy
+    : "updatedAt";
+  const sortDir = q.sortDir === "asc" ? 1 : -1;
   return { filter, sortBy, sortDir };
 };
 
@@ -416,7 +451,7 @@ exports.getOrdersByShop = async (req, res, next) => {
     ]);
 
     res.status(200).json({
-      orders,
+      orders: seesAmounts(req) ? orders : orders.map(withoutAmounts),
       totalOrders,
       totalPages: Math.ceil(totalOrders / limit),
       currentPage: page,
@@ -530,14 +565,65 @@ exports.getOrderSummary = async (req, res, next) => {
       },
     ]);
 
-    res.status(200).json({
+    const numbers = {
       total: row?.total || 0,
       open: row?.open || 0,
       overdue: row?.overdue || 0,
       balance: row?.balance || 0,
       balanceOrders: row?.balanceOrders || 0,
       today: row?.today || 0,
-    });
+    };
+    if (!seesAmounts(req)) {
+      delete numbers.balance;
+      delete numbers.balanceOrders;
+    }
+    res.status(200).json(numbers);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// @desc The names that can be picked in "Order executive": every name already
+// used on this shop's orders, plus the owner and the staff. Spelling that only
+// differs in capital letters counts as one name (the most used spelling wins).
+exports.getExecutiveNames = async (req, res, next) => {
+  try {
+    if (req.params.shopId !== String(req.shop._id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const used = await Order.aggregate([
+      { $match: { shop: req.shop._id, orderExecutive: { $type: "string" } } },
+      { $group: { _id: { $trim: { input: "$orderExecutive" } }, count: { $sum: 1 } } },
+      { $match: { _id: { $ne: "" } } },
+    ]);
+
+    const User = require("../models/User");
+    const people = await User.find({
+      $or: [{ _id: req.shop.owner }, { role: "staff", shopId: req.shop._id }],
+    }).select("name");
+
+    // name (lower case) -> { name, count } keeping the most used spelling
+    const byKey = new Map();
+    const add = (name, count) => {
+      const clean = String(name || "").trim();
+      if (!clean) return;
+      const key = clean.toLowerCase();
+      const seen = byKey.get(key);
+      if (!seen) byKey.set(key, { name: clean, best: count });
+      else if (count > seen.best) {
+        seen.name = clean;
+        seen.best = count;
+      }
+    };
+    used.forEach((row) => add(row._id, row.count));
+    people.forEach((person) => add(person.name, 0));
+
+    const names = [...byKey.values()]
+      .map((entry) => entry.name)
+      .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }));
+
+    res.status(200).json({ names });
   } catch (error) {
     return next(error);
   }

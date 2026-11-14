@@ -35,9 +35,28 @@ export const resolveStatusColors = (shop) =>
     ])
   );
 
-// Classes for an order's status, or null when the owner switched it off
+// The three main switches in Settings (all on, as it always was, until changed):
+//  master = colour the orders at all
+//  row    = tint the whole row
+//  strip  = colour the line at the start of the row (off = the app's own colour)
+export const resolveColorSwitches = (shop) => ({
+  master: shop?.colorMaster !== false,
+  row: shop?.colorRow !== false,
+  strip: shop?.colorStrip !== false,
+});
+
+// Classes for an order's status, or null when colouring is off for it
 export const getStatusStyle = (shop, status) => {
+  const switches = resolveColorSwitches(shop);
+  if (!switches.master) return null;
   const choice = shop?.statusColors?.[status] || DEFAULT_STATUS_COLORS[status];
   if (!choice || !choice.enabled) return null;
-  return COLOR_OPTIONS[choice.color] || null;
+  const style = COLOR_OPTIONS[choice.color];
+  if (!style) return null;
+  return {
+    ...style,
+    // no tint: a plain white row; no line colour: the app's own light orange line
+    row: switches.row ? style.row : "bg-white",
+    strip: switches.strip ? style.strip : "border-l-orange-100",
+  };
 };

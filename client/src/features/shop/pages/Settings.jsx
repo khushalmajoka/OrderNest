@@ -50,16 +50,17 @@ const Settings = () => {
           <div className="space-y-6">
             {/* Two columns on a wide screen, one on a phone */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+              {/* Two columns of about the same height, so there is no big empty space */}
               <div className="space-y-6 min-w-0">
                 <ShopProfileCard shop={shop} onSaved={reload} />
 
                 <ChangeEmailCard email={account.email} onChanged={reload} />
 
-                <ChangePasswordCard />
+                <TableColumnsCard shop={shop} />
               </div>
 
               <div className="space-y-6 min-w-0">
-                <TableColumnsCard shop={shop} />
+                <ChangePasswordCard />
 
                 <StatusColorsCard shop={shop} />
               </div>

@@ -33,6 +33,8 @@ const UserSchema = new mongoose.Schema({
     editOrders: { type: Boolean, default: false },
     deleteOrders: { type: Boolean, default: false },
     shareSlip: { type: Boolean, default: false },
+    // Money: Total, Advance, Balance and the numbers built from them
+    viewAmounts: { type: Boolean, default: false },
   },
   // Staff only: the admin can turn an account off without deleting it
   active: { type: Boolean, default: true },

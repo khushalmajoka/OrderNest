@@ -8,6 +8,7 @@ import OrdersSkeleton from "../components/OrdersSkeleton";
 import { useShop } from "../../shop/hooks/useShop";
 import { useOrders } from "../hooks/useOrders";
 import { useOrderSummary } from "../hooks/useOrderSummary";
+import { useAmountsHidden } from "../hooks/useAmountsHidden";
 import SummaryStrip from "../components/SummaryStrip";
 
 import Navbar from "../../shop/components/Navbar";
@@ -95,6 +96,9 @@ const Dashboard = () => {
   // edited or deleted
   const [summaryVersion, setSummaryVersion] = useState(0);
   const summary = useOrderSummary(shop?._id, summaryVersion);
+  // Money: only for people who may see it; the eye hides it with dots
+  const canSeeAmounts = can(account, "viewAmounts");
+  const [amountsHidden, toggleAmounts] = useAmountsHidden(localStorage.getItem("userId"));
   const refreshSummary = () => setSummaryVersion((v) => v + 1);
 
   // Wait for a pause in typing, then search the whole list from page 1
@@ -271,7 +275,13 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <SummaryStrip summary={summary} filters={filters} onPick={applyFilters} />
+        <SummaryStrip
+          summary={summary}
+          filters={filters}
+          onPick={applyFilters}
+          amountsHidden={amountsHidden}
+          onToggleAmounts={toggleAmounts}
+        />
 
         <FilterChips
           filters={filters}
@@ -300,6 +310,7 @@ const Dashboard = () => {
               account={account}
               totalOrders={totalOrders}
               searching={Boolean(search) || filterCount > 0}
+              maskAmounts={canSeeAmounts && amountsHidden}
               ordersPerPage={ordersPerPage}
               setOrdersPerPage={setOrdersPerPage}
               currentPage={currentPage}
@@ -336,6 +347,7 @@ const Dashboard = () => {
 
         {showCreateModal && (
           <CreateOrderModal
+            shopId={shop._id}
             defaultExecutive={account?.name || ""}
             onClose={() => setShowCreateModal(false)}
             onOrderCreated={showFirstPageAgain}
@@ -344,15 +356,21 @@ const Dashboard = () => {
 
         {showEditOrderModal && (
           <EditOrderModal
+            shopId={shop._id}
+            canSeeAmounts={canSeeAmounts}
             order={editOrder}
             onClose={() => setShowEditOrderModal(false)}
             onUpdate={(updated) => {
               refreshSummary();
+              // Update it where it is now (the row lights up) ...
               setOrders((prev) =>
                 prev.map((order) =>
                   order._id === updated._id ? updated : order
                 )
               );
+              // ... and when the list is in its usual "latest activity first"
+              // order, bring the list up to date so the edited order moves to the top
+              if (!sortField) showFirstPageAgain();
             }}
           />
         )}
@@ -368,6 +386,7 @@ const Dashboard = () => {
 
         {showFilters && (
           <FilterPanel
+            showAmounts={canSeeAmounts}
             filters={filters}
             onApply={applyFilters}
             onClose={() => setShowFilters(false)}

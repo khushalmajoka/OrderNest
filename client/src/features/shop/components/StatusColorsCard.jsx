@@ -7,6 +7,7 @@ import { STATUSES } from "../../orders/utils/filters";
 import {
   COLOR_OPTIONS,
   DEFAULT_STATUS_COLORS,
+  resolveColorSwitches,
   resolveStatusColors,
 } from "../../../common/utils/statusColors";
 import { getErrorMessage } from "../../../common/utils/api";
@@ -15,6 +16,7 @@ import { getErrorMessage } from "../../../common/utils/api";
 // which colour. The choice is saved on the shop, so it shows on every device.
 const StatusColorsCard = ({ shop }) => {
   const [choices, setChoices] = useState(() => resolveStatusColors(shop));
+  const [switches, setSwitches] = useState(() => resolveColorSwitches(shop));
   const [saving, setSaving] = useState(false);
   const [saved, flashSaved] = useSavedFlash();
 
@@ -26,7 +28,7 @@ const StatusColorsCard = ({ shop }) => {
     try {
       await axios.put(
         `${process.env.REACT_APP_BASE_URL}/api/shop/settings/status-colors`,
-        { statusColors: choices },
+        { statusColors: choices, ...switches },
         { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
       );
       toast.success("Status colours saved.");
@@ -46,7 +48,40 @@ const StatusColorsCard = ({ shop }) => {
         off if you do not want it coloured.
       </p>
 
-      <div className="space-y-4">
+      {/* Main switches */}
+      <div className="rounded-lg border border-gray-200 divide-y divide-gray-100 mb-5">
+        {[
+          ["master", "Colour orders by status", "Off: no colours at all, everything in the app's own colours"],
+          ["row", "Colour the whole row", "The soft colour behind the row"],
+          ["strip", "Colour the line at the start of the row", "Off: the line uses the app's own colour"],
+        ].map(([key, label, hint]) => {
+          const on = switches[key];
+          const locked = key !== "master" && !switches.master;
+          return (
+            <div key={key} className={`flex items-center justify-between gap-3 p-3 ${locked ? "opacity-40" : ""}`}>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-800">{label}</p>
+                <p className="text-xs text-gray-500">{hint}</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={on}
+                aria-label={label}
+                disabled={locked}
+                onClick={() => setSwitches((prev) => ({ ...prev, [key]: !prev[key] }))}
+                className={`relative w-11 h-6 shrink-0 rounded-full transition ${on ? "bg-orange-500" : "bg-gray-300"}`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${on ? "translate-x-5" : ""}`}
+                />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className={`space-y-4 ${switches.master ? "" : "opacity-40 pointer-events-none"}`} aria-disabled={!switches.master}>
         {STATUSES.map((status) => {
           const { enabled, color } = choices[status];
           const style = COLOR_OPTIONS[color];
@@ -103,7 +138,10 @@ const StatusColorsCard = ({ shop }) => {
       <div className="flex items-center justify-between gap-3 mt-5">
         <button
           type="button"
-          onClick={() => setChoices(DEFAULT_STATUS_COLORS)}
+          onClick={() => {
+            setChoices(DEFAULT_STATUS_COLORS);
+            setSwitches({ master: true, row: true, strip: true });
+          }}
           className="text-sm text-gray-600 underline"
         >
           Use default colours

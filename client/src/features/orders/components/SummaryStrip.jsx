@@ -1,15 +1,16 @@
 import { format } from "date-fns";
-import { AlertTriangle, CalendarDays, IndianRupee, PackageOpen } from "lucide-react";
+import { AlertTriangle, CalendarDays, Eye, EyeOff, IndianRupee, PackageOpen } from "lucide-react";
 import { Bar, SkeletonRegion } from "../../../common/components/Skeleton";
 import { EMPTY_FILTERS, STATUSES, filtersToParams } from "../utils/filters";
+import { MASK } from "./../utils/orderColumns";
 
 const OPEN_STATUSES = STATUSES.filter((s) => s !== "Delivered" && s !== "Cancelled");
 const NOT_CANCELLED = STATUSES.filter((s) => s !== "Cancelled");
 
 // Each tile, and the filter that shows the orders it counts
-const tiles = (summary) => {
+const tiles = (summary, hidden) => {
   const today = format(new Date(), "yyyy-MM-dd");
-  return [
+  const all = [
     {
       id: "open",
       label: "Open orders",
@@ -32,7 +33,7 @@ const tiles = (summary) => {
     {
       id: "balance",
       label: "Balance to collect",
-      value: `₹${Number(summary.balance).toLocaleString("en-IN")}`,
+      value: hidden ? MASK : `₹${Number(summary.balance || 0).toLocaleString("en-IN")}`,
       note: `from ${summary.balanceOrders} ${summary.balanceOrders === 1 ? "order" : "orders"}`,
       icon: IndianRupee,
       tone: "text-blue-600 bg-blue-100",
@@ -48,11 +49,13 @@ const tiles = (summary) => {
       filters: { ...EMPTY_FILTERS, createdFrom: today, createdTo: today },
     },
   ];
+  // People who may not see money do not get the money box at all
+  return summary.balance === undefined ? all.filter((tile) => tile.id !== "balance") : all;
 };
 
 // The four numbers above the orders. Tapping one shows exactly those orders
 // (tap it again to go back to all orders).
-const SummaryStrip = ({ summary, filters, onPick }) => {
+const SummaryStrip = ({ summary, filters, onPick, amountsHidden, onToggleAmounts }) => {
   if (!summary) {
     return (
       <SkeletonRegion label="Loading the summary" className="mb-5">
@@ -72,30 +75,49 @@ const SummaryStrip = ({ summary, filters, onPick }) => {
   const current = JSON.stringify(filtersToParams(filters));
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-      {tiles(summary).map((tile) => {
+    <div
+      className={`grid grid-cols-2 gap-3 mb-5 ${
+        summary.balance === undefined ? "lg:grid-cols-3" : "lg:grid-cols-4"
+      }`}
+    >
+      {tiles(summary, amountsHidden).map((tile) => {
         const active = current === JSON.stringify(filtersToParams(tile.filters));
         return (
-          <button
-            key={tile.id}
-            type="button"
-            aria-pressed={active}
-            onClick={() => onPick(active ? EMPTY_FILTERS : tile.filters)}
-            className={`text-left bg-white rounded-lg border shadow-sm p-3 sm:p-4 transition hover:shadow-md ${
-              active ? "border-orange-500 ring-2 ring-orange-300" : "border-orange-100"
-            }`}
-          >
-            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600">
-              <span className={`inline-flex p-1.5 rounded-md ${tile.tone}`}>
-                <tile.icon size={16} />
-              </span>
-              <span className="truncate">{tile.label}</span>
-            </div>
-            <p className={`mt-2 text-xl sm:text-2xl font-bold text-gray-800 ${tile.valueTone || ""}`}>
-              {tile.value}
-            </p>
-            <p className="text-xs text-gray-500">{tile.note}</p>
-          </button>
+          <div key={tile.id} className="relative">
+            <button
+              type="button"
+              aria-pressed={active}
+              onClick={() => onPick(active ? EMPTY_FILTERS : tile.filters)}
+              className={`w-full text-left bg-white rounded-lg border shadow-sm p-3 sm:p-4 transition hover:shadow-md ${
+                active ? "border-orange-500 ring-2 ring-orange-300" : "border-orange-100"
+              }`}
+            >
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 pr-9">
+                <span className={`inline-flex p-1.5 rounded-md ${tile.tone}`}>
+                  <tile.icon size={16} />
+                </span>
+                <span className="truncate">{tile.label}</span>
+              </div>
+              <p className={`mt-2 text-xl sm:text-2xl font-bold text-gray-800 ${tile.valueTone || ""}`}>
+                {tile.value}
+              </p>
+              <p className="text-xs text-gray-500">{tile.note}</p>
+            </button>
+            {tile.id === "balance" && (
+              // The eye hides or shows ALL money on this screen (this box and the
+              // Total, Advance and Balance in the orders), remembered on this device
+              <button
+                type="button"
+                onClick={onToggleAmounts}
+                aria-label={amountsHidden ? "Show amounts" : "Hide amounts"}
+                aria-pressed={!amountsHidden}
+                title={amountsHidden ? "Show amounts" : "Hide amounts"}
+                className="absolute top-1 right-1 w-11 h-11 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-800"
+              >
+                {amountsHidden ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            )}
+          </div>
         );
       })}
     </div>

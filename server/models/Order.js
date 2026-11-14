@@ -67,5 +67,7 @@ orderSchema.index({ shop: 1, orderId: 1 }, { unique: true });
 orderSchema.index({ orderId: 1 });
 // Dashboard listing: one shop's orders, newest first.
 orderSchema.index({ shop: 1, createdAt: -1 });
+// Default listing: latest activity first.
+orderSchema.index({ shop: 1, updatedAt: -1 });
 
 module.exports = mongoose.model("Order", orderSchema);

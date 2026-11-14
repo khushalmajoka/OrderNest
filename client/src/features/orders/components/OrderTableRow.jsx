@@ -19,6 +19,7 @@ const OrderTableRow = ({
   access,
   rowColumns,
   detailColumns,
+  maskAmounts,
 }) => {
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
     useOrderShare(order);
@@ -80,7 +81,7 @@ const OrderTableRow = ({
                 : ""
             }`}
           >
-            {column.cell(order, { statusStyle })}
+            {column.cell(order, { statusStyle, mask: maskAmounts })}
           </td>
         ))}
         {hasActions && (
@@ -126,7 +127,7 @@ const OrderTableRow = ({
                     <div key={column.key} className="min-w-0">
                       <dt className="text-xs text-gray-500">{column.label}</dt>
                       <dd className="break-words text-gray-800">
-                        {column.cell(order, { statusStyle })}
+                        {column.cell(order, { statusStyle, mask: maskAmounts })}
                       </dd>
                     </div>
                   ))}

@@ -15,6 +15,8 @@ const inputClass =
 // never changed). Only exists while it is open.
 const DeliverySlipDialog = ({ order, shop, onClose }) => {
   const slipRef = useRef();
+  // no amounts on the order (the person may not see them): no money on the slip
+  const hasAmounts = order.balance !== undefined;
   const shopSlip = useMemo(() => resolveSlip(shop), [shop]);
 
   const [fields, setFields] = useState(shopSlip.fields);
@@ -223,6 +225,7 @@ const DeliverySlipDialog = ({ order, shop, onClose }) => {
                       className={`${inputClass} mt-1`}
                     />
                   </label>
+                  {hasAmounts && (
                   <label className="block text-xs text-gray-500">
                     Amount to collect (₹). Type 0 to show PAID.
                     <input
@@ -234,6 +237,7 @@ const DeliverySlipDialog = ({ order, shop, onClose }) => {
                       className={`${inputClass} mt-1`}
                     />
                   </label>
+                  )}
                   <label className="block text-xs text-gray-500">
                     Note at the bottom
                     <textarea
@@ -248,7 +252,7 @@ const DeliverySlipDialog = ({ order, shop, onClose }) => {
 
                 <div className="space-y-3">
                   <p className="text-xs font-semibold text-gray-700">Show on this slip</p>
-                  {SLIP_GROUPS.map((group) => (
+                  {SLIP_GROUPS.filter((group) => hasAmounts || group.title !== "Money").map((group) => (
                     <div key={group.title} className="grid grid-cols-1 gap-1">
                       {group.fields.map((field) => (
                         <label

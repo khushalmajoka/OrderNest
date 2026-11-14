@@ -24,7 +24,9 @@ const DeliverySlip = React.forwardRef(({ order, shop, fields, edits = {}, note }
 
   const showShop = fields.logo || fields.shopName || fields.shopPhone || fields.shopAddress;
   const showTo = fields.customerName || fields.customerPhone || fields.deliveryAddress;
-  const showMoney = fields.amount || fields.totals;
+  // An order without amounts (the person may not see them) prints no money box
+  const hasAmounts = order.balance !== undefined;
+  const showMoney = hasAmounts && (fields.amount || fields.totals);
   
   return (
     <div

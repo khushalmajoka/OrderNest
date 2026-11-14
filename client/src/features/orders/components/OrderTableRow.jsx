@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { DeliverySlipDialog, OrderShareDialog, WithOpening } from "../lazyDialogs";
 import RowActionsMenu from "./RowActionsMenu";
 import FieldEditor from "./FieldEditor";
+import CopyButton from "./CopyButton";
 import { useOrderShare } from "../hooks/useOrderShare";
 import { useFlashOnChange } from "../hooks/useFlashOnChange";
 import { COLUMN_EDITORS } from "../utils/orderColumns";
@@ -12,6 +13,13 @@ import { getStatusStyle } from "../../../common/utils/statusColors";
 // Things inside a row that have their own click or typing: they must not
 // open/close the row or start editing
 const INTERACTIVE = "button, a, input, select, textarea, label";
+
+// Columns that can be copied with the little icon
+const COPYABLE = {
+  orderId: { field: "orderId", label: "order ID" },
+  phone: { field: "phone", label: "phone number" },
+  address: { field: "address", label: "address" },
+};
 
 const OrderTableRow = ({
   order,
@@ -64,7 +72,19 @@ const OrderTableRow = ({
   // What a column shows: a box when editing and it can be edited, otherwise
   // the value (greyed out while editing, so it is clear it cannot be changed)
   const renderCell = (column) => {
-    if (!editing) return column.cell(order, { statusStyle, mask: maskAmounts });
+    if (!editing) {
+      const shown = column.cell(order, { statusStyle, mask: maskAmounts });
+      // Order ID, phone and address have a small copy icon (not while editing)
+      const copy = COPYABLE[column.key];
+      const value = copy && order[copy.field];
+      if (!value) return shown;
+      return (
+        <span className="inline">
+          {shown}
+          <CopyButton text={String(value)} label={copy.label} />
+        </span>
+      );
+    }
     if (COLUMN_EDITORS[column.key]) {
       return <FieldEditor column={column} form={edit.form} set={edit.set} shopId={shop._id} onEnter={edit.save} />;
     }
@@ -88,7 +108,7 @@ const OrderTableRow = ({
         key={order._id}
         tabIndex={access.edit && !editing ? 0 : undefined}
         aria-label={access.edit && !editing ? `Order ${order.orderId}. Double-click or press Enter to edit.` : undefined}
-        className={`border-t text-sm transition-all animate-fade-in motion-reduce:animate-none ${
+        className={`group/row border-t text-sm transition-all animate-fade-in motion-reduce:animate-none ${
           flash ? "[&>td]:animate-flash-cell" : ""
         } ${
           hasDetails || access.edit ? "cursor-pointer" : ""
@@ -173,7 +193,7 @@ const OrderTableRow = ({
           <motion.tr
             layout
             key={`expand-${order._id}`}
-            className={`text-sm ${rowTint} ${editing ? "ring-2 ring-inset ring-orange-300" : ""}`}
+            className={`group/row text-sm ${rowTint} ${editing ? "ring-2 ring-inset ring-orange-300" : ""}`}
             onKeyDown={(e) => {
               if (editing && e.key === "Escape") {
                 e.stopPropagation();

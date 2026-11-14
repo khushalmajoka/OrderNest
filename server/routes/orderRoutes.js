@@ -8,6 +8,7 @@ const {
   trackOrder,
   bulkUploadOrders,
   exportOrders,
+  getOrderSummary,
 } = require("../controllers/orderController");
 const authenticate = require("../middlewares/authenticate");
 const loadUser = require("../middlewares/loadUser");
@@ -42,6 +43,9 @@ router.post(
 
 // Get one page of a shop's orders
 router.get("/shop/:shopId", authenticate, loadUser, loadShop, getOrdersByShop);
+
+// The numbers at the top of the dashboard (whole shop)
+router.get("/shop/:shopId/summary", authenticate, loadUser, loadShop, getOrderSummary);
 
 // Orders for an Excel file (admin only): same search, filters and sort as the list
 router.get(

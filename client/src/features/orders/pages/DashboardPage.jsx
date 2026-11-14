@@ -8,6 +8,8 @@ import OrdersSkeleton from "../components/OrdersSkeleton";
 
 import { useShop } from "../../shop/hooks/useShop";
 import { useOrders } from "../hooks/useOrders";
+import { useOrderSummary } from "../hooks/useOrderSummary";
+import SummaryStrip from "../components/SummaryStrip";
 
 import Navbar from "../../shop/components/Navbar";
 import SearchBar from "../../../common/components/SearchBar";
@@ -80,6 +82,12 @@ const Dashboard = () => {
     filterParams: filtersToParams(filters),
   });
 
+  // The numbers above the orders: asked again whenever an order is created,
+  // edited or deleted
+  const [summaryVersion, setSummaryVersion] = useState(0);
+  const summary = useOrderSummary(shop?._id, summaryVersion);
+  const refreshSummary = () => setSummaryVersion((v) => v + 1);
+
   // Wait for a pause in typing, then search the whole list from page 1
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -108,6 +116,7 @@ const Dashboard = () => {
   };
 
   const handleOrderDeleted = () => {
+    refreshSummary();
     // Last row of a later page: step back, otherwise just reload this page
     if (orders.length === 1 && currentPage > 0) {
       setCurrentPage((page) => page - 1);
@@ -117,6 +126,7 @@ const Dashboard = () => {
   };
 
   const showFirstPageAgain = () => {
+    refreshSummary();
     setCurrentPage(0);
     refetch();
   };
@@ -250,6 +260,8 @@ const Dashboard = () => {
           </div>
         </div>
 
+        <SummaryStrip summary={summary} filters={filters} onPick={applyFilters} />
+
         <FilterChips
           filters={filters}
           onChange={applyFilters}
@@ -329,13 +341,14 @@ const Dashboard = () => {
           <EditOrderModal
             order={editOrder}
             onClose={() => setShowEditOrderModal(false)}
-            onUpdate={(updated) =>
+            onUpdate={(updated) => {
+              refreshSummary();
               setOrders((prev) =>
                 prev.map((order) =>
                   order._id === updated._id ? updated : order
                 )
-              )
-            }
+              );
+            }}
           />
         )}
 

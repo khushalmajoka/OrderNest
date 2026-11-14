@@ -3,6 +3,7 @@ const reserveOrderIds = require("../utils/reserveOrderIds");
 const { checkOrderInput } = require("../utils/orderInput");
 const buildOrderFilters = require("../utils/orderFilters");
 const { logActivity, diffOrder, money } = require("../utils/activity");
+const dateStamp = require("../utils/dateStamp");
 
 // Text for the Activity history: no stray spaces, "-" when empty
 const shown = (value) => String(value ?? "").trim() || "-";
@@ -460,6 +461,79 @@ exports.exportOrders = async (req, res, next) => {
       maxRows: MAX_EXPORT_ROWS,
       // true when more orders match than this file holds
       cutOff: orders.length < totalMatching,
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// @desc Numbers for the strip at the top of the dashboard, for the whole shop
+// (search and filters do not change them):
+//  open      = orders not yet Delivered or Cancelled
+//  overdue   = open orders whose delivery date is before today
+//  balance   = money still to collect (Cancelled orders are left out)
+//  today     = orders created today (Indian time, like the filters)
+exports.getOrderSummary = async (req, res, next) => {
+  try {
+    if (req.params.shopId !== String(req.shop._id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const stamp = dateStamp();
+    const day = `${stamp.slice(0, 4)}-${stamp.slice(4, 6)}-${stamp.slice(6, 8)}`;
+    const startOfToday = new Date(`${day}T00:00:00.000+05:30`);
+    const deliveryCutoff = new Date(`${day}T00:00:00.000Z`);
+
+    const finished = ["Delivered", "Cancelled"];
+    const isOpen = { $not: [{ $in: ["$status", finished] }] };
+
+    const [row] = await Order.aggregate([
+      { $match: { shop: req.shop._id } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          open: { $sum: { $cond: [isOpen, 1, 0] } },
+          overdue: {
+            $sum: {
+              $cond: [
+                {
+                  $and: [
+                    isOpen,
+                    // no date (missing or null) is never overdue
+                    { $eq: [{ $type: "$expectedDeliveryDate" }, "date"] },
+                    { $lt: ["$expectedDeliveryDate", deliveryCutoff] },
+                  ],
+                },
+                1,
+                0,
+              ],
+            },
+          },
+          balance: {
+            $sum: { $cond: [{ $ne: ["$status", "Cancelled"] }, { $ifNull: ["$balance", 0] }, 0] },
+          },
+          balanceOrders: {
+            $sum: {
+              $cond: [
+                { $and: [{ $ne: ["$status", "Cancelled"] }, { $gt: [{ $ifNull: ["$balance", 0] }, 0] }] },
+                1,
+                0,
+              ],
+            },
+          },
+          today: { $sum: { $cond: [{ $gte: ["$createdAt", startOfToday] }, 1, 0] } },
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      total: row?.total || 0,
+      open: row?.open || 0,
+      overdue: row?.overdue || 0,
+      balance: row?.balance || 0,
+      balanceOrders: row?.balanceOrders || 0,
+      today: row?.today || 0,
     });
   } catch (error) {
     return next(error);

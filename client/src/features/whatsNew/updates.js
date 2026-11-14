@@ -2,27 +2,27 @@
 //
 // To announce a new update later: change WHATS_NEW_VERSION (any new text) and
 // edit the list below. Everyone then sees the popup once more.
-export const WHATS_NEW_VERSION = "2026-11-details";
+export const WHATS_NEW_VERSION = "2026-11-rowedit";
 
 export const WHATS_NEW_ITEMS = [
   {
-    title: "Numbers at the top of the dashboard",
-    text: "Four boxes show Open orders, Overdue orders, Balance to collect and Today's orders. Tap a box to see exactly those orders, and tap it again to go back.",
+    title: "Edit an order right in its row",
+    text: "Double-click an order to edit it where it is (on a phone, double-tap the card or tap Edit). Change what you need, then press the green tick to save. Enter also saves, and Esc or the cross cancels. The Order ID and Balance cannot be edited, so they stay grey.",
   },
   {
-    title: "Better order tracking for customers",
-    text: "Customers now see the expected delivery date, the steps of their order (received, being prepared, ready, on the way, delivered) and a Call shop button. They still need the Order ID and their phone number.",
+    title: "Amounts are private now",
+    text: "Admin: the eye button on the Balance to collect box hides or shows all the money on the screen (Total, Advance and Balance). It starts hidden, and your choice is remembered. Staff cannot see any amounts unless you switch on \"See amounts\" for them on the Staff page.",
   },
   {
-    title: "Edit your shop details",
-    text: "Admin: in Settings you can now change the shop name, logo, phone, address and category. They show at the top of the app and on every delivery slip.",
+    title: "Pick the order executive from a list",
+    text: "Order executive is now a list of the names already used, plus you and your staff. This keeps names the same everywhere. A new name can be added with \"+ Add a new name\" and then stays in the list.",
   },
   {
-    title: "Easier Create and Edit order windows",
-    text: "Every box now has its name above it. The window no longer closes by accident when you tap outside after typing. A delivery date can be removed with the cross in the date box, and Order executive is filled in with your name.",
+    title: "Latest activity comes first",
+    text: "A new order, or any order that was just edited or had its status changed, now moves to the top of the list.",
   },
   {
-    title: "Faster app, and a few small things",
-    text: "The app opens much faster, buttons are bigger on phones, and Logout now asks you first so nobody logs out by mistake.",
+    title: "Choose how status colours look",
+    text: "Admin: in Settings you can switch the status colours off completely, or keep them and turn off just the colour of the whole row, or just the coloured line at the start of the row.",
   },
 ];

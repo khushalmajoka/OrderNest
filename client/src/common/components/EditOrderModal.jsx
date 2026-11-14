@@ -1,74 +1,40 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useRef, useState } from "react";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { isValid } from "date-fns";
 import { fromDateString, toDateString } from "../utils/dateUtils";
 import toast from "react-hot-toast";
 import axios from "axios";
 import { getErrorMessage } from "../utils/api";
+import ModalShell, { Field, inputClass } from "./ModalShell";
+
+// The order's saved values as the form boxes show them (numbers as text, so an
+// emptied box stays empty instead of turning into 0)
+const toForm = (order) => ({
+  customerName: order?.customerName || "",
+  item: order?.item || "",
+  phone: order?.phone || "",
+  address: order?.address || "",
+  total: String(order?.total ?? ""),
+  advance: String(order?.advance ?? ""),
+  orderExecutive: order?.orderExecutive || "",
+  status: order?.status || "Order Received",
+  expectedDeliveryDate: order?.expectedDeliveryDate || "",
+});
 
 const EditOrderModal = ({ order, onClose, onUpdate }) => {
-  const [formData, setFormData] = useState({
-    customerName: "",
-    item: "",
-    phone: "",
-    address: "",
-    total: 0,
-    advance: 0,
-    orderExecutive: "",
-    status: "Order Received",
-    expectedDeliveryDate: "",
-  });
+  const initial = useRef(toForm(order)).current;
+  const [formData, setFormData] = useState(initial);
   const [loading, setLoading] = useState(false);
 
-  const modalRef = useRef();
-
-  useEffect(() => {
-    if (order) {
-      setFormData({
-        customerName: order.customerName || "",
-        item: order.item || "",
-        phone: order.phone || "",
-        address: order.address || "",
-        total: order.total || 0,
-        advance: order.advance || 0,
-        orderExecutive: order.orderExecutive || "",
-        status: order.status || "Order Received",
-        expectedDeliveryDate: order.expectedDeliveryDate || "",
-      });
-    }
-  }, [order]);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      const path = e.composedPath?.() || [];
-
-      const clickedInsideModal = path.includes(modalRef.current);
-      const clickedInsideDatePicker = path.some((el) => {
-        return (
-          el?.classList &&
-          [...el.classList].some(
-            (cls) => cls.startsWith("MuiPickers") || cls.startsWith("MuiModal")
-          )
-        );
-      });
-
-      if (!clickedInsideModal && !clickedInsideDatePicker) {
-        onClose();
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
+  // Anything changed yet? Then tapping outside or Escape will not close the window
+  const dirty = JSON.stringify(formData) !== JSON.stringify(initial);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]:
-        name === "total" || name === "advance"
-          ? Number(value)
-          : name === "phone"
+        name === "phone"
           ? value.replace(/\D/g, "").slice(0, 10) // digits only, like the Create window
           : value,
     }));
@@ -114,96 +80,103 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <form
-        ref={modalRef}
-        onSubmit={handleSubmit}
-        className="bg-white rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto space-y-4 relative"
-      >
-        <h2 className="text-xl font-bold text-center text-gray-800">
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute left-3 sm:left-7 text-gray-600 hover:text-black px-2"
-          >
-            ←
-          </button>
-          Edit Order
-        </h2>
-
+    <ModalShell
+      title="Edit Order"
+      dirty={dirty}
+      onClose={onClose}
+      onSubmit={handleSubmit}
+    >
+      <Field label="Item / Product">
         <input
           type="text"
           name="item"
-          placeholder="Item/Product"
           value={formData.item}
           onChange={handleChange}
           required
-          className="w-full border p-2 rounded"
+          maxLength={200}
+          className={inputClass}
         />
+      </Field>
 
+      <Field label="Customer name">
         <input
           type="text"
           name="customerName"
-          placeholder="Customer Name"
           value={formData.customerName}
           onChange={handleChange}
           required
-          className="w-full border p-2 rounded"
+          maxLength={100}
+          className={inputClass}
         />
+      </Field>
 
+      <Field label="WhatsApp / Phone">
         <input
           type="text"
+          inputMode="numeric"
           name="phone"
-          placeholder="WhatsApp/Phone"
           value={formData.phone}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className={inputClass}
         />
+      </Field>
 
+      <Field label="Delivery address" hint="(optional)">
         <textarea
           name="address"
-          placeholder="Delivery Address (optional)"
           value={formData.address}
           onChange={handleChange}
           rows={2}
           maxLength={500}
-          className="w-full border p-2 rounded"
+          className={inputClass}
         />
+      </Field>
 
-        <input
-          type="number"
-          name="total"
-          placeholder="Total Amount"
-          value={formData.total}
-          onChange={handleChange}
-          required
-          className="w-full border p-2 rounded"
-        />
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Total amount (₹)">
+          <input
+            type="number"
+            inputMode="decimal"
+            name="total"
+            min={0}
+            value={formData.total}
+            onChange={handleChange}
+            required
+            className={inputClass}
+          />
+        </Field>
 
-        <input
-          type="number"
-          name="advance"
-          placeholder="Advance Paid"
-          value={formData.advance}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
+        <Field label="Advance paid (₹)">
+          <input
+            type="number"
+            inputMode="decimal"
+            name="advance"
+            min={0}
+            value={formData.advance}
+            onChange={handleChange}
+            className={inputClass}
+          />
+        </Field>
+      </div>
 
+      <Field label="Order executive">
         <input
           type="text"
           name="orderExecutive"
-          placeholder="Order Executive"
           value={formData.orderExecutive}
           onChange={handleChange}
           required
-          className="w-full border p-2 rounded"
+          maxLength={100}
+          className={inputClass}
         />
+      </Field>
 
+      <Field label="Status">
         <select
           name="status"
           value={formData.status}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className={inputClass}
         >
           <option value="Order Received">Order Received</option>
           <option value="Pending">Pending</option>
@@ -216,50 +189,56 @@ const EditOrderModal = ({ order, onClose, onUpdate }) => {
           <option value="Delivered">Delivered</option>
           <option value="Cancelled">Cancelled</option>
         </select>
+      </Field>
 
-        <DatePicker
-          label="Expected Delivery Date"
-          value={fromDateString(formData.expectedDeliveryDate)}
-          onChange={(date) => {
-            // Cleared: remove the date. A half-typed date is ignored (an
-            // Invalid Date would throw).
-            if (date === null) {
-              setFormData((prev) => ({ ...prev, expectedDeliveryDate: "" }));
-            } else if (isValid(date)) {
-              setFormData((prev) => ({
-                ...prev,
-                expectedDeliveryDate: toDateString(date),
-              }));
-            }
-          }}
-          slotProps={{
-            field: { clearable: true },
-            textField: { fullWidth: true, size: "small", name: "expectedDeliveryDate" },
-          }}
-        />
+      <DatePicker
+        label="Expected delivery date"
+        value={fromDateString(formData.expectedDeliveryDate)}
+        onChange={(date) => {
+          // Cleared: remove the date. A half-typed date is ignored (an
+          // Invalid Date would throw).
+          if (date === null) {
+            setFormData((prev) => ({ ...prev, expectedDeliveryDate: "" }));
+          } else if (isValid(date)) {
+            setFormData((prev) => ({
+              ...prev,
+              expectedDeliveryDate: toDateString(date),
+            }));
+          }
+        }}
+        slotProps={{
+          field: { clearable: true },
+          textField: {
+            fullWidth: true,
+            size: "small",
+            name: "expectedDeliveryDate",
+            // same font as the other boxes
+            sx: { "& .MuiInputBase-root, & .MuiInputLabel-root": { fontFamily: "inherit" } },
+          },
+        }}
+      />
 
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 border rounded hover:bg-gray-100"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className={`px-4 py-2 rounded text-white transition ${
-              loading
-                ? "bg-blue-300 cursor-not-allowed"
-                : "bg-blue-500 hover:bg-blue-600"
-            }`}
-          >
-            {loading ? "Saving Changes..." : "Save Changes"}
-          </button>
-        </div>
-      </form>
-    </div>
+      <div className="flex justify-end gap-2 pt-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-4 py-2 border rounded hover:bg-gray-100"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className={`px-4 py-2 rounded text-white transition ${
+            loading
+              ? "bg-orange-300 cursor-not-allowed"
+              : "bg-orange-500 hover:bg-orange-600"
+          }`}
+        >
+          {loading ? "Saving Changes..." : "Save Changes"}
+        </button>
+      </div>
+    </ModalShell>
   );
 };
 

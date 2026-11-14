@@ -1,52 +1,31 @@
 // src/components/CreateOrderModal.jsx
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { isValid } from "date-fns";
 import { fromDateString, toDateString } from "../utils/dateUtils";
 import { getErrorMessage } from "../utils/api";
+import ModalShell, { Field, inputClass } from "./ModalShell";
+
+const EMPTY_ORDER = {
+  item: "",
+  customerName: "",
+  phone: "",
+  address: "",
+  total: "",
+  advance: "",
+  orderExecutive: "",
+  status: "Order Received",
+  expectedDeliveryDate: "",
+};
 
 const CreateOrderModal = ({ onClose, onOrderCreated }) => {
-  const [formData, setFormData] = useState({
-    item: "",
-    customerName: "",
-    phone: "",
-    address: "",
-    total: "",
-    advance: "",
-    orderExecutive: "",
-    status: "Order Received",
-    expectedDeliveryDate: "",
-  });
-
+  const [formData, setFormData] = useState(EMPTY_ORDER);
   const [loading, setLoading] = useState(false);
 
-  const modalRef = useRef();
-
-  // Close modal on outside click
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      const path = e.composedPath?.() || [];
-
-      const clickedInsideModal = path.includes(modalRef.current);
-      const clickedInsideDatePicker = path.some((el) => {
-        return (
-          el?.classList &&
-          [...el.classList].some(
-            (cls) => cls.startsWith("MuiPickers") || cls.startsWith("MuiModal")
-          )
-        );
-      });
-
-      if (!clickedInsideModal && !clickedInsideDatePicker) {
-        onClose();
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [onClose]);
+  // Anything typed yet? Then tapping outside or Escape will not close the window
+  const dirty = JSON.stringify(formData) !== JSON.stringify(EMPTY_ORDER);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -66,16 +45,11 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
     setLoading(true);
 
     const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userId");
-    const shopId = localStorage.getItem("shopId");
-
-    const balance =
-      parseFloat(formData.total || 0) - parseFloat(formData.advance || 0);
 
     try {
       const res = await axios.post(
         `${process.env.REACT_APP_BASE_URL}/api/orders/create`,
-        { ...formData, shopId, userId, balance },
+        formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -95,138 +69,153 @@ const CreateOrderModal = ({ onClose, onOrderCreated }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <form
-        ref={modalRef}
-        onSubmit={handleSubmit}
-        className="bg-white rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto space-y-4 relative"
-      >
-        <h2 className="text-xl font-bold text-center text-gray-800">
-          <button
-            type="button"
-            onClick={onClose}
-            className="absolute left-3 sm:left-7 text-gray-600 hover:text-black px-2"
-          >
-            ←
-          </button>
-          Create New Order
-        </h2>
-
+    <ModalShell
+      title="Create New Order"
+      dirty={dirty}
+      onClose={onClose}
+      onSubmit={handleSubmit}
+    >
+      <Field label="Item / Product">
         <input
           type="text"
           name="item"
-          placeholder="Item/Product"
+          placeholder="e.g. Chocolate cake 1kg"
           value={formData.item}
           onChange={handleChange}
           required
-          className="w-full border p-2 rounded"
+          maxLength={200}
+          className={inputClass}
         />
+      </Field>
 
+      <Field label="Customer name">
         <input
           type="text"
           name="customerName"
-          placeholder="Customer Name"
+          placeholder="e.g. Asha Verma"
           value={formData.customerName}
           onChange={handleChange}
           required
-          className="w-full border p-2 rounded"
+          maxLength={100}
+          className={inputClass}
         />
+      </Field>
 
+      <Field label="WhatsApp / Phone" hint="(10 digits)">
         <input
           type="tel"
+          inputMode="numeric"
           name="phone"
-          placeholder="WhatsApp/Phone"
+          placeholder="e.g. 9876543210"
           value={formData.phone}
           onChange={handleChange}
           pattern="[6-9]{1}[0-9]{9}"
           title="Enter a valid 10-digit Mobile Number"
           required
-          className="w-full border p-2 rounded"
+          className={inputClass}
         />
+      </Field>
 
+      <Field label="Delivery address" hint="(optional)">
         <textarea
           name="address"
-          placeholder="Delivery Address (optional)"
           value={formData.address}
           onChange={handleChange}
           rows={2}
           maxLength={500}
-          className="w-full border p-2 rounded"
+          className={inputClass}
         />
+      </Field>
 
-        <input
-          type="number"
-          name="total"
-          placeholder="Total Amount"
-          value={formData.total}
-          onChange={handleChange}
-          required
-          className="w-full border p-2 rounded"
-        />
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Total amount (₹)">
+          <input
+            type="number"
+            inputMode="decimal"
+            name="total"
+            min={0}
+            value={formData.total}
+            onChange={handleChange}
+            required
+            className={inputClass}
+          />
+        </Field>
 
-        <input
-          type="number"
-          name="advance"
-          placeholder="Advance Paid"
-          value={formData.advance}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-        />
+        <Field label="Advance paid (₹)">
+          <input
+            type="number"
+            inputMode="decimal"
+            name="advance"
+            min={0}
+            value={formData.advance}
+            onChange={handleChange}
+            className={inputClass}
+          />
+        </Field>
+      </div>
 
+      <Field label="Order executive">
         <input
           type="text"
           name="orderExecutive"
-          placeholder="Order Executive"
+          placeholder="Who took this order"
           value={formData.orderExecutive}
           onChange={handleChange}
           required
-          className="w-full border p-2 rounded"
+          maxLength={100}
+          className={inputClass}
         />
+      </Field>
 
-        <DatePicker
-          label="Expected Delivery Date"
-          value={fromDateString(formData.expectedDeliveryDate)}
-          onChange={(date) => {
-            // Cleared: remove the date. A half-typed date is ignored (an
-            // Invalid Date would throw).
-            if (date === null) {
-              setFormData((prev) => ({ ...prev, expectedDeliveryDate: "" }));
-            } else if (isValid(date)) {
-              setFormData((prev) => ({
-                ...prev,
-                expectedDeliveryDate: toDateString(date),
-              }));
-            }
-          }}
-          disablePast
-          slotProps={{
-            field: { clearable: true },
-            textField: { fullWidth: true, size: "small", name: "expectedDeliveryDate" },
-          }}
-        />
+      <DatePicker
+        label="Expected delivery date"
+        value={fromDateString(formData.expectedDeliveryDate)}
+        onChange={(date) => {
+          // Cleared: remove the date. A half-typed date is ignored (an
+          // Invalid Date would throw).
+          if (date === null) {
+            setFormData((prev) => ({ ...prev, expectedDeliveryDate: "" }));
+          } else if (isValid(date)) {
+            setFormData((prev) => ({
+              ...prev,
+              expectedDeliveryDate: toDateString(date),
+            }));
+          }
+        }}
+        disablePast
+        slotProps={{
+          field: { clearable: true },
+          textField: {
+            fullWidth: true,
+            size: "small",
+            name: "expectedDeliveryDate",
+            // same font as the other boxes
+            sx: { "& .MuiInputBase-root, & .MuiInputLabel-root": { fontFamily: "inherit" } },
+          },
+        }}
+      />
 
-        <div className="flex justify-end gap-2 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 border rounded hover:bg-gray-100"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className={`px-4 py-2 rounded text-white transition ${
-              loading
-                ? "bg-orange-300 cursor-not-allowed"
-                : "bg-orange-500 hover:bg-orange-600"
-            }`}
-          >
-            {loading ? "Creating..." : "Create"}
-          </button>
-        </div>
-      </form>
-    </div>
+      <div className="flex justify-end gap-2 pt-2">
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-4 py-2 border rounded hover:bg-gray-100"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className={`px-4 py-2 rounded text-white transition ${
+            loading
+              ? "bg-orange-300 cursor-not-allowed"
+              : "bg-orange-500 hover:bg-orange-600"
+          }`}
+        >
+          {loading ? "Creating..." : "Create"}
+        </button>
+      </div>
+    </ModalShell>
   );
 };
 

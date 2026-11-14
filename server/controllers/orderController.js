@@ -151,7 +151,7 @@ exports.updateOrder = async (req, res, next) => {
     const input = seesAmounts(req) || !before
       ? req.body
       : { ...req.body, total: before.total, advance: before.advance };
-    const checked = checkOrderInput(input);
+    const checked = checkOrderInput(input, { existingExecutive: before?.orderExecutive });
     if (checked.error) return res.status(400).json({ message: checked.error });
 
     // An empty delivery date sent on purpose means "remove it" (a date that is
@@ -619,8 +619,10 @@ exports.getExecutiveNames = async (req, res, next) => {
     used.forEach((row) => add(row._id, row.count));
     people.forEach((person) => add(person.name, 0));
 
+    // Names with numbers in them (old entries, wrong Excel columns) are not offered
     const names = [...byKey.values()]
       .map((entry) => entry.name)
+      .filter((name) => !/\p{Nd}/u.test(name))
       .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }));
 
     res.status(200).json({ names });

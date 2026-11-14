@@ -4,6 +4,10 @@ import { inputClass } from "./ModalShell";
 
 const ADD_NEW = "__add_new__";
 
+// A name has no numbers in it (any digit, in any script)
+const hasDigit = (text) => /\p{Nd}/u.test(text);
+const hasLetter = (text) => /\p{L}/u.test(text);
+
 // "Order executive": pick a name from the list (every name used on this shop's
 // orders so far, the owner and the staff). No free typing in the box itself;
 // a name that is not in the list is added with "Add a new name" and from then
@@ -49,9 +53,12 @@ const ExecutivePicker = ({ shopId, value, onChange, onDefault, preferred = "", c
 
   // The list as shown: the loaded names, plus the current value (an old order
   // may have a name that is not in the list any more)
-  const shown = [...names];
+  // Names with numbers are never offered. An old order may still have one: it is
+  // shown as an old entry that cannot be picked again.
+  const shown = names.filter((n) => !hasDigit(n));
   const has = (name) => shown.some((n) => n.toLowerCase() === name.toLowerCase());
-  if (value && !has(value)) shown.push(value);
+  const oldEntry = value && hasDigit(value) ? value : null;
+  if (value && !oldEntry && !has(value)) shown.push(value);
   shown.sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }));
 
   // Nothing chosen yet: start with the logged-in person's name, if it is in the list
@@ -68,7 +75,7 @@ const ExecutivePicker = ({ shopId, value, onChange, onDefault, preferred = "", c
 
   const confirmNew = () => {
     const name = draft.trim().replace(/\s+/g, " ");
-    if (!name) return;
+    if (!hasLetter(name) || hasDigit(name)) return;
     // Same name in other capital letters: use the one already in the list
     const existing = shown.find((n) => n.toLowerCase() === name.toLowerCase());
     const chosen = existing || name;
@@ -86,9 +93,10 @@ const ExecutivePicker = ({ shopId, value, onChange, onDefault, preferred = "", c
           type="text"
           value={draft}
           maxLength={100}
-          placeholder="New name"
+          placeholder="New name (no numbers)"
           aria-label="New order executive name"
-          onChange={(e) => setDraft(e.target.value)}
+          // numbers cannot be typed: they are dropped as you type
+          onChange={(e) => setDraft(e.target.value.replace(/\p{Nd}/gu, ""))}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
@@ -103,7 +111,7 @@ const ExecutivePicker = ({ shopId, value, onChange, onDefault, preferred = "", c
         <button
           type="button"
           onClick={confirmNew}
-          disabled={!draft.trim()}
+          disabled={!hasLetter(draft)}
           className="px-3 min-h-[44px] sm:min-h-0 rounded bg-orange-500 text-white text-sm hover:bg-orange-600 disabled:bg-orange-300"
         >
           Add
@@ -137,6 +145,11 @@ const ExecutivePicker = ({ shopId, value, onChange, onDefault, preferred = "", c
       <option value="" disabled>
         {loaded ? "Choose a name" : "Loading names..."}
       </option>
+      {oldEntry && (
+        <option value={oldEntry} disabled>
+          {oldEntry} (old entry, please choose a name)
+        </option>
+      )}
       {shown.map((name) => (
         <option key={name} value={name}>
           {name}

@@ -33,6 +33,9 @@ const TEXT_LIMITS = [
   ["orderExecutive", "Order executive", 100],
 ];
 
+// Any digit in any script (0-9, Hindi digits, ...)
+const HAS_DIGIT = /\p{Nd}/u;
+
 // Phone: 10 digits, or with a country/zero prefix (+91, 91, 0). Spaces, dashes
 // and brackets are allowed. Empty is allowed (old orders have no phone).
 const phoneProblem = (raw) => {
@@ -48,14 +51,24 @@ const phoneProblem = (raw) => {
 
 // Returns { values } with clean numbers/balance, or { error: "message" }.
 // `totalRequired`: create/edit need a total; Excel rows may leave it empty (0).
+// `existingExecutive`: the order's current executive when editing.
 // `clearDate` is true when the date was sent empty on purpose (remove it).
-const checkOrderInput = (input, { totalRequired = true } = {}) => {
+const checkOrderInput = (input, { totalRequired = true, existingExecutive } = {}) => {
   for (const [key, label, max] of TEXT_LIMITS) {
     const value = input[key];
     if (value === undefined || value === null) continue;
     if (typeof value === "object") return { error: `${label} must be text.` };
     if (String(value).length > max) {
       return { error: `${label} is too long (${max} letters at most).` };
+    }
+  }
+  // Order executive is a name: no numbers. (An old order that already has a
+  // number there can still be saved, as long as that name is left as it is.)
+  const executive = input.orderExecutive;
+  if (typeof executive === "string" || typeof executive === "number") {
+    const typed = String(executive).trim();
+    if (typed && HAS_DIGIT.test(typed) && typed !== String(existingExecutive ?? "").trim()) {
+      return { error: "Order executive must be a name. Numbers are not allowed." };
     }
   }
   const badPhone = phoneProblem(input.phone);

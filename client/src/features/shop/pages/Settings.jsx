@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar";
 import StatusColorsCard from "../components/StatusColorsCard";
 import MyPasswordCard from "../components/MyPasswordCard";
 import ChangeEmailCard from "../components/ChangeEmailCard";
+import ShopProfileCard from "../components/ShopProfileCard";
 import TableColumnsCard from "../components/TableColumnsCard";
 import ChangePasswordCard from "../components/ChangePasswordCard";
 import SlipSettingsCard from "../components/SlipSettingsCard";
@@ -47,6 +48,8 @@ const Settings = () => {
 
         {isAdmin(account) ? (
           <>
+            <ShopProfileCard shop={shop} onSaved={reload} />
+
             <ChangeEmailCard email={account.email} onChanged={reload} />
 
             <ChangePasswordCard />

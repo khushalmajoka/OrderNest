@@ -8,7 +8,7 @@ import OrdersSkeleton from "../components/OrdersSkeleton";
 import { useShop } from "../../shop/hooks/useShop";
 import { useOrders } from "../hooks/useOrders";
 import { useOrderSummary } from "../hooks/useOrderSummary";
-import { useAmountsHidden } from "../hooks/useAmountsHidden";
+import { useBalanceHidden, useListAmountsHidden } from "../hooks/useAmountsHidden";
 import SummaryStrip from "../components/SummaryStrip";
 
 import Navbar from "../../shop/components/Navbar";
@@ -95,7 +95,10 @@ const Dashboard = () => {
   const summary = useOrderSummary(shop?._id, summaryVersion);
   // Money: only for people who may see it; the eye hides it with dots
   const canSeeAmounts = can(account, "viewAmounts");
-  const [amountsHidden, toggleAmounts] = useAmountsHidden(localStorage.getItem("userId"));
+  // Two separate controls: the eye on the Balance box, and a Settings switch
+  // for Total, Advance and Balance in the order list
+  const [balanceHidden, toggleBalanceHidden] = useBalanceHidden(localStorage.getItem("userId"));
+  const [listAmountsHidden] = useListAmountsHidden(localStorage.getItem("userId"));
   const refreshSummary = () => setSummaryVersion((v) => v + 1);
 
   // Wait for a pause in typing, then search the whole list from page 1
@@ -285,8 +288,8 @@ const Dashboard = () => {
           summary={summary}
           filters={filters}
           onPick={applyFilters}
-          amountsHidden={amountsHidden}
-          onToggleAmounts={toggleAmounts}
+          amountsHidden={balanceHidden}
+          onToggleAmounts={toggleBalanceHidden}
         />
 
         <FilterChips
@@ -316,7 +319,7 @@ const Dashboard = () => {
               account={account}
               totalOrders={totalOrders}
               searching={Boolean(search) || filterCount > 0}
-              maskAmounts={canSeeAmounts && amountsHidden}
+              maskAmounts={canSeeAmounts && listAmountsHidden}
               ordersPerPage={ordersPerPage}
               setOrdersPerPage={setOrdersPerPage}
               currentPage={currentPage}

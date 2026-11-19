@@ -1,31 +1,47 @@
 import { useCallback, useState } from "react";
 
-// The "eye" on the dashboard: hide the money (Total, Advance, Balance and the
-// Balance-to-collect box) with dots, for when someone is looking over your
-// shoulder. The choice is remembered on this device, per person. It starts
-// hidden, because money is private.
-const keyFor = (userId) => `amountsHidden:${userId}`;
+// Money is private, so it starts hidden. There are two separate controls, each
+// remembered on this device, per person:
+//  - the eye on the "Balance to collect" box (useBalanceHidden)
+//  - the switch in Settings for Total, Advance and Balance in the order list
+//    (useListAmountsHidden)
+const balanceKey = (userId) => `amountsHidden:${userId}`;
+const listKey = (userId) => `listAmountsHidden:${userId}`;
 
-export const useAmountsHidden = (userId) => {
+const read = (key) => {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+// "1" = hidden, "0" = shown. Nothing saved yet = use the fallback key (so a
+// person's old single eye choice carries over), else hidden.
+const useStoredFlag = (key, fallbackKey) => {
   const [hidden, setHidden] = useState(() => {
-    try {
-      return localStorage.getItem(keyFor(userId)) !== "0";
-    } catch {
-      return true;
-    }
+    const saved = read(key) ?? (fallbackKey ? read(fallbackKey) : null);
+    return saved !== "0";
   });
 
-  const toggle = useCallback(() => {
-    setHidden((current) => {
-      const next = !current;
+  const set = useCallback(
+    (next) => {
+      setHidden(next);
       try {
-        localStorage.setItem(keyFor(userId), next ? "1" : "0");
+        localStorage.setItem(key, next ? "1" : "0");
       } catch {
         /* storage blocked: it still works until the page is closed */
       }
-      return next;
-    });
-  }, [userId]);
+    },
+    [key]
+  );
 
-  return [hidden, toggle];
+  const toggle = useCallback(() => set(!hidden), [set, hidden]);
+
+  return [hidden, toggle, set];
 };
+
+export const useBalanceHidden = (userId) => useStoredFlag(balanceKey(userId));
+
+export const useListAmountsHidden = (userId) =>
+  useStoredFlag(listKey(userId), balanceKey(userId));

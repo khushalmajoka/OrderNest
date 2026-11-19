@@ -7,7 +7,8 @@ import ShopProfileCard from "../components/ShopProfileCard";
 import TableColumnsCard from "../components/TableColumnsCard";
 import ChangePasswordCard from "../components/ChangePasswordCard";
 import SlipSettingsCard from "../components/SlipSettingsCard";
-import { isAdmin } from "../../../common/utils/permissions";
+import AmountsPrivacyCard from "../components/AmountsPrivacyCard";
+import { can, isAdmin } from "../../../common/utils/permissions";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
 import { useShop } from "../hooks/useShop";
 import LoadingScreen from "../../../common/components/LoadingScreen";
@@ -63,18 +64,23 @@ const Settings = () => {
                 <ChangePasswordCard />
 
                 <StatusColorsCard shop={shop} />
+
+                <AmountsPrivacyCard />
               </div>
             </div>
 
             <SlipSettingsCard shop={shop} />
           </div>
         ) : (
-          <div className="max-w-md">
+          <div className="max-w-md space-y-6">
             <MyPasswordCard
               account={account}
               onRefresh={reload}
               onPasswordChanged={handleLogout}
             />
+
+            {/* Only staff who may see amounts have anything to hide */}
+            {can(account, "viewAmounts") && <AmountsPrivacyCard />}
           </div>
         )}
       </div>

@@ -104,14 +104,14 @@ const SummaryStrip = ({ summary, filters, onPick, amountsHidden, onToggleAmounts
               <p className="text-xs text-gray-500">{tile.note}</p>
             </button>
             {tile.id === "balance" && (
-              // The eye hides or shows ALL money on this screen (this box and the
-              // Total, Advance and Balance in the orders), remembered on this device
+              // The eye hides or shows only this box's number (Total, Advance and
+              // Balance in the list have their own switch in Settings)
               <button
                 type="button"
                 onClick={onToggleAmounts}
-                aria-label={amountsHidden ? "Show amounts" : "Hide amounts"}
+                aria-label={amountsHidden ? "Show balance to collect" : "Hide balance to collect"}
                 aria-pressed={!amountsHidden}
-                title={amountsHidden ? "Show amounts" : "Hide amounts"}
+                title={amountsHidden ? "Show balance to collect" : "Hide balance to collect"}
                 className="absolute top-1 right-1 w-11 h-11 flex items-center justify-center rounded-md text-gray-500 hover:bg-gray-100 hover:text-gray-800"
               >
                 {amountsHidden ? <EyeOff size={20} /> : <Eye size={20} />}

@@ -191,6 +191,16 @@ const DeveloperPage = () => {
           </label>
         </div>
 
+        <details className="text-sm text-gray-600 bg-white rounded-xl border border-orange-100 px-4 py-2">
+          <summary className="cursor-pointer text-gray-800 font-medium">What do these choices mean?</summary>
+          <ul className="list-disc pl-5 mt-2 space-y-1">
+            <li><strong>Shop:</strong> "All shops together" adds up every shop. Pick one shop to see only its numbers.</li>
+            <li><strong>Period:</strong> how many days back to look. A feature that was not used in that time is "never used" here.</li>
+            <li>Counting started on the day this feature went live, so older use is not in the numbers.</li>
+            <li>What you do <strong>inside a shop as developer</strong> is not counted, so it does not make a shop look busier.</li>
+          </ul>
+        </details>
+
         {error && <p className="text-sm rounded-md bg-red-50 border border-red-200 text-red-800 px-3 py-2">{error}</p>}
 
         {usage && (
@@ -201,6 +211,13 @@ const DeveloperPage = () => {
               <Tile label="Features used" value={`${usage.features.length - unused.length} of ${usage.features.length}`} />
               <Tile label="Never used" value={unused.length} note={unused.length ? "see the list below" : "all used"} />
             </div>
+
+            <p className="text-xs text-gray-600" role="note">
+              {usage.since
+                ? `Counting started on ${usage.since.slice(6)}/${usage.since.slice(4, 6)}/${usage.since.slice(0, 4)}.`
+                : "Nothing has been counted yet."}{" "}
+              Only use by the shop's own admin and staff is counted, not what you do inside a shop as developer.
+            </p>
 
             <section className="bg-white rounded-xl shadow-sm border border-orange-100 p-4">
               <h2 className="text-sm font-semibold text-gray-800 mb-1">Not used at all in this period</h2>
@@ -285,7 +302,7 @@ const DeveloperPage = () => {
         {complete && (
           <section className="bg-white rounded-xl shadow-sm border border-orange-100 p-4">
             <h2 className="text-sm font-semibold text-gray-800 mb-1">Data completeness</h2>
-            <p className="text-xs text-gray-500 mb-3">Out of {complete.total} orders, how many have this filled in.</p>
+            <p className="text-xs text-gray-500 mb-3">Out of {complete.total} orders, how many have this filled in. A name like "N", "NA" or "123" does not count as a name.</p>
             <ul className="space-y-2.5" aria-label="Data completeness">
               {complete.fields.map((f) => (
                 <li key={f.key}>

@@ -9,6 +9,7 @@ const User = require("../models/User");
 const Order = require("../models/Order");
 const FEATURES = require("../utils/usageFeatures");
 const dateStamp = require("../utils/dateStamp");
+const { nameProblem } = require("../utils/customerName");
 
 const DAYS = [7, 30, 90];
 
@@ -41,6 +42,8 @@ exports.getUsage = async (req, res, next) => {
     if (!scope.all) match.shop = scope.shop._id;
 
     const rows = await UsageCount.find(match).select("day feature count users lastAt").lean();
+    // The first day anything was counted (counting only starts when this feature went live)
+    const firstRow = await UsageCount.findOne(scope.all ? {} : { shop: scope.shop._id }).sort({ day: 1 }).select("day").lean();
 
     const byFeature = new Map();
     const daily = new Map();
@@ -90,6 +93,7 @@ exports.getUsage = async (req, res, next) => {
 
     res.status(200).json({
       days,
+      since: firstRow ? firstRow.day : null,
       total,
       people,
       activePeople: allUsers.size,
@@ -129,7 +133,6 @@ exports.getCompleteness = async (req, res, next) => {
           total: { $sum: 1 },
           phone: has("$phone"),
           address: has("$address"),
-          customerName: has("$customerName"),
           item: has("$item"),
           executive: has("$orderExecutive"),
           deliveryDate: { $sum: { $cond: [{ $eq: [{ $type: "$expectedDeliveryDate" }, "date"] }, 1, 0] } },
@@ -139,11 +142,22 @@ exports.getCompleteness = async (req, res, next) => {
     ]);
 
     const total = row?.total || 0;
+
+    // A real name only: "N", "NA", "xx", "123" and an empty name do not count
+    let realNames = 0;
+    const cursor = Order.find(match).select("customerName").lean().cursor();
+    for await (const order of cursor) {
+      if (typeof order.customerName === "string" && order.customerName.trim() && nameProblem(order.customerName) === null) {
+        realNames += 1;
+      }
+    }
+
+    const counts = { ...(row || {}), customerName: realNames };
     const part = (label, key) => ({
       key,
       label,
-      count: row?.[key] || 0,
-      percent: total ? ((row?.[key] || 0) / total) * 100 : 0,
+      count: counts[key] || 0,
+      percent: total ? ((counts[key] || 0) / total) * 100 : 0,
     });
     res.status(200).json({
       total,

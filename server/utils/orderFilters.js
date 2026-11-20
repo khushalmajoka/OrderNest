@@ -1,6 +1,7 @@
 // Turns the dashboard's filter choices (query string) into a MongoDB filter.
 // Every filter given must match (AND). Returns { conditions } or { error }.
 const ORDER_STATUSES = require("../models/orderStatuses");
+const { FINISHED } = require("./statusGroups");
 const dateStamp = require("./dateStamp");
 
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -144,7 +145,7 @@ const buildOrderFilters = (query) => {
     const todayDay = `${today.slice(0, 4)}-${today.slice(4, 6)}-${today.slice(6, 8)}`;
     conditions.push({
       expectedDeliveryDate: { $lt: new Date(`${todayDay}T00:00:00.000Z`) },
-      status: { $nin: ["Delivered", "Cancelled"] },
+      status: { $nin: FINISHED },
     });
   }
   if (query.hasBalance === "1") conditions.push({ balance: { $gt: 0 } });

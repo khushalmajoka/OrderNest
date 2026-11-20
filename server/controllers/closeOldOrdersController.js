@@ -6,13 +6,13 @@
 //   Step 2 (POST close-orders): changes only the status (and, if the admin
 //     ticked it, marks the balance as paid). The "last changed" time of the
 //     orders is NOT touched, so rows do not jump to the top of the list.
-// What "open" means is not changed: open = not Delivered and not Cancelled.
+// Open = not Delivered, Cancelled or Closed (old) (see utils/statusGroups.js).
 const Order = require("../models/Order");
 const ORDER_STATUSES = require("../models/orderStatuses");
 const { logActivity } = require("../utils/activity");
+const { FINISHED, CLOSED_OLD } = require("../utils/statusGroups");
 
 const MAX_ORDERS = 5000; // a safety limit for one go
-const FINISHED = ["Delivered", "Cancelled"];
 const OPEN_STATUSES = ORDER_STATUSES.filter((s) => !FINISHED.includes(s));
 const BASES = ["delivery", "created", "updated"];
 const BASE_LABEL = {
@@ -155,7 +155,7 @@ exports.closeOldOrders = async (req, res, next) => {
 
     const { newStatus, markPaid, expectedCount } = req.body;
     if (!FINISHED.includes(newStatus)) {
-      return res.status(400).json({ message: "The new status must be Delivered or Cancelled." });
+      return res.status(400).json({ message: "The new status must be Closed (old), Delivered or Cancelled." });
     }
     if (typeof markPaid !== "undefined" && typeof markPaid !== "boolean") {
       return res.status(400).json({ message: "Invalid choice for the balance." });

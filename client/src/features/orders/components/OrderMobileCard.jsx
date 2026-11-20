@@ -72,7 +72,7 @@ const OrderMobileCard = ({
               return (
                 <div key={key}>
                   <span className="block text-xs text-gray-600 mb-1">{column.label}</span>
-                  <FieldEditor column={column} form={edit.form} set={edit.set} shopId={shop._id} large onEnter={edit.save} />
+                  <FieldEditor column={column} form={edit.form} set={edit.set} shopId={shop._id} large onEnter={edit.save} canCloseOld={access.admin} />
                 </div>
               );
             })}

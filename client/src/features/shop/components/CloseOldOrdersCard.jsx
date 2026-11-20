@@ -68,7 +68,7 @@ const CloseOldOrdersCard = ({ shop }) => {
   const [basis, setBasis] = useState("delivery");
   const [before, setBefore] = useState("");
   const [statuses, setStatuses] = useState(DEFAULT_STATUSES);
-  const [newStatus, setNewStatus] = useState("Delivered");
+  const [newStatus, setNewStatus] = useState("Closed (old)");
   const [markPaid, setMarkPaid] = useState(false);
 
   const [stage, setStage] = useState("form"); // form | checking | preview | confirming | closing
@@ -143,9 +143,11 @@ const CloseOldOrdersCard = ({ shop }) => {
       <h2 className="text-lg font-semibold text-gray-800 mb-2">Close old orders</h2>
       <p className="text-sm text-gray-600 mb-4">
         Old orders that never got a status update still count as "Open". Here you
-        choose which old orders to close as Delivered or Cancelled. You see a
-        preview first, and you can download an Excel backup before you confirm.
-        Only the status changes (and the balance, if you tick it).
+        choose which old orders to close. The best choice is "Closed (old)": we
+        do not know what happened to them, so they are simply marked as old and
+        finished. You see a preview first, and you can download an Excel backup
+        before you confirm. Only the status changes (and the balance, if you
+        tick it, for Delivered).
       </p>
 
       {lastClosed && (
@@ -229,7 +231,7 @@ const CloseOldOrdersCard = ({ shop }) => {
         <fieldset className="space-y-2" disabled={busy || stage === "confirming"}>
           <legend className="text-sm font-medium text-gray-800 mb-1">4. Change them to</legend>
           <div className="flex flex-wrap gap-4">
-            {["Delivered", "Cancelled"].map((s) => (
+            {["Closed (old)", "Delivered", "Cancelled"].map((s) => (
               <label key={s} className="flex items-center gap-2 text-sm text-gray-800 cursor-pointer">
                 <input
                   type="radio"
@@ -259,7 +261,8 @@ const CloseOldOrdersCard = ({ shop }) => {
             </label>
           ) : (
             <p className="text-xs text-gray-500">
-              Cancelled orders are left out of "Balance to collect", so their money is not changed.
+              {newStatus} orders are not Open and are left out of "Balance to collect". Their
+              amounts stay saved on the orders and are not changed.
             </p>
           )}
         </fieldset>
@@ -306,8 +309,8 @@ const CloseOldOrdersCard = ({ shop }) => {
                     Balance on these orders: {money(preview.balance)} ({plural(preview.withBalance, "order")} with a balance).
                     {paidApplies
                       ? " It will be marked as paid."
-                      : newStatus === "Cancelled"
-                      ? " It will drop out of Balance to collect."
+                      : newStatus !== "Delivered"
+                      ? " It will drop out of Balance to collect; the amounts stay saved on the orders."
                       : " The balance stays as it is."}
                   </p>
                   <p className="text-gray-600 break-words">

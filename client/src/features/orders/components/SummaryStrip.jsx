@@ -1,11 +1,12 @@
 import { format } from "date-fns";
 import { AlertTriangle, CalendarDays, Eye, EyeOff, IndianRupee, PackageOpen } from "lucide-react";
 import { Bar, SkeletonRegion } from "../../../common/components/Skeleton";
-import { EMPTY_FILTERS, STATUSES, filtersToParams } from "../utils/filters";
+import { CLOSED_OLD, EMPTY_FILTERS, FINISHED_STATUSES, STATUSES, filtersToParams } from "../utils/filters";
 import { MASK } from "./../utils/orderColumns";
 
-const OPEN_STATUSES = STATUSES.filter((s) => s !== "Delivered" && s !== "Cancelled");
-const NOT_CANCELLED = STATUSES.filter((s) => s !== "Cancelled");
+const OPEN_STATUSES = STATUSES.filter((s) => !FINISHED_STATUSES.includes(s));
+// Cancelled and Closed (old) orders are left out of "Balance to collect"
+const NOT_CANCELLED = STATUSES.filter((s) => s !== "Cancelled" && s !== CLOSED_OLD);
 
 // Each tile, and the filter that shows the orders it counts
 const tiles = (summary, hidden) => {

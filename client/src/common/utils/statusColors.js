@@ -24,6 +24,7 @@ export const DEFAULT_STATUS_COLORS = {
   Dispatched: { enabled: true, color: "pink" },
   Delivered: { enabled: true, color: "green" },
   Cancelled: { enabled: true, color: "red" },
+  "Closed (old)": { enabled: true, color: "gray" },
 };
 
 // The shop's choice for every status (saved choice, else the default)

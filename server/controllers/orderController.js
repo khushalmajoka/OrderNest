@@ -1,6 +1,7 @@
 const Order = require("../models/Order");
 const reserveOrderIds = require("../utils/reserveOrderIds");
 const { checkOrderInput } = require("../utils/orderInput");
+const { FINISHED, NO_BALANCE, CLOSED_OLD } = require("../utils/statusGroups");
 const buildOrderFilters = require("../utils/orderFilters");
 const { logActivity, diffOrder, money } = require("../utils/activity");
 const dateStamp = require("../utils/dateStamp");
@@ -83,6 +84,9 @@ exports.createOrder = async (req, res, next) => {
 
     const checked = checkOrderInput(req.body);
     if (checked.error) return res.status(400).json({ message: checked.error });
+    if (status === CLOSED_OLD && req.account.role !== "admin") {
+      return res.status(403).json({ message: "Only the admin can use the status Closed (old)." });
+    }
 
     // Shop and user always come from the logged-in user, never from the body
     const shop = req.shop;
@@ -156,6 +160,11 @@ exports.updateOrder = async (req, res, next) => {
       existingName: before?.customerName,
     });
     if (checked.error) return res.status(400).json({ message: checked.error });
+    // Only the admin can SET Closed (old). An order that already has it can
+    // still be edited by anyone who may edit (the status stays as it is).
+    if (status === CLOSED_OLD && before?.status !== CLOSED_OLD && req.account.role !== "admin") {
+      return res.status(403).json({ message: "Only the admin can use the status Closed (old)." });
+    }
 
     // An empty delivery date sent on purpose means "remove it" (a date that is
     // simply not sent stays as it is)
@@ -543,9 +552,9 @@ exports.exportOrders = async (req, res, next) => {
 
 // @desc Numbers for the strip at the top of the dashboard, for the whole shop
 // (search and filters do not change them):
-//  open      = orders not yet Delivered or Cancelled
+//  open      = orders not yet Delivered, Cancelled or Closed (old)
 //  overdue   = open orders whose delivery date is before today
-//  balance   = money still to collect (Cancelled orders are left out)
+//  balance   = money still to collect (Cancelled and Closed (old) orders are left out)
 //  today     = orders created today (Indian time, like the filters)
 exports.getOrderSummary = async (req, res, next) => {
   try {
@@ -558,7 +567,8 @@ exports.getOrderSummary = async (req, res, next) => {
     const startOfToday = new Date(`${day}T00:00:00.000+05:30`);
     const deliveryCutoff = new Date(`${day}T00:00:00.000Z`);
 
-    const finished = ["Delivered", "Cancelled"];
+    const finished = FINISHED;
+    const countsBalance = { $not: [{ $in: ["$status", NO_BALANCE] }] };
     const isOpen = { $not: [{ $in: ["$status", finished] }] };
 
     const [row] = await Order.aggregate([
@@ -585,12 +595,12 @@ exports.getOrderSummary = async (req, res, next) => {
             },
           },
           balance: {
-            $sum: { $cond: [{ $ne: ["$status", "Cancelled"] }, { $ifNull: ["$balance", 0] }, 0] },
+            $sum: { $cond: [countsBalance, { $ifNull: ["$balance", 0] }, 0] },
           },
           balanceOrders: {
             $sum: {
               $cond: [
-                { $and: [{ $ne: ["$status", "Cancelled"] }, { $gt: [{ $ifNull: ["$balance", 0] }, 0] }] },
+                { $and: [countsBalance, { $gt: [{ $ifNull: ["$balance", 0] }, 0] }] },
                 1,
                 0,
               ],

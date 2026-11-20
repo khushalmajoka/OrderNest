@@ -10,7 +10,13 @@ export const STATUSES = [
   "Dispatched",
   "Delivered",
   "Cancelled",
+  "Closed (old)",
 ];
+
+// The status the admin tool gives to very old orders. Not "open" any more,
+// and its balance is not counted in "Balance to collect".
+export const CLOSED_OLD = "Closed (old)";
+export const FINISHED_STATUSES = ["Delivered", "Cancelled", CLOSED_OLD];
 
 export const EMPTY_FILTERS = {
   status: [],

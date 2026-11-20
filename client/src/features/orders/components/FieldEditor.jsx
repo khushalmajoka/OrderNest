@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import ExecutivePicker from "../../../common/components/ExecutivePicker";
-import { STATUSES } from "../utils/filters";
+import { CLOSED_OLD, STATUSES } from "../utils/filters";
 import { COLUMN_EDITORS } from "../utils/orderColumns";
 
 const base =
@@ -13,7 +13,7 @@ const base =
 //   onEnter: what the Enter key does (save)
 // Fields that cannot be edited (Order ID, Balance, Created, Updated) have no
 // editor: the caller shows them greyed out.
-const FieldEditor = ({ column, form, set, shopId, large = false, onEnter }) => {
+const FieldEditor = ({ column, form, set, shopId, large = false, onEnter, canCloseOld = false }) => {
   const spec = COLUMN_EDITORS[column.key];
   if (!spec) return null;
 
@@ -76,7 +76,7 @@ const FieldEditor = ({ column, form, set, shopId, large = false, onEnter }) => {
     case "status":
       return (
         <select {...common} value={value} onChange={(e) => set(spec.field, e.target.value)}>
-          {STATUSES.map((status) => (
+          {STATUSES.filter((s) => s !== CLOSED_OLD || canCloseOld || value === CLOSED_OLD).map((status) => (
             <option key={status} value={status}>
               {status}
             </option>

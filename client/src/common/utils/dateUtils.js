@@ -14,10 +14,10 @@ export const fromDateString = (value) =>
 
 // "In 3 days" / "Today" / "2 days late" for the delivery column and phone card.
 // Counted in whole calendar days, so an order due today never shows as late.
-// Finished orders (Delivered / Cancelled) have nothing left to count.
+// Finished orders (Delivered / Cancelled / Closed (old)) have nothing left to count.
 export const deliveryCountdown = (value, status) => {
   const due = fromDateString(value);
-  if (!due || status === "Delivered" || status === "Cancelled") {
+  if (!due || status === "Delivered" || status === "Cancelled" || status === "Closed (old)") {
     return { text: "-", late: false };
   }
 

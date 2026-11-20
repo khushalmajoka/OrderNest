@@ -7,7 +7,7 @@ import OrderMobileCard from "./OrderMobileCard";
 import Pagination from "./Pagination";
 import { useIsPhone } from "../../../common/hooks/useMediaQuery";
 import axios from "axios";
-import { can } from "../../../common/utils/permissions";
+import { can, isAdmin } from "../../../common/utils/permissions";
 import { getErrorMessage } from "../../../common/utils/api";
 import { resolveColumns } from "../utils/orderColumns";
 import { useInlineEdit } from "../hooks/useInlineEdit";
@@ -61,6 +61,7 @@ const OrderList = ({
     delete: can(account, "deleteOrders"),
     share: can(account, "shareSlip"),
     amounts: canSeeAmounts,
+    admin: isAdmin(account), // only the admin may use the status Closed (old)
   };
   // Editing an order right where it is shown (double-click / double-tap)
   const inline = useInlineEdit({ orders, canSeeAmounts, onSaved: onUpdated });

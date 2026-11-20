@@ -8,4 +8,5 @@ module.exports = [
   "Dispatched",
   "Delivered",
   "Cancelled",
+  "Closed (old)",
 ];

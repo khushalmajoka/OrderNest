@@ -62,6 +62,7 @@ const Progress = ({ status }) => {
 
 const OrderResult = ({ order }) => {
   const cancelled = order.status === "Cancelled";
+  const closedOld = order.status === "Closed (old)";
   const delivered = order.status === "Delivered";
   const countdown = deliveryCountdown(order.expectedDeliveryDate, order.status);
   // The customer is told the day, and how soon; never "late"
@@ -103,7 +104,7 @@ const OrderResult = ({ order }) => {
             <dd className="text-gray-800 break-words">{order.orderExecutive}</dd>
           </div>
         )}
-        {order.expectedDeliveryDate && !cancelled && (
+        {order.expectedDeliveryDate && !cancelled && !closedOld && (
           <div className="sm:col-span-2">
             <dt className="text-xs text-gray-500">{delivered ? "Expected delivery was" : "Expected delivery"}</dt>
             <dd className="text-gray-800">
@@ -118,6 +119,10 @@ const OrderResult = ({ order }) => {
         {cancelled ? (
           <p className="flex items-center gap-2 rounded-lg bg-red-50 text-red-700 px-3 py-2 text-sm">
             <XCircle size={18} className="shrink-0" /> This order was cancelled. Please contact the shop.
+          </p>
+        ) : closedOld ? (
+          <p className="flex items-center gap-2 rounded-lg bg-gray-100 text-gray-700 px-3 py-2 text-sm">
+            <XCircle size={18} className="shrink-0" /> This order is closed. Please contact the shop.
           </p>
         ) : stepOf(order.status) === -1 ? (
           <p className="text-sm">

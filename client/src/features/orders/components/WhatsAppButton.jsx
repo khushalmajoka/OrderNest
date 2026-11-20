@@ -273,8 +273,14 @@ const LanguageDialog = ({ order, shop, onClose }) => {
 // number it is greyed out.
 const WhatsAppButton = ({ order, shop, variant = "icon" }) => {
   const [open, setOpen] = useState(false);
-  const usable = Boolean(whatsappNumber(order.phone));
-  const label = usable ? "Send a WhatsApp message" : "No phone number";
+  // A closed old order has no message (nobody should message about it by accident)
+  const closedOld = order.status === "Closed (old)";
+  const usable = Boolean(whatsappNumber(order.phone)) && !closedOld;
+  const label = closedOld
+    ? "Closed (old) orders have no WhatsApp message"
+    : usable
+    ? "Send a WhatsApp message"
+    : "No phone number";
 
   return (
     <>

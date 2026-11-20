@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 import WhatsAppIcon from "../../../common/components/WhatsAppIcon";
@@ -18,18 +18,61 @@ import {
   whatsappNumber,
 } from "../../../common/utils/whatsapp";
 
+// Opens WhatsApp in a new tab. Returns false if the browser blocked the tab.
+// (No "noopener" in the options: with it the browser never says whether the
+// tab opened. The new tab is cut off from this page right after.)
+const openWhatsApp = (url) => {
+  const tab = window.open(url, "_blank");
+  if (!tab) return false;
+  try {
+    tab.opener = null;
+  } catch (err) {
+    /* nothing to do */
+  }
+  return true;
+};
+
+// When the browser blocks the tab, a link the person can tap (a tap is always allowed)
+const showOpenLink = (url, note) =>
+  toast(
+    (t) => (
+      <span className="text-sm">
+        {note}{" "}
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => toast.dismiss(t.id)}
+          className="font-semibold text-green-700 underline"
+        >
+          Open WhatsApp
+        </a>
+      </span>
+    ),
+    { duration: 15000 }
+  );
+
 // The window that asks which language to use. Each choice shows the message
-// that will be sent; tapping it opens WhatsApp with that message typed in,
-// and (unless switched off) the order's "Thank you" picture along with it:
+// that will be sent. Tapping one opens WhatsApp on the customer's chat with
+// that message already typed in, and (unless switched off) the order's
+// "Thank you" picture along with it:
 //  - phone: the phone's share menu gets the picture and the message (the
 //    person picks WhatsApp and the customer there);
-//  - computer: WhatsApp opens on the customer with the message, and the
-//    picture is copied, ready to paste (Ctrl+V / Cmd+V). If copying is not
+//  - computer: the picture is copied and WhatsApp opens on the customer's chat
+//    with the message typed in. A web page cannot press Paste inside WhatsApp,
+//    so the person presses Ctrl+V / Cmd+V once, then Send. If copying is not
 //    allowed, the picture is saved to Downloads instead.
+//
+// Everything that matters happens at the moment of the tap: browsers only
+// allow a new tab, a share menu or a copy for a moment after a tap, so the
+// picture is made BEFORE (as soon as this window opens) and the language
+// buttons wait until it is ready.
 const LanguageDialog = ({ order, shop, onClose }) => {
   const last = getLastLanguage();
   const [withPicture, setWithPicture] = useState(getWithPicture);
-  const [busy, setBusy] = useState(false);
+  const [ready, setReady] = useState(!getWithPicture()); // the picture is made
+  const [failed, setFailed] = useState(false); // the picture could not be made
+  const blobRef = useRef(null);
   const { cardRef, getPicture, fileName, downloadPicture, copyPicture } =
     useOrderPicture(order, withPicture);
 
@@ -41,71 +84,102 @@ const LanguageDialog = ({ order, shop, onClose }) => {
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  // Wait for the picture whenever the switch is on
+  useEffect(() => {
+    blobRef.current = null;
+    setFailed(false);
+    if (!withPicture) {
+      setReady(true);
+      return undefined;
+    }
+    setReady(false);
+    let alive = true;
+    getPicture()
+      .then((blob) => {
+        if (!alive) return;
+        blobRef.current = blob;
+        setReady(true);
+      })
+      .catch((err) => {
+        console.error("Could not make the order picture:", err);
+        if (!alive) return;
+        setFailed(true);
+        setReady(true);
+      });
+    return () => {
+      alive = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [withPicture]);
+
   const toggleSwitch = () => {
     rememberWithPicture(!withPicture);
     setWithPicture(!withPicture);
   };
 
-  const send = async (language) => {
-    if (busy) return;
+  // NOTE: no "await" before the share menu / the new tab: it all has to
+  // start in the same moment as the tap.
+  const send = (language) => {
+    if (!ready) return;
     rememberLanguage(language);
     const text = buildMessage({ shop, order, language });
-    const open = () =>
-      window.open(whatsappLink(order.phone, text), "_blank", "noopener,noreferrer");
+    const url = whatsappLink(order.phone, text);
+    const blob = withPicture ? blobRef.current : null;
 
-    if (!withPicture) {
-      open();
+    // No picture wanted (or it could not be made): just the message
+    if (!blob) {
+      const opened = openWhatsApp(url);
+      if (!opened) showOpenLink(url, "Your browser blocked the new tab.");
+      if (withPicture && failed) {
+        toast.error("Could not make the picture. WhatsApp opened with the message only.");
+      }
       onClose();
       return;
     }
 
-    setBusy(true);
-    try {
-      let blob = null;
-      try {
-        blob = await getPicture(); // already made when the window opened
-      } catch (err) {
-        console.error("Could not make the order picture:", err);
-      }
-      if (!blob) {
-        open();
-        toast.error("Could not make the picture. WhatsApp opened with the message only.");
-        onClose();
+    // Phone: the share menu sends the picture and the message together
+    if (isPhoneDevice() && navigator.canShare && navigator.share) {
+      const file = new File([blob], fileName, { type: "image/png" });
+      if (navigator.canShare({ files: [file] })) {
+        navigator
+          .share({ files: [file], text })
+          .then(() => onClose())
+          .catch((err) => {
+            if (err && err.name === "AbortError") return; // the person closed the share menu
+            downloadPicture(blob);
+            showOpenLink(url, "Could not open the share menu. Picture saved.");
+          });
         return;
       }
-
-      // Phone: the share menu sends the picture and the message together
-      if (isPhoneDevice() && navigator.canShare && navigator.share) {
-        try {
-          const file = new File([blob], fileName, { type: "image/png" });
-          if (navigator.canShare({ files: [file] })) {
-            await navigator.share({ files: [file], text });
-            onClose();
-            return;
-          }
-        } catch (err) {
-          if (err && err.name === "AbortError") return; // the person closed the share menu
-          // any other trouble: use the way below
-        }
-      }
-
-      // Computer (or a phone that cannot share a picture): copy it, then open WhatsApp
-      const copied = await copyPicture();
-      if (!copied) downloadPicture(blob);
-      const opened = open();
-      toast.success(
-        copied
-          ? `Picture copied. In WhatsApp, press ${pasteKey()} to paste it.`
-          : opened
-          ? "Picture saved. Attach it in WhatsApp."
-          : "Picture saved. Open WhatsApp and attach it.",
-        { duration: 8000 }
-      );
-      onClose();
-    } finally {
-      setBusy(false);
     }
+
+    // Computer: start the copy, and open WhatsApp in the same moment
+    const copying = copyPicture(blob);
+    const opened = openWhatsApp(url);
+    copying.then((copied) => {
+      if (!copied) downloadPicture(blob);
+      if (!opened) {
+        showOpenLink(
+          url,
+          copied
+            ? `Picture copied. Your browser blocked the new tab; after opening WhatsApp press ${pasteKey()} to paste it.`
+            : "Picture saved to Downloads. Your browser blocked the new tab."
+        );
+      } else {
+        toast.success(
+          copied
+            ? `WhatsApp is open with the message. Click in the chat, press ${pasteKey()} to paste the picture, then Send.`
+            : "WhatsApp is open with the message. The picture was saved to Downloads: attach it, then Send.",
+          { duration: 12000 }
+        );
+      }
+    });
+    onClose();
   };
+
+  const toggleHint = isPhoneDevice()
+    ? "On a phone you pick WhatsApp and the customer in your share menu."
+    : `The picture is copied. In the chat press ${pasteKey()} to paste it, then Send.`;
 
   return createPortal(
     <div
@@ -137,9 +211,7 @@ const LanguageDialog = ({ order, shop, onClose }) => {
           <span>
             Send the order picture too
             <span className="block text-xs text-gray-500">
-              {isPhoneDevice()
-                ? "On a phone you pick WhatsApp and the customer in your share menu."
-                : `The picture is copied. Press ${pasteKey()} in the chat to paste it.`}
+              {withPicture && !ready ? "Getting the picture ready..." : toggleHint}
             </span>
           </span>
           <button
@@ -166,7 +238,7 @@ const LanguageDialog = ({ order, shop, onClose }) => {
               key={language.key}
               type="button"
               onClick={() => send(language.key)}
-              disabled={busy}
+              disabled={!ready}
               className={`w-full text-left rounded-lg border p-3 hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-green-400 disabled:opacity-60 ${
                 language.key === last ? "border-green-500 bg-green-50" : "border-gray-200"
               }`}

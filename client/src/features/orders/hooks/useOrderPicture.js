@@ -64,14 +64,11 @@ export const useOrderPicture = (order, active) => {
 
   // Copies the picture so it can be pasted into a chat. Returns false where
   // the browser does not allow it.
-  const copyPicture = async () => {
+  // Give it the finished picture (the PNG) so the copy starts at once.
+  const copyPicture = async (blob) => {
     try {
       if (!navigator.clipboard || !window.ClipboardItem) return false;
-      // Handing over the promise keeps the "just tapped" permission valid
-      // even if the picture is not ready yet
-      await navigator.clipboard.write([
-        new window.ClipboardItem({ "image/png": getPicture() }),
-      ]);
+      await navigator.clipboard.write([new window.ClipboardItem({ "image/png": blob })]);
       return true;
     } catch (err) {
       return false;

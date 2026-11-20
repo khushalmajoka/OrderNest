@@ -178,3 +178,30 @@ export const rememberLanguage = (language) => {
     /* private mode: fine, nothing to remember */
   }
 };
+
+// A phone or tablet (it has a share menu that can send a picture straight to
+// WhatsApp). On a computer the picture is copied to paste instead.
+export const isPhoneDevice = () =>
+  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+// The paste shortcut to show to the person
+export const pasteKey = () =>
+  /Mac|iPhone|iPad/i.test(navigator.platform) ? "Cmd+V" : "Ctrl+V";
+
+// Whether the order picture is sent along with the message (remembered per device)
+const PICTURE_KEY = "whatsappWithPicture";
+export const getWithPicture = () => {
+  try {
+    return localStorage.getItem(PICTURE_KEY) !== "0";
+  } catch {
+    return true;
+  }
+};
+export const rememberWithPicture = (on) => {
+  try {
+    localStorage.setItem(PICTURE_KEY, on ? "1" : "0");
+  } catch {
+    /* nothing to remember */
+  }
+};

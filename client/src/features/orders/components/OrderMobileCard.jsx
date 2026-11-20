@@ -22,7 +22,7 @@ const OrderMobileCard = ({
   maskAmounts,
 }) => {
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
-    useOrderShare(order, shop);
+    useOrderShare(order);
   const [showMore, setShowMore] = useState(false);
   const [showSlip, setShowSlip] = useState(false);
   // the row lights up for a moment after it was edited

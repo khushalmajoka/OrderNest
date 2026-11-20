@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { Download } from "lucide-react";
-import WhatsAppIcon from "./WhatsAppIcon";
 
 // The two brand pictures, drawn here so the app does not carry a whole icon library
 const BrandIcon = ({ path, size = 40 }) => (
@@ -44,13 +43,6 @@ const ShareModal = ({ isOpen, onClose, onShare }) => {
         <h2 className="text-lg font-semibold text-gray-800">Share Order</h2>
 
         <div className="flex gap-7 justify-center">
-          <button
-            onClick={() => onShare("whatsapp")}
-            aria-label="Share on WhatsApp"
-            className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-          >
-            <WhatsAppIcon size={40} />
-          </button>
           <button
             onClick={() => onShare("instagram")}
             aria-label="Share on Instagram"

@@ -37,7 +37,7 @@ const OrderTableRow = ({
   onStartEdit,
 }) => {
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
-    useOrderShare(order, shop);
+    useOrderShare(order);
 
   const [showSlip, setShowSlip] = useState(false);
   // the row lights up for a moment after it was edited

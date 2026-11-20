@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import SideDrawer from "./SideDrawer";
 import LogoutDialog from "./LogoutDialog";
+import DevBanner from "./DevBanner";
 import { navItemsFor } from "./navItems";
 import { getShopLogo } from "../../../common/utils/utils";
 
@@ -14,7 +15,7 @@ const Navbar = ({ shop, account, onLogout }) => {
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const { pathname } = useLocation();
   const isAdmin = account?.role === "admin";
-  const items = navItemsFor(isAdmin);
+  const items = navItemsFor(isAdmin, Boolean(account?.isDeveloper));
 
   // Escape closes the logout question
   useEffect(() => {
@@ -28,7 +29,10 @@ const Navbar = ({ shop, account, onLogout }) => {
 
   return (
     <>
-      <nav className="sticky top-0 z-10 bg-orange-50 border-b border-orange-200 shadow-md px-4 md:px-6 py-3 flex justify-between items-center gap-3">
+      {/* One sticky block: the developer banner (if any) and the bar stay together */}
+      <div className="sticky top-0 z-10">
+      {account?.devMode && <DevBanner shop={shop} />}
+      <nav className="bg-orange-50 border-b border-orange-200 shadow-md px-4 md:px-6 py-3 flex justify-between items-center gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <img
             src={getShopLogo(shop)}
@@ -88,6 +92,7 @@ const Navbar = ({ shop, account, onLogout }) => {
           <Menu size={24} className="text-orange-700" />
         </button>
       </nav>
+      </div>
 
       {/* The side menu is only for phones (hidden on a computer) */}
       <div className="md:hidden">
@@ -96,6 +101,7 @@ const Navbar = ({ shop, account, onLogout }) => {
           onClose={() => setIsOpen(false)}
           onLogout={onLogout}
           isAdmin={isAdmin}
+          isDeveloper={Boolean(account?.isDeveloper)}
         />
       </div>
 

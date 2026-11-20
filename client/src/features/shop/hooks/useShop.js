@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { getErrorMessage } from "../../../common/utils/api";
+import { isDeveloperLogin } from "../../../common/utils/devShop";
 
 const RETRIES = 2; // a sleeping server (free hosting) can fail the first calls
 const RETRY_DELAY_MS = 3000;
@@ -56,7 +57,8 @@ export const useShop = () => {
           const status = err.response?.status;
           if (status === 401) return; // the app is already logging out
           if (status === 404) {
-            if (!cancelled) navigate("/shop/onboarding");
+            // the developer may have no shop of their own: they pick one on the developer page
+            if (!cancelled) navigate(isDeveloperLogin() ? "/developer" : "/shop/onboarding");
             return;
           }
           if (tryNo < RETRIES) {

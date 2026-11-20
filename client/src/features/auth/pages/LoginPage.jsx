@@ -49,8 +49,13 @@ const Login = () => {
         localStorage.setItem("userId", user._id);
         localStorage.setItem("token", data.token);
         if(user.shopId) localStorage.setItem("shopId", user.shopId);
+        localStorage.removeItem("devShop");
+        if (data.isDeveloper) localStorage.setItem("isDeveloper", "1");
+        else localStorage.removeItem("isDeveloper");
 
-        if (!user.shopId) {
+        if (!user.shopId && data.isDeveloper) {
+          navigate("/developer"); // the developer may have no shop of their own
+        } else if (!user.shopId) {
           navigate("/shop/onboarding");
         } else {
           navigate("/shop/dashboard");

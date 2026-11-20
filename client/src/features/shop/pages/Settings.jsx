@@ -58,13 +58,14 @@ const Settings = () => {
               <div className="space-y-6 min-w-0">
                 <ShopProfileCard shop={shop} onSaved={reload} />
 
-                <ChangeEmailCard email={account.email} onChanged={reload} />
+                {/* The developer inside a shop must not touch the owner's login */}
+                {!account.devMode && <ChangeEmailCard email={account.email} onChanged={reload} />}
 
                 <TableColumnsCard shop={shop} />
               </div>
 
               <div className="space-y-6 min-w-0">
-                <ChangePasswordCard />
+                {!account.devMode && <ChangePasswordCard />}
 
                 <StatusColorsCard shop={shop} />
 

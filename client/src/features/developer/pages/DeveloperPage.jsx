@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import axios from "axios";
 import LoadingScreen from "../../../common/components/LoadingScreen";
+import { clearDevShop, getDevShop, setDevShop } from "../../../common/utils/devShop";
 
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 const base = process.env.REACT_APP_BASE_URL;
@@ -35,6 +36,7 @@ const DeveloperPage = () => {
   const [shop, setShop] = useState("all");
   const [usage, setUsage] = useState(null);
   const [complete, setComplete] = useState(null);
+  const [shopList, setShopList] = useState(null);
   const [denied, setDenied] = useState(false);
   const [error, setError] = useState(null);
 
@@ -63,6 +65,24 @@ const DeveloperPage = () => {
     load();
   }, [load]);
 
+  // The shops the developer can open
+  useEffect(() => {
+    axios
+      .get(`${base}/api/developer/shops`, { headers: headers() })
+      .then((res) => setShopList(res.data.shops))
+      .catch(() => {});
+  }, []);
+
+  const inside = getDevShop();
+  const openShop = (s) => {
+    setDevShop(s.id, s.name);
+    window.location.assign("/shop/dashboard"); // a fresh start inside that shop
+  };
+  const leaveShop = () => {
+    clearDevShop();
+    window.location.assign("/developer");
+  };
+
   if (denied) return <Navigate to="/" replace />;
   if (!usage && !error) return <LoadingScreen message="Loading" />;
 
@@ -78,10 +98,61 @@ const DeveloperPage = () => {
             <h1 className="text-xl font-semibold text-gray-900">Developer: how much the app is used</h1>
             <p className="text-sm text-gray-600">Only you can see this page. No customer details are counted, only feature names.</p>
           </div>
-          <Link to="/shop/dashboard" className="text-sm text-orange-700 underline">
-            Back to the app
-          </Link>
+          <div className="flex items-center gap-3 text-sm">
+            {inside ? (
+              <>
+                <Link to="/shop/dashboard" className="text-orange-700 underline">
+                  Back to {inside.name}
+                </Link>
+                <button type="button" onClick={leaveShop} className="text-gray-600 underline">
+                  Leave shop
+                </button>
+              </>
+            ) : (
+              <Link to="/shop/dashboard" className="text-orange-700 underline">
+                My own shop
+              </Link>
+            )}
+          </div>
         </div>
+
+        <section className="bg-white rounded-xl shadow-sm border border-orange-100 p-4">
+          <h2 className="text-sm font-semibold text-gray-800 mb-1">Shops</h2>
+          <p className="text-xs text-gray-500 mb-3">
+            Open a shop to work inside it as its admin: orders, staff, settings and tools. Changes are real.
+          </p>
+          {!shopList ? (
+            <p className="text-sm text-gray-500">Loading the shops...</p>
+          ) : shopList.length === 0 ? (
+            <p className="text-sm text-gray-600">There are no shops yet.</p>
+          ) : (
+            <ul className="divide-y" aria-label="Shops">
+              {shopList.map((s) => (
+                <li key={s.id} className="py-2.5 flex flex-wrap items-center justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-gray-900 break-words">
+                      {s.name}
+                      {inside?.id === s.id && (
+                        <span className="ml-2 text-xs rounded-full bg-indigo-100 text-indigo-800 px-2 py-0.5">you are inside</span>
+                      )}
+                    </p>
+                    <p className="text-xs text-gray-500 break-words">
+                      {s.ownerName || "-"} · {s.ownerEmail || "-"} · {s.orders} orders · {s.staff} staff · last activity {when(s.lastActivity)}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => openShop(s)}
+                    aria-label={`Open ${s.name}`}
+                    className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm hover:bg-indigo-700"
+                  >
+                    Open this shop
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
         <div className="flex flex-wrap gap-3">
           <label className="text-sm text-gray-700">

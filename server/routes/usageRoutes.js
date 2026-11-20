@@ -21,7 +21,7 @@ const limiter = rateLimit({
 // Always answers 204: counting is never something the person waits for.
 router.post("/", limiter, authenticate, loadUser, loadShop, (req, res) => {
   const feature = req.body?.feature;
-  if (typeof feature === "string" && FROM_APP.has(feature)) {
+  if (!req.devMode && typeof feature === "string" && FROM_APP.has(feature)) {
     recordUse(req.shop._id, req.account.id, feature);
   }
   res.status(204).end();

@@ -57,8 +57,9 @@ const getShopByUserId = async (req, res, next) => {
   try {
     const { userId } = req.params;
 
-    // A user may only read their own shop
-    if (userId !== req.user.id) {
+    // A user may only read their own shop (the developer working inside a shop
+    // asks with their own id, and gets the shop they chose)
+    if (!req.devMode && userId !== req.user.id) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
@@ -66,15 +67,15 @@ const getShopByUserId = async (req, res, next) => {
     const shop =
       req.account.role === "staff"
         ? await Shop.findById(req.account.shopId)
-        : await Shop.findOne({ owner: userId });
+        : await Shop.findOne({ owner: req.user.id });
 
     if (!shop) return res.status(404).json({ error: "Shop not found" });
 
     // `account` tells the screen what this person may do
-    const { id, role, name, email, username, permissions, passwordChange } = req.account;
+    const { id, role, name, email, username, permissions, passwordChange, isDeveloper, devMode } = req.account;
     res.status(200).json({
       shop,
-      account: { id, role, name, email, username, permissions, passwordChange },
+      account: { id, role, name, email, username, permissions, passwordChange, isDeveloper, devMode },
     });
   } catch (error) {
     return next(error);

@@ -1,6 +1,7 @@
 import axios from "axios";
 import toast from "react-hot-toast";
 import { clearSession } from "../../features/whatsNew/whatsNewStorage";
+import { clearDevShop, getDevShop } from "./devShop";
 
 // The text to show the user when a request fails. Uses the server's own
 // message when there is one ("Wrong email or password.") and says clearly
@@ -28,9 +29,26 @@ export const setupAuthInterceptor = () => {
   if (installed) return;
   installed = true;
 
+  // The developer working inside a shop: tell the server which one (only to our
+  // own server; the server ignores it for everybody except the developer)
+  axios.interceptors.request.use((config) => {
+    const dev = getDevShop();
+    if (dev && String(config.url || "").startsWith(process.env.REACT_APP_BASE_URL || "\u0000")) {
+      config.headers = config.headers || {};
+      config.headers["X-Dev-Shop"] = dev.id;
+    }
+    return config;
+  });
+
   axios.interceptors.response.use(
     (response) => response,
     (error) => {
+      // the shop the developer was inside no longer exists: back to the developer page
+      if (error?.response?.data?.devShopGone) {
+        clearDevShop();
+        window.location.assign("/developer");
+        return Promise.reject(error);
+      }
       const hadLogin = Boolean(localStorage.getItem("token"));
       if (error?.response?.status === 401 && hadLogin) {
         clearSession();

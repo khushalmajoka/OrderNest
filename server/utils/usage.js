@@ -36,6 +36,7 @@ const countUse = (feature, when) => (req, res, next) => {
   res.on("finish", async () => {
     if (res.statusCode >= 400) return;
     if (when && !when(req)) return;
+    if (req.devMode) return; // the developer testing inside a shop is not the shop's use
     try {
       let shopId = req.shop?._id || req.account?.shopId;
       // routes that do not load the shop: an admin's shop is the one they own

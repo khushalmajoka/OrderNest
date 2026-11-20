@@ -25,7 +25,7 @@ export const markWhatsNewSeen = (userId) => {
 // Log out: remove the login details but keep the "already read" notes,
 // otherwise the popup would come back after every login.
 export const clearSession = () => {
-  ["token", "userId", "shopId", "shop"].forEach((key) =>
+  ["token", "userId", "shopId", "shop", "devShop", "isDeveloper"].forEach((key) =>
     localStorage.removeItem(key)
   );
 };

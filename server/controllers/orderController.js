@@ -201,8 +201,8 @@ exports.updateOrder = async (req, res, next) => {
 
     const changes = before ? diffOrder(before, updatedOrder.toObject()) : [];
     // Count what was used: a status change and/or other details
-    if (changes.some((c) => c.field === "Status")) recordUse(req.shop._id, req.account.id, "order.status");
-    if (changes.some((c) => c.field !== "Status")) recordUse(req.shop._id, req.account.id, "order.edit");
+    if (!req.devMode && changes.some((c) => c.field === "Status")) recordUse(req.shop._id, req.account.id, "order.status");
+    if (!req.devMode && changes.some((c) => c.field !== "Status")) recordUse(req.shop._id, req.account.id, "order.edit");
     if (changes.length) {
       logActivity(req, {
         kind: "order",

@@ -9,14 +9,20 @@ const logActivity = (req, { kind, action, targetLabel, summary, changes = [] }) 
   const shop = req.shop?._id || account.shopId;
   if (!shop) return;
 
+  // The developer working inside a shop: the line says who really did it
+  // (never the shop owner) and is hidden from the shop's own Activity page
+  const dev = req.devMode?.developer;
   Activity.create({
     shop,
-    actor: {
-      id: account.id,
-      name: account.name,
-      username: account.username,
-      role: account.role,
-    },
+    byDeveloper: Boolean(dev),
+    actor: dev
+      ? { id: dev.id, name: dev.name, role: "admin" }
+      : {
+          id: account.id,
+          name: account.name,
+          username: account.username,
+          role: account.role,
+        },
     kind,
     action,
     targetLabel,

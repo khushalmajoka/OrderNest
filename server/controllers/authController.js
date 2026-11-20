@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const { isDeveloperUser } = require("../utils/developer");
 const bcrypt = require("bcryptjs");
 const generateToken = require("../utils/generateToken");
 const { sendMail, isMailConfigured } = require("../utils/mailer");
@@ -166,7 +167,7 @@ const login = async (req, res, next) => {
 
     const token = generateToken(user._id);
 
-    res.status(200).json({ user: toPublicUser(user), token });
+    res.status(200).json({ user: toPublicUser(user), token, isDeveloper: isDeveloperUser(user) });
   } catch (err) {
     return next(err);
   }

@@ -161,3 +161,42 @@ exports.getCompleteness = async (req, res, next) => {
     return next(error);
   }
 };
+
+// GET /api/developer/shops: every shop, so the developer can open any of them
+exports.listShops = async (req, res, next) => {
+  try {
+    const shops = await Shop.find({}).select("name category phone owner createdAt").sort({ createdAt: 1 }).lean();
+    const owners = await User.find({ _id: { $in: shops.map((s) => s.owner) } }).select("name email").lean();
+    const ownerOf = new Map(owners.map((o) => [String(o._id), o]));
+
+    const stats = await Order.aggregate([
+      { $group: { _id: "$shop", orders: { $sum: 1 }, lastAt: { $max: "$updatedAt" } } },
+    ]);
+    const statOf = new Map(stats.map((s) => [String(s._id), s]));
+    const staff = await User.aggregate([
+      { $match: { role: "staff", shopId: { $in: shops.map((s) => s._id) } } },
+      { $group: { _id: "$shopId", staff: { $sum: 1 } } },
+    ]);
+    const staffOf = new Map(staff.map((s) => [String(s._id), s.staff]));
+
+    res.status(200).json({
+      shops: shops.map((s) => {
+        const owner = ownerOf.get(String(s.owner));
+        const st = statOf.get(String(s._id));
+        return {
+          id: String(s._id),
+          name: s.name,
+          category: s.category,
+          ownerName: owner?.name,
+          ownerEmail: owner?.email,
+          orders: st?.orders || 0,
+          lastActivity: st?.lastAt || null,
+          staff: staffOf.get(String(s._id)) || 0,
+          createdAt: s.createdAt,
+        };
+      }),
+    });
+  } catch (error) {
+    return next(error);
+  }
+};

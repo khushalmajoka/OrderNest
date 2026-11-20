@@ -10,6 +10,7 @@ import { useOrders } from "../hooks/useOrders";
 import { useOrderSummary } from "../hooks/useOrderSummary";
 import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import UpdatedLabel from "../components/UpdatedLabel";
+import { trackUse } from "../../../common/utils/usage";
 import { useBalanceHidden, useListAmountsHidden } from "../hooks/useAmountsHidden";
 import SummaryStrip from "../components/SummaryStrip";
 
@@ -119,6 +120,7 @@ const Dashboard = () => {
   });
   const [refreshing, setRefreshing] = useState(false);
   const handleRefreshClick = async () => {
+    trackUse("orders.refresh");
     setRefreshing(true);
     refreshSummary();
     refetch();
@@ -129,6 +131,7 @@ const Dashboard = () => {
   // Wait for a pause in typing, then search the whole list from page 1
   useEffect(() => {
     const timer = setTimeout(() => {
+      if (searchInput.trim()) trackUse("orders.search");
       setSearch(searchInput.trim());
       setCurrentPage(0);
     }, 300);
@@ -145,6 +148,7 @@ const Dashboard = () => {
 
   // Changing the sort starts again from page 1
   const handleSortField = (field) => {
+    trackUse("orders.sort");
     setSortField(field);
     setCurrentPage(0);
   };
@@ -320,14 +324,20 @@ const Dashboard = () => {
         <SummaryStrip
           summary={summary}
           filters={filters}
-          onPick={applyFilters}
+          onPick={(next) => {
+            if (countActiveFilters(next) > 0) trackUse("orders.tile");
+            applyFilters(next);
+          }}
           amountsHidden={balanceHidden}
           onToggleAmounts={toggleBalanceHidden}
         />
 
         <FilterChips
           filters={filters}
-          onChange={applyFilters}
+          onChange={(next) => {
+            if (countActiveFilters(next) > 0) trackUse("orders.filter");
+            applyFilters(next);
+          }}
           onClearAll={() => applyFilters(EMPTY_FILTERS)}
         />
 

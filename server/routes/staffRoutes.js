@@ -5,6 +5,7 @@ const loadUser = require("../middlewares/loadUser");
 const loadShop = require("../middlewares/loadShop");
 const { requireAdmin, requireStaff } = require("../middlewares/access");
 const { staffPasswordLimiter } = require("../middlewares/rateLimiter");
+const { countUse } = require("../utils/usage");
 
 const router = express.Router();
 
@@ -22,11 +23,11 @@ router.post(
 // Admin only
 const admin = [authenticate, loadUser, loadShop, requireAdmin];
 router.get("/", ...admin, c.listStaff);
-router.post("/", ...admin, c.createStaff);
-router.put("/:id", ...admin, c.updateStaff);
-router.delete("/:id", ...admin, c.deleteStaff);
-router.put("/:id/password", ...admin, c.resetStaffPassword);
-router.post("/:id/password-request/approve", ...admin, c.approvePasswordRequest);
-router.post("/:id/password-request/deny", ...admin, c.denyPasswordRequest);
+router.post("/", ...admin, countUse("staff.manage"), c.createStaff);
+router.put("/:id", ...admin, countUse("staff.manage"), c.updateStaff);
+router.delete("/:id", ...admin, countUse("staff.manage"), c.deleteStaff);
+router.put("/:id/password", ...admin, countUse("staff.manage"), c.resetStaffPassword);
+router.post("/:id/password-request/approve", ...admin, countUse("staff.manage"), c.approvePasswordRequest);
+router.post("/:id/password-request/deny", ...admin, countUse("staff.manage"), c.denyPasswordRequest);
 
 module.exports = router;

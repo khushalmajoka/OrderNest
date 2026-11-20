@@ -2,6 +2,7 @@ const Order = require("../models/Order");
 const reserveOrderIds = require("../utils/reserveOrderIds");
 const { checkOrderInput } = require("../utils/orderInput");
 const { FINISHED, NO_BALANCE, CLOSED_OLD } = require("../utils/statusGroups");
+const { recordUse } = require("../utils/usage");
 const buildOrderFilters = require("../utils/orderFilters");
 const { logActivity, diffOrder, money } = require("../utils/activity");
 const dateStamp = require("../utils/dateStamp");
@@ -56,8 +57,8 @@ exports.trackOrder = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    const orders = candidates
-      .filter((order) => lastTenDigits(order.phone) === phone)
+    const matched = candidates.filter((order) => lastTenDigits(order.phone) === phone);
+    const orders = matched
       .map((order) => ({
         orderId: order.orderId,
         customerName: order.customerName,
@@ -69,6 +70,9 @@ exports.trackOrder = async (req, res, next) => {
         // so the customer can call the shop
         shopPhone: order.shop ? order.shop.phone : undefined,
       }));
+
+    // Count it for the shop (a customer has no account, so no person is stored)
+    if (orders.length && matched[0]?.shop?._id) recordUse(matched[0].shop._id, null, "tracking.view");
 
     res.status(200).json({ orders });
   } catch (err) {
@@ -196,6 +200,9 @@ exports.updateOrder = async (req, res, next) => {
     }
 
     const changes = before ? diffOrder(before, updatedOrder.toObject()) : [];
+    // Count what was used: a status change and/or other details
+    if (changes.some((c) => c.field === "Status")) recordUse(req.shop._id, req.account.id, "order.status");
+    if (changes.some((c) => c.field !== "Status")) recordUse(req.shop._id, req.account.id, "order.edit");
     if (changes.length) {
       logActivity(req, {
         kind: "order",

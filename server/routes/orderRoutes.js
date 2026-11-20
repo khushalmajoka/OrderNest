@@ -19,6 +19,7 @@ const loadUser = require("../middlewares/loadUser");
 const loadShop = require("../middlewares/loadShop");
 const { requireAdmin, requirePermission } = require("../middlewares/access");
 const { trackLimiter, exportLimiter } = require("../middlewares/rateLimiter");
+const { countUse } = require("../utils/usage");
 
 const router = express.Router();
 
@@ -32,6 +33,7 @@ router.post(
   loadUser,
   loadShop,
   requirePermission("createOrders"),
+  countUse("order.create"),
   createOrder
 );
 
@@ -42,6 +44,7 @@ router.post(
   loadUser,
   loadShop,
   requireAdmin,
+  countUse("orders.bulk_upload"),
   bulkUploadOrders
 );
 
@@ -51,11 +54,11 @@ router.get("/shop/:shopId", authenticate, loadUser, loadShop, getOrdersByShop);
 // The numbers at the top of the dashboard (whole shop)
 // Cleaning old customer names such as "N" or "NA": admin only
 router.get("/shop/:shopId/name-check", authenticate, loadUser, loadShop, requireAdmin, checkNames);
-router.post("/shop/:shopId/clear-names", authenticate, loadUser, loadShop, requireAdmin, clearNames);
+router.post("/shop/:shopId/clear-names", authenticate, loadUser, loadShop, requireAdmin, countUse("tool.clean_names"), clearNames);
 
 // Closing old orders that never got a status update: admin only
 router.get("/shop/:shopId/close-check", authenticate, loadUser, loadShop, requireAdmin, checkOldOrders);
-router.post("/shop/:shopId/close-orders", authenticate, loadUser, loadShop, requireAdmin, closeOldOrders);
+router.post("/shop/:shopId/close-orders", authenticate, loadUser, loadShop, requireAdmin, countUse("tool.close_old"), closeOldOrders);
 
 // A very light "has anything changed?" check (the dashboard asks every 30 seconds)
 router.get("/shop/:shopId/changes", authenticate, loadUser, loadShop, getOrderChanges);
@@ -73,6 +76,7 @@ router.get(
   loadShop,
   requireAdmin,
   exportLimiter,
+  countUse("orders.export"),
   exportOrders
 );
 
@@ -93,6 +97,7 @@ router.delete(
   loadUser,
   loadShop,
   requirePermission("deleteOrders"),
+  countUse("order.delete"),
   deleteOrder
 );
 

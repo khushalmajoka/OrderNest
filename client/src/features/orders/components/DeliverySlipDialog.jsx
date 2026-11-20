@@ -5,6 +5,7 @@ import DeliverySlip from "./DeliverySlip";
 import { slipToPdf } from "../utils/slipPdf";
 import { Bar, SkeletonRegion } from "../../../common/components/Skeleton";
 import { SLIP_GROUPS, resolveSlip } from "../../../common/utils/slipFields";
+import { trackUse } from "../../../common/utils/usage";
 
 const inputClass =
   "w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400";
@@ -28,6 +29,10 @@ const DeliverySlipDialog = ({ order, shop, onClose }) => {
   const [rendering, setRendering] = useState(true);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    trackUse("slip.open");
+  }, []);
 
   const changed = JSON.stringify({ fields, edits, note });
 

@@ -5,6 +5,7 @@ import WhatsAppIcon from "../../../common/components/WhatsAppIcon";
 import WhatsAppText from "../../../common/components/WhatsAppText";
 import OrderCard from "../../../common/components/OrderCard";
 import { useOrderPicture } from "../hooks/useOrderPicture";
+import { trackUse } from "../../../common/utils/usage";
 import {
   LANGUAGES,
   buildMessage,
@@ -119,7 +120,13 @@ const LanguageDialog = ({ order, shop, onClose }) => {
 
   // NOTE: no "await" before the share menu / the new tab: it all has to
   // start in the same moment as the tap.
+  // the window was opened
+  useEffect(() => {
+    trackUse("whatsapp.open");
+  }, []);
+
   const send = (language) => {
+    trackUse("whatsapp.send");
     if (!ready) return;
     rememberLanguage(language);
     const text = buildMessage({ shop, order, language });

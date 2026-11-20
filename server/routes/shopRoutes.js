@@ -12,6 +12,7 @@ const {
 const authenticate = require("../middlewares/authenticate");
 const loadUser = require("../middlewares/loadUser");
 const { requireAdmin } = require("../middlewares/access");
+const { countUse } = require("../utils/usage");
 
 router.post("/setup", authenticate, loadUser, requireAdmin, setupShop);
 router.get("/:userId", authenticate, loadUser, getShopByUserId);
@@ -20,6 +21,7 @@ router.put(
   authenticate,
   loadUser,
   requireAdmin,
+  countUse("settings.colors"),
   saveStatusColors
 );
 
@@ -28,6 +30,7 @@ router.put(
   authenticate,
   loadUser,
   requireAdmin,
+  countUse("settings.columns"),
   saveTableColumns
 );
 
@@ -36,6 +39,7 @@ router.put(
   authenticate,
   loadUser,
   requireAdmin,
+  countUse("settings.slip"),
   saveSlipSettings
 );
 
@@ -44,6 +48,7 @@ router.put(
   authenticate,
   loadUser,
   requireAdmin,
+  countUse("settings.whatsapp"),
   saveWhatsappMessages
 );
 
@@ -52,6 +57,7 @@ router.put(
   authenticate,
   loadUser,
   requireAdmin,
+  countUse("settings.profile"),
   saveShopProfile
 );
 

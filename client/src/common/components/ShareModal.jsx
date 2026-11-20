@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { trackUse } from "../utils/usage";
 import { Download } from "lucide-react";
 
 // The two brand pictures, drawn here so the app does not carry a whole icon library
@@ -16,6 +17,10 @@ const BrandIcon = ({ path, size = 40 }) => (
 );
 
 const ShareModal = ({ isOpen, onClose, onShare }) => {
+  useEffect(() => {
+    if (isOpen) trackUse("share.open");
+  }, [isOpen]);
+
   useEffect(() => {
     if (!isOpen) return undefined;
     const onKey = (e) => {

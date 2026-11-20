@@ -13,6 +13,7 @@ const {
   getExecutiveNames,
 } = require("../controllers/orderController");
 const { checkNames, clearNames } = require("../controllers/nameCleanupController");
+const { checkOldOrders, closeOldOrders } = require("../controllers/closeOldOrdersController");
 const authenticate = require("../middlewares/authenticate");
 const loadUser = require("../middlewares/loadUser");
 const loadShop = require("../middlewares/loadShop");
@@ -51,6 +52,10 @@ router.get("/shop/:shopId", authenticate, loadUser, loadShop, getOrdersByShop);
 // Cleaning old customer names such as "N" or "NA": admin only
 router.get("/shop/:shopId/name-check", authenticate, loadUser, loadShop, requireAdmin, checkNames);
 router.post("/shop/:shopId/clear-names", authenticate, loadUser, loadShop, requireAdmin, clearNames);
+
+// Closing old orders that never got a status update: admin only
+router.get("/shop/:shopId/close-check", authenticate, loadUser, loadShop, requireAdmin, checkOldOrders);
+router.post("/shop/:shopId/close-orders", authenticate, loadUser, loadShop, requireAdmin, closeOldOrders);
 
 // A very light "has anything changed?" check (the dashboard asks every 30 seconds)
 router.get("/shop/:shopId/changes", authenticate, loadUser, loadShop, getOrderChanges);

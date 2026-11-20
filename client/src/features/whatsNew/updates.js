@@ -2,9 +2,13 @@
 //
 // To announce a new update later: change WHATS_NEW_VERSION (any new text) and
 // edit the list below. Everyone then sees the popup once more.
-export const WHATS_NEW_VERSION = "2026-11-refresh";
+export const WHATS_NEW_VERSION = "2026-11-names";
 
 export const WHATS_NEW_ITEMS = [
+  {
+    title: "Customer name is now optional",
+    text: "If you do not know the customer's name, leave it empty. No need to type \"N\" or \"NA\" any more: those are not accepted now, so names stay clean. Orders without a name show a grey \"Name missing\" tag, and a new filter (\"Customer name missing\") finds them so you can add the names later. WhatsApp messages simply say \"Hello 🙏\" when there is no name.",
+  },
   {
     title: "The orders list updates by itself",
     text: "If someone else (a staff member, or you on another computer) creates, edits or deletes an order, it now shows up here within about 30 seconds, and straight away when you come back to the tab. You see \"Updated just now\" above the list, and a Refresh button if you want it right now. The list is never changed while you are editing an order.",

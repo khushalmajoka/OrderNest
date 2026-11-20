@@ -1,6 +1,7 @@
 // Checks the money, status and date fields of an order before it is saved.
 // Used by create, edit and Excel upload so all three follow the same rules.
 const ORDER_STATUSES = require("../models/orderStatuses");
+const { nameProblem, cleanName } = require("./customerName");
 
 // "1,500", "₹ 1500" and 1500 all mean 1500. Empty means "not given".
 // Returns { value } or { error: true } when it is not a number.
@@ -53,7 +54,14 @@ const phoneProblem = (raw) => {
 // `totalRequired`: create/edit need a total; Excel rows may leave it empty (0).
 // `existingExecutive`: the order's current executive when editing.
 // `clearDate` is true when the date was sent empty on purpose (remove it).
-const checkOrderInput = (input, { totalRequired = true, existingExecutive } = {}) => {
+// `existingName`: the order's current customer name when editing (an old name
+// that is left alone is never refused, so old orders can still be saved).
+// `junkNameAsEmpty`: Excel upload: a name that is not a real name is saved
+// empty instead of stopping the upload (`nameCleared` tells it happened).
+const checkOrderInput = (
+  input,
+  { totalRequired = true, existingExecutive, existingName, junkNameAsEmpty = false } = {}
+) => {
   for (const [key, label, max] of TEXT_LIMITS) {
     const value = input[key];
     if (value === undefined || value === null) continue;
@@ -71,6 +79,21 @@ const checkOrderInput = (input, { totalRequired = true, existingExecutive } = {}
       return { error: "Order executive must be a name. Numbers are not allowed." };
     }
   }
+  // Customer name: may be empty, but not a placeholder like "N"
+  let customerName;
+  let nameCleared = false;
+  if (input.customerName !== undefined && input.customerName !== null) {
+    customerName = cleanName(input.customerName);
+    if (customerName !== cleanName(existingName)) {
+      const badName = nameProblem(customerName);
+      if (badName) {
+        if (!junkNameAsEmpty) return { error: badName };
+        customerName = "";
+        nameCleared = true;
+      }
+    }
+  }
+
   const badPhone = phoneProblem(input.phone);
   if (badPhone) return { error: badPhone };
 
@@ -109,7 +132,9 @@ const checkOrderInput = (input, { totalRequired = true, existingExecutive } = {}
   }
 
   return {
+    nameCleared,
     values: {
+      ...(customerName !== undefined ? { customerName } : {}),
       total: totalValue,
       advance: advanceValue,
       balance: totalValue - advanceValue, // always worked out here, never trusted from the client

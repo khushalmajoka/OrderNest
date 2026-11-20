@@ -117,6 +117,7 @@ const FilterPanel = ({ filters, onApply, onClose, showAmounts = true }) => {
               ["overdue", "Overdue (delivery date passed, not delivered)"],
               showAmounts && ["hasBalance", "Balance still to collect"],
               ["noPhone", "Phone number missing"],
+              ["nameMissing", "Customer name missing"],
             ].filter(Boolean).map(([key, label]) => (
               <label key={key} className="flex items-center gap-2 text-sm text-gray-700">
                 <input

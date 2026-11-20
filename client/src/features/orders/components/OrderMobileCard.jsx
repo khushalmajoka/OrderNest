@@ -4,7 +4,7 @@ import { formatDay, formatDateTime } from "../../../common/utils/formatDate";
 import { DeliverySlipDialog, OrderShareDialog, WithOpening } from "../lazyDialogs";
 import { useOrderShare } from "../hooks/useOrderShare";
 import { useFlashOnChange } from "../hooks/useFlashOnChange";
-import { MASK, ORDER_COLUMNS } from "../utils/orderColumns";
+import { MASK, NameMissing, ORDER_COLUMNS } from "../utils/orderColumns";
 import FieldEditor from "./FieldEditor";
 import WhatsAppButton from "./WhatsAppButton";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
@@ -146,7 +146,7 @@ const OrderMobileCard = ({
 
       <div className="mt-3 space-y-1">
         <p className="font-medium text-gray-800 break-words">
-          {order.customerName || "-"}
+          {order.customerName && order.customerName.trim() ? order.customerName : <NameMissing />}
         </p>
         <p className="text-gray-600 break-words">{order.item || "-"}</p>
         {order.phone && (

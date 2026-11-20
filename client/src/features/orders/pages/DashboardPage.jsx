@@ -237,7 +237,14 @@ const Dashboard = () => {
       );
 
       showFirstPageAgain();
-      toast.success(`${res.data.insertedOrders.length} orders uploaded.`);
+      const unclear = res.data.namesCleared || 0;
+      toast.success(
+        `${res.data.insertedOrders.length} orders uploaded.` +
+          (unclear
+            ? ` ${unclear} unclear customer name${unclear === 1 ? " was" : "s were"} left empty (like "NA").`
+            : ""),
+        { duration: unclear ? 8000 : 4000 }
+      );
     } catch (err) {
       toast.error(getErrorMessage(err, "Bulk upload failed."), {
         duration: 9000,

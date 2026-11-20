@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "../../../common/utils/api";
+import { cleanName, nameProblem } from "../../../common/utils/customerName";
 
 // An order's saved values as the boxes show them (numbers as text, so an
 // emptied box stays empty instead of turning into 0)
@@ -59,7 +60,12 @@ export const useInlineEdit = ({ orders, canSeeAmounts, onSaved }) => {
 
     // The same checks the old Edit window made, before asking the server
     if (!f.item.trim()) return toast.error("Please enter the product.");
-    if (!f.customerName.trim()) return toast.error("Please enter the customer name.");
+    // The name may be empty (not known), but not a placeholder like "N". An old
+    // name that is left alone is not checked, so old orders can still be saved.
+    if (cleanName(f.customerName) !== cleanName(original.customerName)) {
+      const badName = nameProblem(f.customerName);
+      if (badName) return toast.error(badName);
+    }
     if (!f.orderExecutive) return toast.error("Please choose the order executive.");
     if (canSeeAmounts && f.total === "") return toast.error("Please enter the total amount.");
     const phone = f.phone.trim();

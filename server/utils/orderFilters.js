@@ -84,6 +84,17 @@ const buildOrderFilters = (query) => {
   if (cTo.value) createdRange.$lte = new Date(`${cTo.value}T23:59:59.999+05:30`);
   if (Object.keys(createdRange).length) conditions.push({ createdAt: createdRange });
 
+  // Only orders without a customer name (missing, empty or only spaces)
+  if (["1", "true"].includes(asText(query.nameMissing))) {
+    conditions.push({
+      $or: [
+        { customerName: { $exists: false } },
+        { customerName: null },
+        { customerName: /^\s*$/ },
+      ],
+    });
+  }
+
   // Text boxes: contains, any upper/lower case
   for (const [name, field] of TEXT_FILTERS) {
     const text = asText(query[name]);

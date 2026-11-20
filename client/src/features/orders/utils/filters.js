@@ -17,6 +17,7 @@ export const EMPTY_FILTERS = {
   overdue: false,
   hasBalance: false,
   noPhone: false,
+  nameMissing: false,
   totalMin: "",
   totalMax: "",
   advanceMin: "",
@@ -74,6 +75,7 @@ export const filterChips = (f) => {
   if (f.overdue) chips.push({ id: "overdue", label: "Overdue", clear: { overdue: false } });
   if (f.hasBalance) chips.push({ id: "hasBalance", label: "Balance due", clear: { hasBalance: false } });
   if (f.noPhone) chips.push({ id: "noPhone", label: "No phone number", clear: { noPhone: false } });
+  if (f.nameMissing) chips.push({ id: "nameMissing", label: "Name missing", clear: { nameMissing: false } });
 
   for (const [id, name] of [["total", "Total"], ["advance", "Advance"], ["balance", "Balance"]]) {
     const min = String(f[`${id}Min`]).trim();

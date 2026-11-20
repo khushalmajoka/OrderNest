@@ -54,9 +54,6 @@ const STATUS_WORDS = {
   },
 };
 
-// What is used for {name} when the order has no customer name
-const NAME_FALLBACK = { en: "there", hi: "ग्राहक", hinglish: "customer" };
-
 // The app's own texts (used until the shop changes them in Settings).
 // Each message has short lines: a greeting, what happened, then the tracking
 // link on its own line. *word* is bold in WhatsApp.
@@ -138,14 +135,21 @@ export const fillTemplate = (template, values) =>
     values[key] === undefined ? whole : values[key]
   );
 
-export const buildMessage = ({ shop, order, language }) =>
-  fillTemplate(getTemplate(shop, language, order.status), {
-    name: (order.customerName || "").trim() || NAME_FALLBACK[language],
+export const buildMessage = ({ shop, order, language }) => {
+  const name = (order.customerName || "").trim();
+  let template = getTemplate(shop, language, order.status);
+  // No name known: the greeting simply has no name ("Hello 🙏", "नमस्ते 🙏",
+  // "Namaste 🙏"), with the "ji" / "जी" that goes with the name
+  if (!name) template = template.replace(/\s*\{name\}(?: जी| ji)?/g, "");
+
+  return fillTemplate(template, {
+    name,
     shop: shop?.name || "",
     orderId: order.orderId || "",
     status: STATUS_WORDS[language]?.[order.status] || order.status,
     link: trackingLink(order.orderId),
   });
+};
 
 // Digits for the wa.me link: a 10-digit Indian number gets 91 in front.
 // Returns "" when the number cannot be used.

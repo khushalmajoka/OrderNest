@@ -151,7 +151,10 @@ exports.updateOrder = async (req, res, next) => {
     const input = seesAmounts(req) || !before
       ? req.body
       : { ...req.body, total: before.total, advance: before.advance };
-    const checked = checkOrderInput(input, { existingExecutive: before?.orderExecutive });
+    const checked = checkOrderInput(input, {
+      existingExecutive: before?.orderExecutive,
+      existingName: before?.customerName,
+    });
     if (checked.error) return res.status(400).json({ message: checked.error });
 
     // An empty delivery date sent on purpose means "remove it" (a date that is
@@ -266,6 +269,7 @@ exports.bulkUploadOrders = async (req, res, next) => {
     const existingOrderIdSet = new Set(existingOrders.map((o) => o.orderId));
 
     const errors = [];
+    let namesCleared = 0;
 
     // Track duplicate orderIds within Excel itself
     const seenOrderIds = new Set();
@@ -279,11 +283,13 @@ exports.bulkUploadOrders = async (req, res, next) => {
       }
 
       // An empty total is allowed here and saved as 0
-      const checked = checkOrderInput(order, { totalRequired: false });
+      // (a name that is not a real name, like "NA", is saved empty here)
+      const checked = checkOrderInput(order, { totalRequired: false, junkNameAsEmpty: true });
       if (checked.error) {
         errors.push(`Row ${rowNum}: ${checked.error}`);
       }
       cleanValues[index] = checked.values;
+      if (checked.nameCleared) namesCleared += 1;
 
       if (order.orderId) {
         // Check in DB
@@ -345,6 +351,7 @@ exports.bulkUploadOrders = async (req, res, next) => {
     res.status(201).json({
       message: `${insertedOrders.length} orders uploaded successfully.`,
       insertedOrders,
+      namesCleared, // names that were not real names (like "NA") and were left empty
     });
   } catch (error) {
     return next(error);

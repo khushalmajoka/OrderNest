@@ -5,6 +5,13 @@ import { deliveryCountdown } from "../../../common/utils/dateUtils";
 export const MASK = "₹ ••••";
 const money = (value, mask) => (mask ? MASK : `₹${value}`);
 
+// Shown instead of the name when the customer's name is not known
+export const NameMissing = () => (
+  <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-600">
+    Name missing
+  </span>
+);
+
 // The columns that show money: not offered to people who may not see amounts
 export const AMOUNT_COLUMN_KEYS = ["total", "advance", "balance"];
 
@@ -14,7 +21,12 @@ export const AMOUNT_COLUMN_KEYS = ["total", "advance", "balance"];
 //   cell:  what to show for an order
 export const ORDER_COLUMNS = [
   { key: "orderId", label: "Order ID", sort: "orderId", fixed: true, cell: (o) => o.orderId || o._id.slice(-6) },
-  { key: "customerName", label: "Customer", sort: "customerName", cell: (o) => o.customerName || "-" },
+  {
+    key: "customerName",
+    label: "Customer",
+    sort: "customerName",
+    cell: (o) => (o.customerName && o.customerName.trim() ? o.customerName : <NameMissing />),
+  },
   { key: "item", label: "Product", sort: "item", cell: (o) => o.item || "-" },
   { key: "phone", label: "Phone", sort: "phone", cell: (o) => o.phone || "-" },
   { key: "total", label: "Total", sort: "total", cell: (o, { mask } = {}) => money(o.total, mask) },

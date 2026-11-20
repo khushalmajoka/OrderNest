@@ -6,6 +6,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { isValid } from "date-fns";
 import { fromDateString, toDateString } from "../utils/dateUtils";
 import { getErrorMessage } from "../utils/api";
+import { nameProblem } from "../utils/customerName";
 import ModalShell, { Field, inputClass } from "./ModalShell";
 import SavedLabel from "./SavedLabel";
 import ExecutivePicker from "./ExecutivePicker";
@@ -55,6 +56,11 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
     e.preventDefault();
 
     if (loading || done) return;
+
+    // The name may be empty, but not a placeholder like "N" or "NA"
+    const badName = nameProblem(formData.customerName);
+    if (badName) return toast.error(badName);
+
     setLoading(true);
 
     const token = localStorage.getItem("token");
@@ -101,14 +107,13 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
         />
       </Field>
 
-      <Field label="Customer name">
+      <Field label="Customer name" hint="(leave empty if not known)">
         <input
           type="text"
           name="customerName"
           placeholder="e.g. Asha Verma"
           value={formData.customerName}
           onChange={handleChange}
-          required
           maxLength={100}
           className={inputClass}
         />

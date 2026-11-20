@@ -44,6 +44,7 @@ const DeveloperPage = () => {
   const latest = useRef(0);
 
   const load = useCallback(async () => {
+    if (!localStorage.getItem("token")) return; // nobody logged in: nothing to ask
     const mine = ++latest.current;
     setError(null);
     try {
@@ -56,7 +57,8 @@ const DeveloperPage = () => {
       setComplete(c.data);
     } catch (err) {
       if (mine !== latest.current) return;
-      if (err.response?.status === 404 || err.response?.status === 403) setDenied(true);
+      // not logged in, or not the developer: this page does not exist for them
+      if ([401, 403, 404].includes(err.response?.status)) setDenied(true);
       else setError("Could not load the numbers. Please try again.");
     }
   }, [days, shop]);
@@ -67,6 +69,7 @@ const DeveloperPage = () => {
 
   // The shops the developer can open
   useEffect(() => {
+    if (!localStorage.getItem("token")) return;
     axios
       .get(`${base}/api/developer/shops`, { headers: headers() })
       .then((res) => setShopList(res.data.shops))
@@ -83,8 +86,20 @@ const DeveloperPage = () => {
     window.location.assign("/developer");
   };
 
-  if (denied) return <Navigate to="/" replace />;
+  // Nobody logged in, or not the developer: sent to the first page like any
+  // unknown address. Nothing of this page is shown until the server has said yes.
+  if (!localStorage.getItem("token") || denied) return <Navigate to="/" replace />;
   if (!usage && !error) return <LoadingScreen message="Loading" />;
+  if (!usage && error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-orange-50 font-poppins px-4 text-center">
+        <p className="text-gray-700">Something went wrong. Please try again.</p>
+        <button onClick={load} className="px-5 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600">
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   const unused = usage ? usage.features.filter((f) => f.count === 0) : [];
   const maxDay = usage ? Math.max(1, ...usage.series.map((s) => s.count)) : 1;

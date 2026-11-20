@@ -2,9 +2,13 @@
 //
 // To announce a new update later: change WHATS_NEW_VERSION (any new text) and
 // edit the list below. Everyone then sees the popup once more.
-export const WHATS_NEW_VERSION = "2026-11-whatsapp";
+export const WHATS_NEW_VERSION = "2026-11-refresh";
 
 export const WHATS_NEW_ITEMS = [
+  {
+    title: "The orders list updates by itself",
+    text: "If someone else (a staff member, or you on another computer) creates, edits or deletes an order, it now shows up here within about 30 seconds, and straight away when you come back to the tab. You see \"Updated just now\" above the list, and a Refresh button if you want it right now. The list is never changed while you are editing an order.",
+  },
   {
     title: "Send a WhatsApp message to your customer",
     text: "Every order now has a green WhatsApp button. Tap it, choose English, हिंदी or Hinglish, and WhatsApp opens with the message ready (customer name, order status and a tracking link). You only tap Send. The Share window's WhatsApp button now works too: on a phone it sends the order picture. Admin: you can change every message text in Settings (\"WhatsApp messages\").",

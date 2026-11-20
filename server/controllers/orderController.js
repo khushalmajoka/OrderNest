@@ -423,6 +423,30 @@ const sortedQuery = ({ filter, sortBy, sortDir }) => {
   return query;
 };
 
+// A short text that changes whenever an order of this shop is created, edited
+// or deleted (the number of orders + the latest change). The dashboard compares
+// it now and then to know whether the list on screen is out of date.
+const changeToken = async (shopId) => {
+  const [count, latest] = await Promise.all([
+    Order.countDocuments({ shop: shopId }),
+    Order.findOne({ shop: shopId }).sort({ updatedAt: -1 }).select("updatedAt").lean(),
+  ]);
+  return `${count}-${latest?.updatedAt ? new Date(latest.updatedAt).getTime() : 0}`;
+};
+
+// @desc Light check: has anything changed since the dashboard last loaded?
+// Gives only the token (no order data, so no amounts either).
+exports.getOrderChanges = async (req, res, next) => {
+  try {
+    if (req.params.shopId !== String(req.shop._id)) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+    res.status(200).json({ token: await changeToken(req.shop._id) });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 // @desc Get this shop's orders, one page at a time.
 // Query: page (from 1), limit (max 200), search, sortBy, sortDir (asc|desc),
 // plus the filters listed in utils/orderFilters.js
@@ -442,6 +466,10 @@ exports.getOrdersByShop = async (req, res, next) => {
     const list = readListQuery(req);
     if (list.error) return res.status(400).json({ message: list.error });
 
+    // The token is taken BEFORE the orders: if something changes in between,
+    // the next check simply notices it (a change is never missed)
+    const token = await changeToken(req.shop._id);
+
     const [orders, totalOrders] = await Promise.all([
       sortedQuery(list)
         .skip((page - 1) * limit)
@@ -452,6 +480,7 @@ exports.getOrdersByShop = async (req, res, next) => {
 
     res.status(200).json({
       orders: seesAmounts(req) ? orders : orders.map(withoutAmounts),
+      changeToken: token,
       totalOrders,
       totalPages: Math.ceil(totalOrders / limit),
       currentPage: page,

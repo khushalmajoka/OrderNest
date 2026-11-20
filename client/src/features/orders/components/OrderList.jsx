@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import OrderTableHeader from "./OrderTableHeader";
 import OrderTableRow from "./OrderTableRow";
@@ -45,6 +45,7 @@ const OrderList = ({
   setSortOrder,
   onUpdated,
   onDelete,
+  onEditingChange,
   maskAmounts,
 }) => {
   const [deleteId, setDeleteId] = useState(null);
@@ -63,6 +64,11 @@ const OrderList = ({
   };
   // Editing an order right where it is shown (double-click / double-tap)
   const inline = useInlineEdit({ orders, canSeeAmounts, onSaved: onUpdated });
+  // The dashboard does not refresh the list in the background while an order is being edited
+  const isEditing = Boolean(inline.editing);
+  useEffect(() => {
+    if (onEditingChange) onEditingChange(isEditing);
+  }, [isEditing, onEditingChange]);
   const editFor = (order) =>
     inline.editing && inline.editing.id === order._id
       ? {

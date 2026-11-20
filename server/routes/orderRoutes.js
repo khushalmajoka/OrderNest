@@ -9,6 +9,7 @@ const {
   bulkUploadOrders,
   exportOrders,
   getOrderSummary,
+  getOrderChanges,
   getExecutiveNames,
 } = require("../controllers/orderController");
 const authenticate = require("../middlewares/authenticate");
@@ -46,6 +47,9 @@ router.post(
 router.get("/shop/:shopId", authenticate, loadUser, loadShop, getOrdersByShop);
 
 // The numbers at the top of the dashboard (whole shop)
+// A very light "has anything changed?" check (the dashboard asks every 30 seconds)
+router.get("/shop/:shopId/changes", authenticate, loadUser, loadShop, getOrderChanges);
+
 router.get("/shop/:shopId/summary", authenticate, loadUser, loadShop, getOrderSummary);
 
 // Names for the "Order executive" list

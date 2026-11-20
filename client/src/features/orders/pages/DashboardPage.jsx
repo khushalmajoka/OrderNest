@@ -8,6 +8,8 @@ import OrdersSkeleton from "../components/OrdersSkeleton";
 import { useShop } from "../../shop/hooks/useShop";
 import { useOrders } from "../hooks/useOrders";
 import { useOrderSummary } from "../hooks/useOrderSummary";
+import { useAutoRefresh } from "../hooks/useAutoRefresh";
+import UpdatedLabel from "../components/UpdatedLabel";
 import { useBalanceHidden, useListAmountsHidden } from "../hooks/useAmountsHidden";
 import SummaryStrip from "../components/SummaryStrip";
 
@@ -73,6 +75,7 @@ const Dashboard = () => {
     loaded,
     error: ordersError,
     refetch,
+    changeToken,
   } = useOrders({
     shopId: shop?._id,
     page: currentPage,
@@ -100,6 +103,28 @@ const Dashboard = () => {
   const [balanceHidden, toggleBalanceHidden] = useBalanceHidden(localStorage.getItem("userId"));
   const [listAmountsHidden] = useListAmountsHidden(localStorage.getItem("userId"));
   const refreshSummary = () => setSummaryVersion((v) => v + 1);
+
+  // Someone else (another computer, a staff member) changed orders: bring the
+  // list and the numbers up to date quietly. Not while an order is being edited.
+  const [editingOrder, setEditingOrder] = useState(false);
+  const { checkedAt, checkNow } = useAutoRefresh({
+    shopId: shop?._id,
+    token: changeToken,
+    paused: editingOrder,
+    onChanged: () => {
+      refreshSummary();
+      refetch(true);
+      toast("Orders updated", { id: "orders-updated", icon: "🔄" });
+    },
+  });
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefreshClick = async () => {
+    setRefreshing(true);
+    refreshSummary();
+    refetch();
+    await checkNow();
+    setTimeout(() => setRefreshing(false), 800);
+  };
 
   // Wait for a pause in typing, then search the whole list from page 1
   useEffect(() => {
@@ -145,6 +170,7 @@ const Dashboard = () => {
     refreshSummary();
     setOrders((prev) => prev.map((order) => (order._id === updated._id ? updated : order)));
     if (!sortField) showFirstPageAgain();
+    else refetch(true); // quietly, so the "has anything changed?" check starts from this edit
   };
 
   const showFirstPageAgain = () => {
@@ -313,6 +339,7 @@ const Dashboard = () => {
         ) : (
           // Keep the table on screen (dimmed) while the next page loads
           <div className={loading ? "opacity-60 transition-opacity" : ""}>
+            <UpdatedLabel since={checkedAt} refreshing={refreshing || loading} onRefresh={handleRefreshClick} />
             <OrderList
               orders={orders}
               shop={shop}
@@ -330,6 +357,7 @@ const Dashboard = () => {
               setSortOrder={handleSortOrder}
               onUpdated={handleOrderUpdated}
               onDelete={handleOrderDeleted}
+              onEditingChange={setEditingOrder}
             />
           </div>
         )}

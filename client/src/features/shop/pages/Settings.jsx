@@ -9,6 +9,7 @@ import ChangePasswordCard from "../components/ChangePasswordCard";
 import SlipSettingsCard from "../components/SlipSettingsCard";
 import WhatsAppMessagesCard from "../components/WhatsAppMessagesCard";
 import AmountsPrivacyCard from "../components/AmountsPrivacyCard";
+import CleanNamesCard from "../components/CleanNamesCard";
 import { can, isAdmin } from "../../../common/utils/permissions";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
 import { useShop } from "../hooks/useShop";
@@ -73,6 +74,8 @@ const Settings = () => {
             <SlipSettingsCard shop={shop} />
 
             <WhatsAppMessagesCard shop={shop} />
+
+            <CleanNamesCard shop={shop} />
           </div>
         ) : (
           <div className="max-w-md space-y-6">

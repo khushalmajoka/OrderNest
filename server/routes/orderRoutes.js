@@ -12,6 +12,7 @@ const {
   getOrderChanges,
   getExecutiveNames,
 } = require("../controllers/orderController");
+const { checkNames, clearNames } = require("../controllers/nameCleanupController");
 const authenticate = require("../middlewares/authenticate");
 const loadUser = require("../middlewares/loadUser");
 const loadShop = require("../middlewares/loadShop");
@@ -47,6 +48,10 @@ router.post(
 router.get("/shop/:shopId", authenticate, loadUser, loadShop, getOrdersByShop);
 
 // The numbers at the top of the dashboard (whole shop)
+// Cleaning old customer names such as "N" or "NA": admin only
+router.get("/shop/:shopId/name-check", authenticate, loadUser, loadShop, requireAdmin, checkNames);
+router.post("/shop/:shopId/clear-names", authenticate, loadUser, loadShop, requireAdmin, clearNames);
+
 // A very light "has anything changed?" check (the dashboard asks every 30 seconds)
 router.get("/shop/:shopId/changes", authenticate, loadUser, loadShop, getOrderChanges);
 

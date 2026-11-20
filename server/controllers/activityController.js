@@ -12,8 +12,6 @@ const listActivity = async (req, res, next) => {
     const limit = Math.min(MAX_PAGE, Math.max(1, parseInt(req.query.limit, 10) || 50));
 
     const filter = { shop: req.shop._id };
-    // lines made by the developer are only for the developer
-    if (!req.devMode) filter.byDeveloper = { $ne: true };
     if (req.query.kind === "order" || req.query.kind === "staff") {
       filter.kind = req.query.kind;
     }

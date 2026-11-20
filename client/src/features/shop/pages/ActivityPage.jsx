@@ -17,7 +17,9 @@ const TABS = [
 ];
 
 const Entry = ({ item, myId }) => {
-  const mine = String(item.actor?.id) === String(myId);
+  // a change made by the developer (working inside this shop) is always labelled
+  const byDeveloper = Boolean(item.byDeveloper);
+  const mine = !byDeveloper && String(item.actor?.id) === String(myId);
   const who = mine ? "You" : item.actor?.name || "Someone";
   return (
     <li className="bg-white rounded-lg shadow-sm border border-orange-100 p-3 sm:p-4">
@@ -38,7 +40,10 @@ const Entry = ({ item, myId }) => {
 
       <p className="mt-2 text-xs text-gray-500">
         {who}
-        {item.actor?.role === "staff" && !mine ? " (staff)" : ""}
+        {item.actor?.role === "staff" && !mine && !byDeveloper ? " (staff)" : ""}
+        {byDeveloper && (
+          <span className="ml-1.5 text-xs rounded-full bg-indigo-100 text-indigo-800 px-2 py-0.5">developer</span>
+        )}
         {" · "}
         {formatDateTime(item.createdAt)}
       </p>

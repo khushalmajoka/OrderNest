@@ -14,7 +14,7 @@ const activitySchema = new mongoose.Schema(
       username: String,
       role: { type: String, enum: ["admin", "staff"] },
     },
-    // Made by the developer while working inside this shop: only the developer sees these lines
+    // Made by the developer while working inside this shop (shown with a "developer" tag)
     byDeveloper: { type: Boolean, default: false },
     kind: { type: String, enum: ["order", "staff"], required: true },
     action: { type: String, required: true },

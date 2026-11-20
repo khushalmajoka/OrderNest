@@ -57,63 +57,68 @@ const STATUS_WORDS = {
 // What is used for {name} when the order has no customer name
 const NAME_FALLBACK = { en: "there", hi: "ग्राहक", hinglish: "customer" };
 
-// The app's own texts (used until the shop changes them in Settings)
-export const DEFAULT_MESSAGES = {
+// The app's own texts (used until the shop changes them in Settings).
+// Each message has short lines: a greeting, what happened, then the tracking
+// link on its own line. *word* is bold in WhatsApp.
+const message = (hello, body, linkLine) =>
+  `${hello}\n\n${body}${linkLine ? `\n\n${linkLine}\n{link}` : ""}`;
+
+const HELLO = {
+  en: "Hello {name} 🙏\nThis is *{shop}*.",
+  hi: "नमस्ते {name} जी 🙏\n*{shop}* की तरफ से।",
+  hinglish: "Namaste {name} ji 🙏\n*{shop}* ki taraf se.",
+};
+const TRACK = {
+  en: "Track your order here:",
+  hi: "अपना ऑर्डर यहाँ देखें:",
+  hinglish: "Apna order yahan dekhein:",
+};
+
+// [what happened, show the tracking link?] for each status and language
+const BODIES = {
   en: {
-    "Order Received":
-      "Hello {name}, this is {shop}. We have received your order {orderId}. Thank you! Track your order here: {link}",
-    Pending:
-      "Hello {name}, this is {shop}. Your order {orderId} is pending right now. We will update you soon. Track your order here: {link}",
-    "In Progress":
-      "Hello {name}, this is {shop}. Your order {orderId} is now in progress. Track your order here: {link}",
-    Completed:
-      "Hello {name}, this is {shop}. Your order {orderId} is completed. We will tell you as soon as it is ready to dispatch or pick up. Track your order here: {link}",
-    "Ready to Dispatch/Pick-Up":
-      "Hello {name}, this is {shop}. Your order {orderId} is ready to dispatch / pick up. Track your order here: {link}",
-    Dispatched:
-      "Hello {name}, this is {shop}. Your order {orderId} has been dispatched. Track your order here: {link}",
-    Delivered:
-      "Hello {name}, this is {shop}. Your order {orderId} has been delivered. Thank you for shopping with us! We hope to see you again.",
-    Cancelled:
-      "Hello {name}, this is {shop}. Your order {orderId} has been cancelled. Please contact us if you have any questions.",
+    "Order Received": ["We have received your order *{orderId}*. Thank you!", true],
+    Pending: ["Your order *{orderId}* is *pending* right now. We will update you soon.", true],
+    "In Progress": ["Your order *{orderId}* is now *in progress*.", true],
+    Completed: ["Your order *{orderId}* is *completed*. We will tell you as soon as it is ready to dispatch or pick up.", true],
+    "Ready to Dispatch/Pick-Up": ["Your order *{orderId}* is *ready to dispatch / pick up*.", true],
+    Dispatched: ["Your order *{orderId}* has been *dispatched*.", true],
+    Delivered: ["Your order *{orderId}* has been *delivered*. Thank you for shopping with us! We hope to see you again.", false],
+    Cancelled: ["Your order *{orderId}* has been *cancelled*. Please contact us if you have any questions.", false],
   },
   hi: {
-    "Order Received":
-      "नमस्ते {name} जी, {shop} की तरफ से। आपका ऑर्डर {orderId} हमें मिल गया है। धन्यवाद! अपना ऑर्डर यहाँ देखें: {link}",
-    Pending:
-      "नमस्ते {name} जी, {shop} की तरफ से। आपका ऑर्डर {orderId} अभी पेंडिंग है। जल्दी ही आपको अपडेट देंगे। अपना ऑर्डर यहाँ देखें: {link}",
-    "In Progress":
-      "नमस्ते {name} जी, {shop} की तरफ से। आपका ऑर्डर {orderId} अभी तैयार किया जा रहा है। अपना ऑर्डर यहाँ देखें: {link}",
-    Completed:
-      "नमस्ते {name} जी, {shop} की तरफ से। आपका ऑर्डर {orderId} पूरा हो गया है। डिस्पैच या पिक-अप के लिए तैयार होते ही हम आपको बताएंगे। अपना ऑर्डर यहाँ देखें: {link}",
-    "Ready to Dispatch/Pick-Up":
-      "नमस्ते {name} जी, {shop} की तरफ से। आपका ऑर्डर {orderId} डिस्पैच / पिक-अप के लिए तैयार है। अपना ऑर्डर यहाँ देखें: {link}",
-    Dispatched:
-      "नमस्ते {name} जी, {shop} की तरफ से। आपका ऑर्डर {orderId} भेज दिया गया है। अपना ऑर्डर यहाँ देखें: {link}",
-    Delivered:
-      "नमस्ते {name} जी, {shop} की तरफ से। आपका ऑर्डर {orderId} डिलीवर हो गया है। हमारे साथ खरीदारी करने के लिए धन्यवाद! फिर मिलेंगे।",
-    Cancelled:
-      "नमस्ते {name} जी, {shop} की तरफ से। आपका ऑर्डर {orderId} रद्द कर दिया गया है। कोई सवाल हो तो कृपया हमसे संपर्क करें।",
+    "Order Received": ["आपका ऑर्डर *{orderId}* हमें मिल गया है। धन्यवाद!", true],
+    Pending: ["आपका ऑर्डर *{orderId}* अभी *पेंडिंग* है। जल्दी ही आपको अपडेट देंगे।", true],
+    "In Progress": ["आपका ऑर्डर *{orderId}* अभी *तैयार किया जा रहा* है।", true],
+    Completed: ["आपका ऑर्डर *{orderId}* *पूरा हो गया* है। डिस्पैच या पिक-अप के लिए तैयार होते ही हम आपको बताएंगे।", true],
+    "Ready to Dispatch/Pick-Up": ["आपका ऑर्डर *{orderId}* *डिस्पैच / पिक-अप के लिए तैयार* है।", true],
+    Dispatched: ["आपका ऑर्डर *{orderId}* *भेज दिया गया* है।", true],
+    Delivered: ["आपका ऑर्डर *{orderId}* *डिलीवर हो गया* है। हमारे साथ खरीदारी करने के लिए धन्यवाद! फिर मिलेंगे।", false],
+    Cancelled: ["आपका ऑर्डर *{orderId}* *रद्द कर दिया गया* है। कोई सवाल हो तो कृपया हमसे संपर्क करें।", false],
   },
   hinglish: {
-    "Order Received":
-      "Namaste {name} ji, {shop} ki taraf se. Aapka order {orderId} hume mil gaya hai. Dhanyavaad! Apna order yahan dekhein: {link}",
-    Pending:
-      "Namaste {name} ji, {shop} ki taraf se. Aapka order {orderId} abhi pending hai. Jaldi hi aapko update denge. Apna order yahan dekhein: {link}",
-    "In Progress":
-      "Namaste {name} ji, {shop} ki taraf se. Aapka order {orderId} abhi taiyaar kiya ja raha hai. Apna order yahan dekhein: {link}",
-    Completed:
-      "Namaste {name} ji, {shop} ki taraf se. Aapka order {orderId} poora ho gaya hai. Dispatch ya pick-up ke liye taiyaar hote hi hum aapko bata denge. Apna order yahan dekhein: {link}",
-    "Ready to Dispatch/Pick-Up":
-      "Namaste {name} ji, {shop} ki taraf se. Aapka order {orderId} dispatch / pick-up ke liye taiyaar hai. Apna order yahan dekhein: {link}",
-    Dispatched:
-      "Namaste {name} ji, {shop} ki taraf se. Aapka order {orderId} bhej diya gaya hai. Apna order yahan dekhein: {link}",
-    Delivered:
-      "Namaste {name} ji, {shop} ki taraf se. Aapka order {orderId} deliver ho gaya hai. Hamare saath shopping karne ke liye dhanyavaad! Phir milenge.",
-    Cancelled:
-      "Namaste {name} ji, {shop} ki taraf se. Aapka order {orderId} cancel kar diya gaya hai. Koi sawaal ho to kripya humse sampark karein.",
+    "Order Received": ["Aapka order *{orderId}* hume mil gaya hai. Dhanyavaad!", true],
+    Pending: ["Aapka order *{orderId}* abhi *pending* hai. Jaldi hi aapko update denge.", true],
+    "In Progress": ["Aapka order *{orderId}* abhi *taiyaar kiya ja raha* hai.", true],
+    Completed: ["Aapka order *{orderId}* *poora ho gaya* hai. Dispatch ya pick-up ke liye taiyaar hote hi hum aapko bata denge.", true],
+    "Ready to Dispatch/Pick-Up": ["Aapka order *{orderId}* *dispatch / pick-up ke liye taiyaar* hai.", true],
+    Dispatched: ["Aapka order *{orderId}* *bhej diya gaya* hai.", true],
+    Delivered: ["Aapka order *{orderId}* *deliver ho gaya* hai. Hamare saath shopping karne ke liye dhanyavaad! Phir milenge.", false],
+    Cancelled: ["Aapka order *{orderId}* *cancel kar diya gaya* hai. Koi sawaal ho to kripya humse sampark karein.", false],
   },
 };
+
+export const DEFAULT_MESSAGES = Object.fromEntries(
+  Object.entries(BODIES).map(([language, byStatus]) => [
+    language,
+    Object.fromEntries(
+      Object.entries(byStatus).map(([status, [body, withLink]]) => [
+        status,
+        message(HELLO[language], body, withLink ? TRACK[language] : ""),
+      ])
+    ),
+  ])
+);
 
 // The text for one language and status: the shop's own if it has one
 export const getTemplate = (shop, language, status) =>

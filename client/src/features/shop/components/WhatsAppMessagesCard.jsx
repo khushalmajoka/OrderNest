@@ -3,6 +3,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useSavedFlash } from "../../../common/hooks/useSavedFlash";
 import SavedLabel from "../../../common/components/SavedLabel";
+import WhatsAppText from "../../../common/components/WhatsAppText";
 import { getErrorMessage } from "../../../common/utils/api";
 import {
   DEFAULT_MESSAGES,
@@ -94,7 +95,8 @@ const WhatsAppMessagesCard = ({ shop }) => {
         The message that WhatsApp opens with when you tap the green WhatsApp
         button on an order. Each status has its own text, in three languages.
         Use the tag buttons to put in the customer name, order ID and so on;
-        they are filled in automatically.
+        they are filled in automatically. New lines are kept as you type them, and
+        a word between stars, like *this*, becomes bold in WhatsApp.
       </p>
 
       <div role="tablist" aria-label="Language" className="flex gap-1 mb-4 bg-gray-100 rounded-lg p-1">
@@ -165,7 +167,7 @@ const WhatsAppMessagesCard = ({ shop }) => {
               </div>
               <p className="mt-2 rounded-md bg-green-50 border border-green-100 px-3 py-2 text-xs text-gray-700 whitespace-pre-wrap break-words">
                 <span className="block text-gray-500 mb-0.5">Looks like (example):</span>
-                {preview}
+                <WhatsAppText text={preview} />
               </p>
             </div>
           );

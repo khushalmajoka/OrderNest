@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import WhatsAppIcon from "../../../common/components/WhatsAppIcon";
+import WhatsAppText from "../../../common/components/WhatsAppText";
 import {
   LANGUAGES,
   buildMessage,
@@ -64,8 +65,8 @@ const LanguageDialog = ({ order, shop, onClose }) => {
                 <WhatsAppIcon size={16} className="text-green-600" />
                 {language.label}
               </span>
-              <span className="block mt-1 text-xs text-gray-500 line-clamp-2">
-                {buildMessage({ shop, order, language: language.key })}
+              <span className="block mt-1 text-xs text-gray-500 line-clamp-3 whitespace-pre-line break-words">
+                <WhatsAppText text={buildMessage({ shop, order, language: language.key })} />
               </span>
             </button>
           ))}

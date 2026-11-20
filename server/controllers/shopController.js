@@ -4,6 +4,7 @@ const ORDER_STATUSES = require("../models/orderStatuses");
 const COLOR_NAMES = require("../models/statusColors");
 const TABLE_COLUMNS = require("../models/tableColumns");
 const SLIP_FIELDS = require("../models/slipFields");
+const WHATSAPP = require("../models/whatsappMessages");
 const { checkShopProfile } = require("../utils/shopInput");
 
 // POST /api/shop/setup
@@ -201,6 +202,63 @@ const saveSlipSettings = async (req, res, next) => {
   }
 };
 
+// PUT /api/shop/settings/whatsapp-messages
+// Body: { messages: { en: { "Pending": "Hello {name}..." }, hi: {...}, hinglish: {...} } }
+// Only texts that differ from the app's own are sent; the whole set is replaced.
+const saveWhatsappMessages = async (req, res, next) => {
+  try {
+    const incoming = req.body?.messages;
+    if (!incoming || typeof incoming !== "object" || Array.isArray(incoming)) {
+      return res.status(400).json({ error: "Please send the messages." });
+    }
+
+    const clean = {};
+    for (const [language, byStatus] of Object.entries(incoming)) {
+      if (!WHATSAPP.LANGUAGES.includes(language)) {
+        return res.status(400).json({ error: `Unknown language: ${language}` });
+      }
+      if (!byStatus || typeof byStatus !== "object" || Array.isArray(byStatus)) {
+        return res.status(400).json({ error: "Messages are in the wrong format." });
+      }
+      for (const [status, rawText] of Object.entries(byStatus)) {
+        if (!ORDER_STATUSES.includes(status)) {
+          return res.status(400).json({ error: `Unknown status: ${status}` });
+        }
+        if (typeof rawText !== "string") {
+          return res.status(400).json({ error: `The message for ${status} must be text.` });
+        }
+        const text = rawText.trim();
+        if (!text) continue; // empty = use the app's own text
+        if (text.length > WHATSAPP.MAX_LENGTH) {
+          return res.status(400).json({
+            error: `The message for ${status} is too long (${WHATSAPP.MAX_LENGTH} letters at most).`,
+          });
+        }
+        const badTag = [...text.matchAll(/\{([^{}]*)\}/g)].find(
+          (m) => !WHATSAPP.TAGS.includes(m[1])
+        );
+        if (badTag) {
+          return res.status(400).json({
+            error: `Unknown tag {${badTag[1]}} in the message for ${status}.`,
+          });
+        }
+        clean[language] = { ...clean[language], [status]: text };
+      }
+    }
+
+    const shop = await Shop.findOneAndUpdate(
+      { owner: req.user.id },
+      { whatsappMessages: clean },
+      { new: true }
+    );
+    if (!shop) return res.status(404).json({ error: "Shop not found" });
+
+    res.status(200).json({ whatsappMessages: shop.whatsappMessages });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 // PUT /api/shop/settings/profile   { name, phone, address, category, logo }
 // The shop's own details (shown in the top bar and printed on delivery slips).
 // `logo` is a small picture as text ("data:image/..."); "" removes it and
@@ -226,6 +284,7 @@ const saveShopProfile = async (req, res, next) => {
 
 module.exports = {
   saveShopProfile,
+  saveWhatsappMessages,
   saveSlipSettings,
   saveTableColumns,
   setupShop,

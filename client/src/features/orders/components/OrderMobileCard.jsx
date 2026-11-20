@@ -6,6 +6,7 @@ import { useOrderShare } from "../hooks/useOrderShare";
 import { useFlashOnChange } from "../hooks/useFlashOnChange";
 import { MASK, ORDER_COLUMNS } from "../utils/orderColumns";
 import FieldEditor from "./FieldEditor";
+import WhatsAppButton from "./WhatsAppButton";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
 import { getStatusStyle } from "../../../common/utils/statusColors";
 
@@ -21,7 +22,7 @@ const OrderMobileCard = ({
   maskAmounts,
 }) => {
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
-    useOrderShare(order);
+    useOrderShare(order, shop);
   const [showMore, setShowMore] = useState(false);
   const [showSlip, setShowSlip] = useState(false);
   // the row lights up for a moment after it was edited
@@ -240,6 +241,7 @@ const OrderMobileCard = ({
               <Pencil size={16} /> Edit
             </button>
           )}
+          {access.share && <WhatsAppButton order={order} shop={shop} variant="card" />}
           {access.share && (
             <button
               onClick={() => setIsShareOpen(true)}

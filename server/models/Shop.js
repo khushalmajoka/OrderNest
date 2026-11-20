@@ -31,6 +31,11 @@ const shopSchema = new mongoose.Schema({
   // and a short note printed at the bottom of every slip.
   slipFields: { type: mongoose.Schema.Types.Mixed },
   slipNote: { type: String, maxlength: 200, default: "" },
+
+  // Texts the shop changed for the WhatsApp messages:
+  // { en: { "Pending": "text..." }, hi: {...}, hinglish: {...} }
+  // Anything missing uses the app's own text.
+  whatsappMessages: { type: mongoose.Schema.Types.Mixed },
 });
 
 module.exports = mongoose.model("Shop", shopSchema);

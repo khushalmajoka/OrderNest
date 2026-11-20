@@ -5,6 +5,7 @@ import { DeliverySlipDialog, OrderShareDialog, WithOpening } from "../lazyDialog
 import RowActionsMenu from "./RowActionsMenu";
 import FieldEditor from "./FieldEditor";
 import CopyButton from "./CopyButton";
+import WhatsAppButton from "./WhatsAppButton";
 import { useOrderShare } from "../hooks/useOrderShare";
 import { useFlashOnChange } from "../hooks/useFlashOnChange";
 import { COLUMN_EDITORS } from "../utils/orderColumns";
@@ -36,7 +37,7 @@ const OrderTableRow = ({
   onStartEdit,
 }) => {
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
-    useOrderShare(order);
+    useOrderShare(order, shop);
 
   const [showSlip, setShowSlip] = useState(false);
   // the row lights up for a moment after it was edited
@@ -180,7 +181,10 @@ const OrderTableRow = ({
                   </button>
                 </>
               ) : (
-                <RowActionsMenu items={menuItems} />
+                <>
+                  {access.share && <WhatsAppButton order={order} shop={shop} />}
+                  {menuItems.length > 0 && <RowActionsMenu items={menuItems} />}
+                </>
               )}
             </div>
           </td>

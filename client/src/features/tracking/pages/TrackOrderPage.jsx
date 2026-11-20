@@ -133,7 +133,11 @@ const OrderResult = ({ order }) => {
 };
 
 const TrackOrderPage = () => {
-  const [orderId, setOrderId] = useState("");
+  // A link from the shop (/?id=ORD-...) fills in the Order ID; the customer
+  // only types the phone number (it is never put in a link)
+  const [orderId, setOrderId] = useState(
+    () => (new URLSearchParams(window.location.search).get("id") || "").slice(0, 60)
+  );
   const [phone, setPhone] = useState("");
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -212,6 +216,7 @@ const TrackOrderPage = () => {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value.replace(/[^\d+\s-]/g, ""))}
                 placeholder="Phone number"
+                autoFocus={Boolean(orderId)}
                 className="w-full px-4 py-2.5 border rounded-md focus:ring-2 focus:ring-orange-400 focus:outline-none"
               />
             </label>

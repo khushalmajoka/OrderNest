@@ -7,6 +7,7 @@ import ShopProfileCard from "../components/ShopProfileCard";
 import TableColumnsCard from "../components/TableColumnsCard";
 import ChangePasswordCard from "../components/ChangePasswordCard";
 import SlipSettingsCard from "../components/SlipSettingsCard";
+import WhatsAppMessagesCard from "../components/WhatsAppMessagesCard";
 import AmountsPrivacyCard from "../components/AmountsPrivacyCard";
 import { can, isAdmin } from "../../../common/utils/permissions";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
@@ -70,6 +71,8 @@ const Settings = () => {
             </div>
 
             <SlipSettingsCard shop={shop} />
+
+            <WhatsAppMessagesCard shop={shop} />
           </div>
         ) : (
           <div className="max-w-md space-y-6">

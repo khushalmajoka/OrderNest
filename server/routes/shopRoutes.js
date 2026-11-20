@@ -7,6 +7,7 @@ const {
   saveTableColumns,
   saveSlipSettings,
   saveShopProfile,
+  saveWhatsappMessages,
 } = require("../controllers/shopController");
 const authenticate = require("../middlewares/authenticate");
 const loadUser = require("../middlewares/loadUser");
@@ -36,6 +37,14 @@ router.put(
   loadUser,
   requireAdmin,
   saveSlipSettings
+);
+
+router.put(
+  "/settings/whatsapp-messages",
+  authenticate,
+  loadUser,
+  requireAdmin,
+  saveWhatsappMessages
 );
 
 router.put(

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, Lock, Pencil, Share2, Trash2, Truck, X } from "lucide-react";
+import { ArrowRight, Check, Lock, Pencil, Share2, Trash2, Truck, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { DeliverySlipDialog, OrderShareDialog, WithOpening } from "../lazyDialogs";
 import RowActionsMenu from "./RowActionsMenu";
@@ -10,6 +10,7 @@ import { useOrderShare } from "../hooks/useOrderShare";
 import { useFlashOnChange } from "../hooks/useFlashOnChange";
 import { COLUMN_EDITORS } from "../utils/orderColumns";
 import { getStatusStyle } from "../../../common/utils/statusColors";
+import { statusLabel } from "../utils/statusInfo";
 
 // Things inside a row that have their own click or typing: they must not
 // open/close the row or start editing
@@ -35,6 +36,11 @@ const OrderTableRow = ({
   maskAmounts,
   edit, // null, or the edit state of THIS order: { form, set, dirty, saving, save, cancel }
   onStartEdit,
+  selectable = false,
+  selected = false,
+  onToggleSelect,
+  nextStatus = null, // the status "Next step" would move this order to (null = none)
+  onNext,
 }) => {
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
     useOrderShare(order);
@@ -137,11 +143,22 @@ const OrderTableRow = ({
           }
         }}
       >
+        {selectable && (
+          <td className="pl-3 pr-1 py-2 align-top w-8 border-l-4 border-l-transparent">
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={() => onToggleSelect(order._id)}
+              aria-label={`Select order ${order.orderId}`}
+              className="w-4 h-4 mt-0.5 accent-orange-500"
+            />
+          </td>
+        )}
         {rowColumns.map((column, index) => (
           <td
             key={column.key}
             className={`px-2 py-2 align-top ${
-              index === 0
+              index === 0 && !selectable
                 ? `border-l-4 ${
                     statusStyle ? statusStyle.strip : "border-l-transparent"
                   }`
@@ -182,6 +199,17 @@ const OrderTableRow = ({
                 </>
               ) : (
                 <>
+                  {access.edit && nextStatus && (
+                    <button
+                      type="button"
+                      onClick={() => onNext(order)}
+                      aria-label={`Move to ${statusLabel(nextStatus)}`}
+                      title={`Next step: ${statusLabel(nextStatus)}`}
+                      className="p-1.5 rounded-md text-orange-700 hover:bg-black/10"
+                    >
+                      <ArrowRight size={18} />
+                    </button>
+                  )}
                   {access.share && <WhatsAppButton order={order} shop={shop} />}
                   {menuItems.length > 0 && <RowActionsMenu items={menuItems} />}
                 </>
@@ -205,7 +233,7 @@ const OrderTableRow = ({
               }
             }}
           >
-            <td colSpan={rowColumns.length + (hasActions || editing ? 1 : 0)} className="p-0">
+            <td colSpan={rowColumns.length + (selectable ? 1 : 0) + (hasActions || editing ? 1 : 0)} className="p-0">
               <motion.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}

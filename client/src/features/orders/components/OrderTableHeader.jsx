@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 const OrderTableHeader = ({
@@ -7,7 +8,16 @@ const OrderTableHeader = ({
   sortOrder,
   setSortField,
   setSortOrder,
+  selectable = false,
+  allSelected = false,
+  someSelected = false,
+  onToggleAll,
 }) => {
+  const box = useRef(null);
+  useEffect(() => {
+    if (box.current) box.current.indeterminate = someSelected && !allSelected;
+  }, [someSelected, allSelected]);
+
   const handleSort = (field) => {
     if (sortField === field) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
@@ -25,6 +35,18 @@ const OrderTableHeader = ({
   return (
     <thead className="bg-orange-100">
       <tr className="text-left text-gray-700">
+        {selectable && (
+          <th className="pl-3 pr-1 py-3 w-8">
+            <input
+              ref={box}
+              type="checkbox"
+              checked={allSelected}
+              onChange={onToggleAll}
+              aria-label="Select all orders on this page"
+              className="w-4 h-4 accent-orange-500"
+            />
+          </th>
+        )}
         {columns.map((column) =>
           column.sort ? (
             <th

@@ -179,6 +179,16 @@ const Dashboard = () => {
     else refetch(true); // quietly, so the "has anything changed?" check starts from this edit
   };
 
+  // Several orders changed at once (Next step / Change status): update them
+  // all, and bring the list up to date once
+  const handleOrdersUpdated = (updatedList) => {
+    const byId = new Map(updatedList.map((o) => [o._id, o]));
+    refreshSummary();
+    setOrders((prev) => prev.map((order) => byId.get(order._id) || order));
+    if (!sortField) showFirstPageAgain();
+    else refetch(true);
+  };
+
   const showFirstPageAgain = () => {
     refreshSummary();
     setCurrentPage(0);
@@ -380,6 +390,7 @@ const Dashboard = () => {
               setSortField={handleSortField}
               setSortOrder={handleSortOrder}
               onUpdated={handleOrderUpdated}
+              onBulkUpdated={handleOrdersUpdated}
               onDelete={handleOrderDeleted}
               onEditingChange={setEditingOrder}
             />

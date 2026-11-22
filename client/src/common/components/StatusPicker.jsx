@@ -10,7 +10,7 @@ import { statusHint, statusLabel } from "../../features/orders/utils/statusInfo"
 //  - keyboard: Down / Up open and move, Enter chooses, Esc closes (the first
 //    Esc only closes the list; it does not cancel the whole edit)
 //  - Enter on the closed box = the same as in the other edit boxes (save)
-const StatusPicker = ({ value, options, onChange, onEnter, large = false, label = "Status" }) => {
+const StatusPicker = ({ value, options, onChange, onEnter, large = false, label = "Status", buttonText, compact = false }) => {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [box, setBox] = useState(null);
@@ -107,12 +107,16 @@ const StatusPicker = ({ value, options, onChange, onEnter, large = false, label 
         aria-label={label}
         aria-haspopup="listbox"
         aria-expanded={open}
-        title={statusHint(value)}
+        title={value ? statusHint(value) : undefined}
         onClick={() => setOpen((o) => !o)}
         onKeyDown={onKeyDown}
-        className={`w-full flex items-center justify-between gap-1 border border-gray-300 rounded bg-white text-gray-900 text-left focus:outline-none focus:ring-2 focus:ring-orange-400 ${size}`}
+        className={
+          compact
+            ? "flex items-center gap-1 border border-gray-300 rounded-lg bg-white text-gray-800 text-sm px-3 py-1.5 min-h-[36px] hover:bg-orange-50 focus:outline-none focus:ring-2 focus:ring-orange-400"
+            : `w-full flex items-center justify-between gap-1 border border-gray-300 rounded bg-white text-gray-900 text-left focus:outline-none focus:ring-2 focus:ring-orange-400 ${size}`
+        }
       >
-        <span className="truncate">{statusLabel(value)}</span>
+        <span className="truncate">{buttonText || statusLabel(value)}</span>
         <ChevronDown size={16} className="shrink-0 text-gray-500" aria-hidden="true" />
       </button>
 
@@ -139,7 +143,7 @@ const StatusPicker = ({ value, options, onChange, onEnter, large = false, label 
                 className={`px-3 py-2 cursor-pointer flex items-start gap-2 ${i === active ? "bg-orange-50" : ""}`}
               >
                 <span className="w-4 shrink-0 mt-0.5 text-orange-600">
-                  {status === value && <Check size={16} aria-hidden="true" />}
+                  {value && status === value && <Check size={16} aria-hidden="true" />}
                 </span>
                 <span className="min-w-0">
                   <span className="block text-sm font-medium text-gray-900">{statusLabel(status)}</span>

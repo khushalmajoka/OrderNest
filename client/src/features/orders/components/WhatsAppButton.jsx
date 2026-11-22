@@ -69,7 +69,7 @@ const showOpenLink = (url, note) =>
 // allow a new tab, a share menu or a copy for a moment after a tap, so the
 // picture is made BEFORE (as soon as this window opens) and the language
 // buttons wait until it is ready.
-const LanguageDialog = ({ order, shop, onClose }) => {
+export const LanguageDialog = ({ order, shop, onClose, onSent }) => {
   const last = getLastLanguage();
   const [withPicture, setWithPicture] = useState(getWithPicture);
   const [ready, setReady] = useState(!getWithPicture()); // the picture is made
@@ -129,6 +129,7 @@ const LanguageDialog = ({ order, shop, onClose }) => {
   const send = (language) => {
     trackUse("whatsapp.send");
     if (!ready) return;
+    if (onSent) onSent(order);
     rememberLanguage(language);
     const text = buildMessage({ shop, order, language });
     const url = whatsappLink(order.phone, text);

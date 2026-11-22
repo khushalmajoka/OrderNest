@@ -63,3 +63,32 @@ export const offeredStatuses = (shop, { current, canCloseOld = false } = {}) => 
     return !hidden.includes(s);
   });
 };
+
+// The steps an order normally moves along, first to last
+export const STATUS_FLOW = [
+  "Order Received",
+  "Pending",
+  "In Progress",
+  "Completed",
+  "Ready to Dispatch/Pick-Up",
+  "Dispatched",
+  "Delivered",
+];
+
+// The next status for "Next step": the next one in the flow that the shop
+// uses (switched-off ones are skipped). null when the order is finished
+// (Delivered, Cancelled, Closed (old)) or there is nothing after it.
+export const nextStatusOf = (shop, status) => {
+  const at = STATUS_FLOW.indexOf(status);
+  if (at === -1) return null;
+  const hidden = hiddenStatusesOf(shop);
+  for (let i = at + 1; i < STATUS_FLOW.length; i++) {
+    if (!hidden.includes(STATUS_FLOW[i])) return STATUS_FLOW[i];
+  }
+  return null;
+};
+
+// After which statuses the app asks "Tell the customer on WhatsApp?"
+export const DEFAULT_PROMPT_STATUSES = ["Ready to Dispatch/Pick-Up", "Dispatched"];
+export const promptStatusesOf = (shop) =>
+  Array.isArray(shop?.whatsappPromptStatuses) ? shop.whatsappPromptStatuses : DEFAULT_PROMPT_STATUSES;

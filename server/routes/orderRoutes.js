@@ -7,6 +7,7 @@ const {
   deleteOrder,
   trackOrder,
   bulkUploadOrders,
+  bulkStatus,
   exportOrders,
   getOrderSummary,
   getOrderChanges,
@@ -46,6 +47,16 @@ router.post(
   requireAdmin,
   countUse("orders.bulk_upload"),
   bulkUploadOrders
+);
+
+// Change the status of several orders at once (also "Next step" for one order)
+router.post(
+  "/bulk-status",
+  authenticate,
+  loadUser,
+  loadShop,
+  requirePermission("editOrders"),
+  bulkStatus
 );
 
 // Get one page of a shop's orders

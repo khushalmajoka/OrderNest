@@ -163,6 +163,27 @@ const saveStatusVisibility = async (req, res, next) => {
   }
 };
 
+// PUT /api/shop/settings/whatsapp-prompt   { statuses: ["Ready to Dispatch/Pick-Up", "Dispatched"] }
+// Only decides when the app SHOWS the question. Nothing is ever sent by itself.
+const saveWhatsappPrompt = async (req, res, next) => {
+  try {
+    const incoming = req.body?.statuses;
+    if (!Array.isArray(incoming) || incoming.some((s) => typeof s !== "string")) {
+      return res.status(400).json({ error: "The list of statuses is missing." });
+    }
+    const allowed = ORDER_STATUSES.filter((s) => s !== "Closed (old)");
+    const bad = incoming.find((s) => !allowed.includes(s));
+    if (bad) return res.status(400).json({ error: `"${bad}" is not a status you can choose.` });
+    const statuses = [...new Set(incoming)];
+
+    const shop = await Shop.findOneAndUpdate({ owner: req.user.id }, { whatsappPromptStatuses: statuses }, { new: true });
+    if (!shop) return res.status(404).json({ error: "Shop not found" });
+    res.status(200).json({ whatsappPromptStatuses: shop.whatsappPromptStatuses });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 // PUT /api/shop/settings/table-columns   { columns: ["orderId", "status", ...] }
 const saveTableColumns = async (req, res, next) => {
   try {
@@ -319,4 +340,5 @@ module.exports = {
   getShopByUserId,
   saveStatusColors,
   saveStatusVisibility,
+  saveWhatsappPrompt,
 };

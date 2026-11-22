@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { statusHint, statusLabel } from "../utils/statusInfo";
-import { Check, ChevronDown, ChevronUp, Lock, Pencil, Share2, Trash2, Truck } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Lock, Pencil, Share2, Trash2, Truck, ArrowRight } from "lucide-react";
 import { formatDay, formatDateTime } from "../../../common/utils/formatDate";
 import { DeliverySlipDialog, OrderShareDialog, WithOpening } from "../lazyDialogs";
 import { useOrderShare } from "../hooks/useOrderShare";
@@ -21,6 +21,11 @@ const OrderMobileCard = ({
   setShowDeleteModal,
   access,
   maskAmounts,
+  selectable = false,
+  selected = false,
+  onToggleSelect,
+  nextStatus = null,
+  onNext,
 }) => {
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
     useOrderShare(order);
@@ -130,7 +135,16 @@ const OrderMobileCard = ({
       } ${flash ? "animate-flash-ring" : ""}`}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        {selectable && (
+          <input
+            type="checkbox"
+            checked={selected}
+            onChange={() => onToggleSelect(order._id)}
+            aria-label={`Select order ${order.orderId}`}
+            className="w-5 h-5 mt-1 shrink-0 accent-orange-500"
+          />
+        )}
+        <div className="min-w-0 flex-1">
           <p className="text-xs text-gray-500">Order ID</p>
           <p className="font-semibold text-gray-800 break-all">
             {order.orderId || order._id.slice(-6)}
@@ -223,6 +237,16 @@ const OrderMobileCard = ({
         {showMore ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         {showMore ? "Less details" : "More details"}
       </button>
+
+      {access.edit && nextStatus && (
+        <button
+          onClick={() => onNext(order)}
+          aria-label={`Move to ${statusLabel(nextStatus)}`}
+          className="w-full mt-3 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border border-orange-400 text-orange-700 font-medium"
+        >
+          <ArrowRight size={16} /> Next step: {statusLabel(nextStatus)}
+        </button>
+      )}
 
       {access.share && (
         <button

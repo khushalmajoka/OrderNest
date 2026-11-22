@@ -1,4 +1,6 @@
+const mongoose = require("mongoose");
 const Order = require("../models/Order");
+const ORDER_STATUSES = require("../models/orderStatuses");
 const reserveOrderIds = require("../utils/reserveOrderIds");
 const { checkOrderInput } = require("../utils/orderInput");
 const { FINISHED, NO_BALANCE, CLOSED_OLD } = require("../utils/statusGroups");
@@ -217,6 +219,74 @@ exports.updateOrder = async (req, res, next) => {
       message: "Order updated",
       order: seesAmounts(req) ? updatedOrder : withoutAmounts(updatedOrder),
     });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// POST /api/orders/bulk-status   { ids: ["...", ...], status: "Dispatched" }
+// Changes ONLY the status of the chosen orders of this shop (one tap for a
+// whole group, or "Next step" for a single order). Orders that already have
+// that status are skipped. The answer lists the orders that really changed,
+// each with its `previousStatus` (so the screen can offer "Undo").
+const MAX_BULK = 200;
+exports.bulkStatus = async (req, res, next) => {
+  try {
+    const { ids, status } = req.body || {};
+    if (!Array.isArray(ids) || ids.length === 0 || ids.some((i) => typeof i !== "string" || !mongoose.Types.ObjectId.isValid(i))) {
+      return res.status(400).json({ message: "Please choose the orders first." });
+    }
+    if (ids.length > MAX_BULK) {
+      return res.status(400).json({ message: `You can change up to ${MAX_BULK} orders at once.` });
+    }
+    if (typeof status !== "string" || !ORDER_STATUSES.includes(status)) {
+      return res.status(400).json({ message: "Please choose a valid status." });
+    }
+    if (status === CLOSED_OLD && req.account.role !== "admin") {
+      return res.status(403).json({ message: "Only the admin can use the status Closed (old)." });
+    }
+
+    const found = await Order.find({ _id: { $in: [...new Set(ids)] }, shop: req.shop._id }).lean();
+    const toChange = found.filter((o) => o.status !== status);
+    if (toChange.length === 0) return res.status(200).json({ changed: 0, orders: [] });
+
+    const previous = new Map(toChange.map((o) => [String(o._id), o.status]));
+    const now = new Date();
+    await Order.updateMany(
+      { _id: { $in: toChange.map((o) => o._id) }, shop: req.shop._id },
+      { $set: { status } }
+    );
+    // the answer is built from what we already read (one database trip less)
+    const orders = toChange.map((o) => ({
+      ...(seesAmounts(req) ? o : withoutAmounts(o)),
+      status,
+      updatedAt: now,
+      previousStatus: previous.get(String(o._id)),
+    }));
+
+    if (orders.length === 1) {
+      const o = orders[0];
+      logActivity(req, {
+        kind: "order",
+        action: "order.update",
+        targetLabel: o.orderId,
+        summary: `Edited order ${o.orderId} (${shown(o.customerName)})`,
+        changes: [{ field: "Status", from: o.previousStatus, to: status }],
+      });
+    } else {
+      const from = [...new Set(orders.map((o) => o.previousStatus))].join(", ");
+      logActivity(req, {
+        kind: "order",
+        action: "order.bulk_status",
+        targetLabel: `${orders.length} orders`,
+        summary: `Changed the status of ${orders.length} orders to ${status} (from ${from})`,
+      });
+    }
+    if (!req.devMode) {
+      recordUse(req.shop._id, req.account.id, orders.length === 1 ? "order.status" : "orders.bulk_status");
+    }
+
+    res.status(200).json({ changed: orders.length, orders });
   } catch (error) {
     return next(error);
   }

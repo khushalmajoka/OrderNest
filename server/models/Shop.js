@@ -20,6 +20,9 @@ const shopSchema = new mongoose.Schema({
   // Statuses the shop switched OFF (not offered when changing an order's status).
   // Not set = the app's default (Pending and Completed are off).
   hiddenStatuses: { type: [String], default: undefined },
+  // The statuses after which the app asks "Tell the customer on WhatsApp?"
+  // Not set = the app's default (Ready and Dispatched).
+  whatsappPromptStatuses: { type: [String], default: undefined },
   // Main switches for the colouring: all colouring, the whole-row tint, and the
   // coloured line at the start of a row. Not set = on (as it always was).
   colorMaster: { type: Boolean },

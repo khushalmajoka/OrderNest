@@ -5,6 +5,7 @@ const {
   getShopByUserId,
   saveStatusColors,
   saveStatusVisibility,
+  saveWhatsappPrompt,
   saveTableColumns,
   saveSlipSettings,
   saveShopProfile,
@@ -33,6 +34,15 @@ router.put(
   requireAdmin,
   countUse("settings.statuses"),
   saveStatusVisibility
+);
+
+router.put(
+  "/settings/whatsapp-prompt",
+  authenticate,
+  loadUser,
+  requireAdmin,
+  countUse("settings.whatsapp_prompt"),
+  saveWhatsappPrompt
 );
 
 router.put(

@@ -11,6 +11,9 @@ import { can, isAdmin } from "../../../common/utils/permissions";
 import { getErrorMessage } from "../../../common/utils/api";
 import { resolveColumns } from "../utils/orderColumns";
 import { useInlineEdit } from "../hooks/useInlineEdit";
+import { useStatusMoves } from "../hooks/useStatusMoves";
+import BulkBar from "./BulkBar";
+import { nextStatusOf, offeredStatuses } from "../utils/statusInfo";
 
 // Columns the phone view can sort by (same ones the table headers offer)
 const SORT_OPTIONS = [
@@ -44,6 +47,7 @@ const OrderList = ({
   setSortField,
   setSortOrder,
   onUpdated,
+  onBulkUpdated,
   onDelete,
   onEditingChange,
   maskAmounts,
@@ -63,8 +67,52 @@ const OrderList = ({
     amounts: canSeeAmounts,
     admin: isAdmin(account), // only the admin may use the status Closed (old)
   };
+  // Moving orders to another status in one tap (+ Undo + the WhatsApp question)
+  const moves = useStatusMoves({ shop, account, onChanged: onBulkUpdated });
   // Editing an order right where it is shown (double-click / double-tap)
-  const inline = useInlineEdit({ orders, canSeeAmounts, onSaved: onUpdated });
+  const inline = useInlineEdit({
+    orders,
+    canSeeAmounts,
+    onSaved: (saved) => {
+      const before = orders.find((o) => o._id === saved._id);
+      onUpdated(saved);
+      if (before) moves.askAfterEdit(saved, before.status);
+    },
+  });
+  // Ticked orders (only on this page; cleared when the page changes)
+  const [selected, setSelected] = useState(() => new Set());
+  useEffect(() => {
+    setSelected((current) => {
+      const present = new Set(orders.map((o) => o._id));
+      const kept = [...current].filter((id) => present.has(id));
+      return kept.length === current.size ? current : new Set(kept);
+    });
+  }, [orders]);
+  useEffect(() => {
+    setSelected(new Set());
+  }, [currentPage, ordersPerPage]);
+  const toggleSelect = (id) =>
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const selectable = access.edit;
+  const allSelected = orders.length > 0 && orders.every((o) => selected.has(o._id));
+  const toggleAll = () => setSelected(allSelected ? new Set() : new Set(orders.map((o) => o._id)));
+  const selectedOrders = orders.filter((o) => selected.has(o._id));
+  const goNext = (order) => moves.moveMany([order], (o) => nextStatusOf(shop, o.status));
+  const bulkNext = async () => {
+    await moves.moveMany(selectedOrders, (o) => nextStatusOf(shop, o.status), {
+      skippedNote: "None of these orders has a next step.",
+    });
+    setSelected(new Set());
+  };
+  const bulkSet = async (status) => {
+    await moves.moveMany(selectedOrders, () => status);
+    setSelected(new Set());
+  };
   // The dashboard does not refresh the list in the background while an order is being edited
   const isEditing = Boolean(inline.editing);
   useEffect(() => {
@@ -160,6 +208,11 @@ const OrderList = ({
                 onStartEdit={inline.start}
                 setShowDeleteModal={setShowDeleteModal}
                 setDeleteId={setDeleteId}
+                selectable={selectable}
+                selected={selected.has(order._id)}
+                onToggleSelect={toggleSelect}
+                nextStatus={nextStatusOf(shop, order.status)}
+                onNext={goNext}
               />
             ))}
           </div>
@@ -170,6 +223,10 @@ const OrderList = ({
             <OrderTableHeader
               columns={rowColumns}
               showActions={access.edit || access.delete || access.share}
+              selectable={selectable}
+              allSelected={allSelected}
+              someSelected={selected.size > 0}
+              onToggleAll={toggleAll}
               setSortField={setSortField}
               setSortOrder={setSortOrder}
               sortField={sortField}
@@ -191,6 +248,11 @@ const OrderList = ({
                   setDeleteId={setDeleteId}
                   activeOrderId={activeOrderId}
                   setActiveOrderId={setActiveOrderId}
+                  selectable={selectable}
+                  selected={selected.has(order._id)}
+                  onToggleSelect={toggleSelect}
+                  nextStatus={nextStatusOf(shop, order.status)}
+                  onNext={goNext}
                 />
               ))}
             </tbody>
@@ -204,6 +266,17 @@ const OrderList = ({
         setCurrentPage={setCurrentPage}
         totalOrders={totalOrders}
       />
+
+      {selectable && selected.size > 0 && (
+        <BulkBar
+          count={selected.size}
+          options={offeredStatuses(shop, { canCloseOld: access.admin })}
+          onNext={bulkNext}
+          onPick={bulkSet}
+          onClear={() => setSelected(new Set())}
+        />
+      )}
+      {moves.followUpUI}
 
       {showDeleteModal && (
         <DeleteConfirmModal

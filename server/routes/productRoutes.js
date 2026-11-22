@@ -1,0 +1,17 @@
+const express = require("express");
+const { listProducts, createProduct, updateProduct } = require("../controllers/productController");
+const authenticate = require("../middlewares/authenticate");
+const loadUser = require("../middlewares/loadUser");
+const loadShop = require("../middlewares/loadShop");
+const { requirePermission } = require("../middlewares/access");
+const { countUse } = require("../utils/usage");
+
+const router = express.Router();
+
+// See the list (the controller checks who may); the picker in Create order uses this too
+router.get("/", authenticate, loadUser, loadShop, listProducts);
+// Add / edit / archive: the admin and staff with "Manage products"
+router.post("/", authenticate, loadUser, loadShop, requirePermission("manageProducts"), countUse("product.create"), createProduct);
+router.put("/:id", authenticate, loadUser, loadShop, requirePermission("manageProducts"), countUse("product.edit"), updateProduct);
+
+module.exports = router;

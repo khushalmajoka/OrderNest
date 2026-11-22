@@ -15,7 +15,7 @@ const Navbar = ({ shop, account, onLogout }) => {
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const { pathname } = useLocation();
   const isAdmin = account?.role === "admin";
-  const items = navItemsFor(isAdmin, Boolean(account?.isDeveloper));
+  const items = navItemsFor(isAdmin, Boolean(account?.isDeveloper), account);
 
   // Escape closes the logout question
   useEffect(() => {
@@ -102,6 +102,7 @@ const Navbar = ({ shop, account, onLogout }) => {
           onLogout={onLogout}
           isAdmin={isAdmin}
           isDeveloper={Boolean(account?.isDeveloper)}
+          account={account}
         />
       </div>
 

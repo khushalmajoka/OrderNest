@@ -12,7 +12,7 @@ const listActivity = async (req, res, next) => {
     const limit = Math.min(MAX_PAGE, Math.max(1, parseInt(req.query.limit, 10) || 50));
 
     const filter = { shop: req.shop._id };
-    if (req.query.kind === "order" || req.query.kind === "staff") {
+    if (["order", "staff", "product"].includes(req.query.kind)) {
       filter.kind = req.query.kind;
     }
 

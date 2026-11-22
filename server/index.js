@@ -7,6 +7,7 @@ const orderRoutes = require("./routes/orderRoutes");
 const staffRoutes = require("./routes/staffRoutes");
 const activityRoutes = require("./routes/activityRoutes");
 const usageRoutes = require("./routes/usageRoutes");
+const productRoutes = require("./routes/productRoutes");
 const developerRoutes = require("./routes/developerRoutes");
 const cors = require('cors');
 const errorHandler = require('./middlewares/errorHandler');
@@ -65,6 +66,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/staff", staffRoutes);
 app.use("/api/activity", activityRoutes);
 app.use("/api/usage", usageRoutes);
+app.use("/api/products", productRoutes);
 app.use("/api/developer", developerRoutes);
 
 // Default route (optional)

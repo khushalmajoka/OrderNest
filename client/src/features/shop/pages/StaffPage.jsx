@@ -17,6 +17,7 @@ const POWERS = [
   ["deleteOrders", "Delete orders"],
   ["shareSlip", "Delivery slip and Share"],
   ["viewAmounts", "See amounts (Total, Advance, Balance)"],
+  ["manageProducts", "Manage products (add, edit, archive)"],
 ];
 
 const inputClass =

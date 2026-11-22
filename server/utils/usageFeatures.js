@@ -14,6 +14,8 @@ module.exports = [
   { key: "orders.refresh", label: "Press Refresh", group: "Orders", where: "client" },
   { key: "orders.bulk_upload", label: "Bulk upload (Excel)", group: "Orders", where: "server" },
   { key: "orders.export", label: "Export (Excel)", group: "Orders", where: "server" },
+  { key: "product.create", label: "Add a product", group: "Products", where: "server" },
+  { key: "product.edit", label: "Edit or archive a product", group: "Products", where: "server" },
   // Sharing
   { key: "whatsapp.open", label: "WhatsApp window opened", group: "Sharing", where: "client" },
   { key: "whatsapp.send", label: "WhatsApp message started", group: "Sharing", where: "client" },

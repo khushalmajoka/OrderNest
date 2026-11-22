@@ -14,6 +14,7 @@ const TABS = [
   { value: "", label: "All" },
   { value: "order", label: "Orders" },
   { value: "staff", label: "Staff" },
+  { value: "product", label: "Products" },
 ];
 
 const Entry = ({ item, myId }) => {
@@ -165,7 +166,7 @@ const ActivityPage = () => {
         <div>
           <h1 className="text-2xl font-bold text-orange-700">Activity</h1>
           <p className="text-sm text-gray-600 mt-1">
-            Who created, edited or deleted orders, and changes to staff. Kept
+            Who created, edited or deleted orders, and changes to staff and products. Kept
             for 6 months.
           </p>
         </div>

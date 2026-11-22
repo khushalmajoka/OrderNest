@@ -30,6 +30,7 @@ const UserSchema = new mongoose.Schema({
   // Staff only: what the admin switched on (viewing orders is always allowed)
   permissions: {
     createOrders: { type: Boolean, default: false },
+    manageProducts: { type: Boolean, default: false }, // add, edit and archive products
     editOrders: { type: Boolean, default: false },
     deleteOrders: { type: Boolean, default: false },
     shareSlip: { type: Boolean, default: false },

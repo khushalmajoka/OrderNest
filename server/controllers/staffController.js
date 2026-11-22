@@ -17,6 +17,7 @@ const POWER_LABELS = {
   deleteOrders: "Delete orders",
   shareSlip: "Delivery slip and Share",
   viewAmounts: "See amounts (Total, Advance, Balance)",
+  manageProducts: "Manage products",
 };
 const onOff = (value) => (value ? "on" : "off");
 

@@ -1,6 +1,6 @@
 // What a staff member can be allowed to do (the admin switches these on).
 // Seeing the orders is always allowed.
-const PERMISSION_KEYS = ["createOrders", "editOrders", "deleteOrders", "shareSlip", "viewAmounts"];
+const PERMISSION_KEYS = ["createOrders", "editOrders", "deleteOrders", "shareSlip", "viewAmounts", "manageProducts"];
 
 // Admin can do everything; staff only what is switched on
 const can = (account, permission) =>

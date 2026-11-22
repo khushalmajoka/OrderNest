@@ -22,6 +22,7 @@ const Onboarding = lazyWithRetry(() => import("./features/shop/pages/Onboarding"
 const Settings = lazyWithRetry(() => import("./features/shop/pages/Settings"));
 const StaffPage = lazyWithRetry(() => import("./features/shop/pages/StaffPage"));
 const ActivityPage = lazyWithRetry(() => import("./features/shop/pages/ActivityPage"));
+const ProductsPage = lazyWithRetry(() => import("./features/products/pages/ProductsPage"));
 const DeveloperPage = lazyWithRetry(() => import("./features/developer/pages/DeveloperPage"));
 
 function App() {
@@ -44,6 +45,7 @@ function App() {
             <Route path="/shop/settings" element={<Settings />} />
             <Route path="/shop/staff" element={<StaffPage />} />
             <Route path="/shop/activity" element={<ActivityPage />} />
+            <Route path="/shop/products" element={<ProductsPage />} />
 
             {/* Developer only: no link anywhere; the server decides who gets any data */}
             <Route path="/developer" element={<DeveloperPage />} />

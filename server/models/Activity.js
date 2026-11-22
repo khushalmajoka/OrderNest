@@ -16,7 +16,7 @@ const activitySchema = new mongoose.Schema(
     },
     // Made by the developer while working inside this shop (shown with a "developer" tag)
     byDeveloper: { type: Boolean, default: false },
-    kind: { type: String, enum: ["order", "staff"], required: true },
+    kind: { type: String, enum: ["order", "staff", "product"], required: true },
     action: { type: String, required: true },
     targetLabel: String, // the order ID, or the staff member's name
     summary: { type: String, required: true, maxlength: 500 },

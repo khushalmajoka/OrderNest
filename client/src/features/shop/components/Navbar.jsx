@@ -47,7 +47,7 @@ const Navbar = ({ shop, account, onLogout }) => {
         {/* Computer: the pages and Logout, right in the bar */}
         <div className="hidden md:flex items-center gap-1 shrink-0">
           <ul className="flex items-center gap-1" aria-label="Pages">
-            {items.map(({ path, label, icon: Icon }) => {
+            {items.map(({ path, label, icon: Icon, beta }) => {
               const current = pathname === path;
               return (
                 <li key={path}>
@@ -64,6 +64,9 @@ const Navbar = ({ shop, account, onLogout }) => {
                   >
                     <Icon size={20} className={current ? "text-orange-800" : "text-orange-600"} />
                     <span className="hidden lg:inline">{label}</span>
+                    {beta && (
+                      <span className="hidden lg:inline text-[10px] font-semibold uppercase rounded bg-amber-200 text-amber-900 px-1 py-0.5">Beta</span>
+                    )}
                   </Link>
                 </li>
               );

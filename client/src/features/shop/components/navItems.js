@@ -5,7 +5,7 @@ import { Code2, History, LayoutDashboard, Package, Settings, Users } from "lucid
 export const NAV_ITEMS = [
   { path: "/shop/dashboard", label: "Dashboard", icon: LayoutDashboard },
   // the admin, and staff who were given "Manage products"
-  { path: "/shop/products", label: "Products", icon: Package, permission: "manageProducts" },
+  { path: "/shop/products", label: "Products", icon: Package, permission: "manageProducts", beta: true },
   { path: "/shop/staff", label: "Staff", icon: Users, adminOnly: true },
   { path: "/shop/activity", label: "Activity", icon: History, adminOnly: true },
   { path: "/shop/settings", label: "Settings", icon: Settings },

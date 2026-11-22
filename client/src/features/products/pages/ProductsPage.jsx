@@ -93,7 +93,10 @@ const ProductsPage = () => {
 
       <div className="p-4 md:p-8 max-w-3xl mx-auto">
         <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
-          <h1 className="text-2xl font-bold text-orange-700">Products</h1>
+          <h1 className="text-2xl font-bold text-orange-700 flex items-center gap-2">
+            Products
+            <span className="text-xs font-semibold uppercase rounded-full bg-amber-200 text-amber-900 px-2 py-0.5">Beta</span>
+          </h1>
           <button
             type="button"
             onClick={() => setEditing("new")}
@@ -102,6 +105,14 @@ const ProductsPage = () => {
             <Plus size={18} /> Add product
           </button>
         </div>
+        <p
+          role="note"
+          className="text-sm rounded-md bg-amber-50 border border-amber-300 text-amber-900 px-3 py-2 mb-3"
+        >
+          <strong>Beta, still being built.</strong> Products is new and is being tested, so it may have
+          problems or change. It does not change your orders. If something looks wrong, please tell the
+          developer.
+        </p>
         <p className="text-sm text-gray-600 mb-4">
           Your list of products. In Create order you pick from it, and its price fills in.
           Changing a product never changes an old order.

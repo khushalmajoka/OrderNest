@@ -64,7 +64,7 @@ const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin, isDeveloper = false, a
           </button>
         </div>
 
-        {navItemsFor(isAdmin, isDeveloper, account).map(({ path, label, icon: Icon }) => {
+        {navItemsFor(isAdmin, isDeveloper, account).map(({ path, label, icon: Icon, beta }) => {
           const current = pathname === path;
           return (
             <button
@@ -80,6 +80,9 @@ const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin, isDeveloper = false, a
             >
               <Icon className="text-orange-600" size={20} />
               {label}
+              {beta && (
+                <span className="text-[10px] font-semibold uppercase rounded bg-amber-200 text-amber-900 px-1 py-0.5">Beta</span>
+              )}
             </button>
           );
         })}

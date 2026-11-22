@@ -1,4 +1,5 @@
 import { useSavedFlash } from "../../../common/hooks/useSavedFlash";
+import { statusLabel } from "../../orders/utils/statusInfo";
 import SavedLabel from "../../../common/components/SavedLabel";
 import { useState } from "react";
 import axios from "axios";
@@ -93,7 +94,7 @@ const StatusColorsCard = ({ shop }) => {
                     enabled ? style.badge : "bg-gray-100 text-gray-400"
                   }`}
                 >
-                  {status}
+                  {statusLabel(status)}
                 </span>
                 <button
                   type="button"

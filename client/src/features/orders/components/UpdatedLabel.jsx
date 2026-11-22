@@ -10,7 +10,7 @@ const ago = (since, now) => {
 };
 
 // "Updated just now" with a small Refresh button, above the order list.
-const UpdatedLabel = ({ since, refreshing, onRefresh }) => {
+const UpdatedLabel = ({ since, refreshing, onRefresh, onGuide }) => {
   const [now, setNow] = useState(Date.now());
 
   useEffect(() => {
@@ -19,7 +19,15 @@ const UpdatedLabel = ({ since, refreshing, onRefresh }) => {
   }, []);
 
   return (
-    <div className="flex items-center justify-end gap-2 mb-2 text-xs text-gray-500">
+    <div className="flex items-center justify-between gap-2 mb-2 text-xs text-gray-500">
+      {onGuide ? (
+        <button type="button" onClick={onGuide} className="underline text-gray-600 hover:text-orange-700">
+          What do the statuses mean?
+        </button>
+      ) : (
+        <span />
+      )}
+      <span className="flex items-center gap-2">
       {since && <span aria-live="off">Updated {ago(since, now)}</span>}
       <button
         type="button"
@@ -31,6 +39,7 @@ const UpdatedLabel = ({ since, refreshing, onRefresh }) => {
       >
         <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Refresh
       </button>
+      </span>
     </div>
   );
 };

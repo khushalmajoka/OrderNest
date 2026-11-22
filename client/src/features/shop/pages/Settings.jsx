@@ -11,6 +11,7 @@ import WhatsAppMessagesCard from "../components/WhatsAppMessagesCard";
 import AmountsPrivacyCard from "../components/AmountsPrivacyCard";
 import CleanNamesCard from "../components/CleanNamesCard";
 import CloseOldOrdersCard from "../components/CloseOldOrdersCard";
+import OrderStatusesCard from "../components/OrderStatusesCard";
 import { can, isAdmin } from "../../../common/utils/permissions";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
 import { useShop } from "../hooks/useShop";
@@ -66,6 +67,8 @@ const Settings = () => {
 
               <div className="space-y-6 min-w-0">
                 {!account.devMode && <ChangePasswordCard />}
+
+                <OrderStatusesCard shop={shop} onSaved={reload} />
 
                 <StatusColorsCard shop={shop} />
 

@@ -27,6 +27,7 @@ module.exports = [
   { key: "activity.view", label: "Activity history opened", group: "Admin", where: "server" },
   { key: "staff.manage", label: "Staff changes", group: "Admin", where: "server" },
   { key: "settings.profile", label: "Shop details saved", group: "Settings", where: "server" },
+  { key: "settings.statuses", label: "Statuses switched on/off", group: "Settings", where: "server" },
   { key: "settings.colors", label: "Status colours saved", group: "Settings", where: "server" },
   { key: "settings.columns", label: "Table columns saved", group: "Settings", where: "server" },
   { key: "settings.slip", label: "Delivery slip settings saved", group: "Settings", where: "server" },

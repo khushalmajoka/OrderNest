@@ -4,6 +4,7 @@ const {
   setupShop,
   getShopByUserId,
   saveStatusColors,
+  saveStatusVisibility,
   saveTableColumns,
   saveSlipSettings,
   saveShopProfile,
@@ -23,6 +24,15 @@ router.put(
   requireAdmin,
   countUse("settings.colors"),
   saveStatusColors
+);
+
+router.put(
+  "/settings/statuses",
+  authenticate,
+  loadUser,
+  requireAdmin,
+  countUse("settings.statuses"),
+  saveStatusVisibility
 );
 
 router.put(

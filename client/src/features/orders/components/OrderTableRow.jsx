@@ -87,7 +87,7 @@ const OrderTableRow = ({
       );
     }
     if (COLUMN_EDITORS[column.key]) {
-      return <FieldEditor column={column} form={edit.form} set={edit.set} shopId={shop._id} onEnter={edit.save} canCloseOld={access.admin} />;
+      return <FieldEditor column={column} form={edit.form} set={edit.set} shopId={shop._id} shop={shop} originalStatus={order.status} onEnter={edit.save} canCloseOld={access.admin} />;
     }
     if (column.key === "balance") {
       // worked out live from Total and Advance

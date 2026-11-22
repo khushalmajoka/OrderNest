@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import ExecutivePicker from "../../../common/components/ExecutivePicker";
-import { CLOSED_OLD, STATUSES } from "../utils/filters";
+import StatusPicker from "../../../common/components/StatusPicker";
+import { offeredStatuses } from "../utils/statusInfo";
 import { COLUMN_EDITORS } from "../utils/orderColumns";
 
 const base =
@@ -13,7 +14,7 @@ const base =
 //   onEnter: what the Enter key does (save)
 // Fields that cannot be edited (Order ID, Balance, Created, Updated) have no
 // editor: the caller shows them greyed out.
-const FieldEditor = ({ column, form, set, shopId, large = false, onEnter, canCloseOld = false }) => {
+const FieldEditor = ({ column, form, set, shopId, shop, originalStatus, large = false, onEnter, canCloseOld = false }) => {
   const spec = COLUMN_EDITORS[column.key];
   if (!spec) return null;
 
@@ -73,16 +74,21 @@ const FieldEditor = ({ column, form, set, shopId, large = false, onEnter, canClo
           onKeyDown={enter}
         />
       );
-    case "status":
+    case "status": {
+      // the statuses the shop uses (and the one this order already has)
+      const options = offeredStatuses(shop, { current: value, canCloseOld });
+      if (originalStatus && !options.includes(originalStatus)) options.push(originalStatus);
       return (
-        <select {...common} value={value} onChange={(e) => set(spec.field, e.target.value)}>
-          {STATUSES.filter((s) => s !== CLOSED_OLD || canCloseOld || value === CLOSED_OLD).map((status) => (
-            <option key={status} value={status}>
-              {status}
-            </option>
-          ))}
-        </select>
+        <StatusPicker
+          value={value}
+          options={options}
+          onChange={(status) => set(spec.field, status)}
+          onEnter={onEnter}
+          large={large}
+          label={column.label}
+        />
       );
+    }
     case "date":
       return (
         <div className="flex items-center gap-1">

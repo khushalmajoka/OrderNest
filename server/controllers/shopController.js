@@ -136,6 +136,33 @@ const saveStatusColors = async (req, res, next) => {
   }
 };
 
+// The statuses a shop may switch off. Order Received, Delivered and Cancelled
+// are always needed, and Closed (old) is only for the admin tool.
+const HIDEABLE_STATUSES = ["Pending", "In Progress", "Completed", "Ready to Dispatch/Pick-Up", "Dispatched"];
+
+// PUT /api/shop/settings/statuses   { hiddenStatuses: ["Pending", "Completed"] }
+// Only decides what is OFFERED when someone changes a status. Orders that
+// already have a switched-off status keep it, and the server still accepts it.
+const saveStatusVisibility = async (req, res, next) => {
+  try {
+    const incoming = req.body?.hiddenStatuses;
+    if (!Array.isArray(incoming) || incoming.some((s) => typeof s !== "string")) {
+      return res.status(400).json({ error: "The list of switched-off statuses is missing." });
+    }
+    const bad = incoming.find((s) => !HIDEABLE_STATUSES.includes(s));
+    if (bad) {
+      return res.status(400).json({ error: `"${bad}" cannot be switched off.` });
+    }
+    const hiddenStatuses = [...new Set(incoming)];
+
+    const shop = await Shop.findOneAndUpdate({ owner: req.user.id }, { hiddenStatuses }, { new: true });
+    if (!shop) return res.status(404).json({ error: "Shop not found" });
+    res.status(200).json({ hiddenStatuses: shop.hiddenStatuses });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 // PUT /api/shop/settings/table-columns   { columns: ["orderId", "status", ...] }
 const saveTableColumns = async (req, res, next) => {
   try {
@@ -291,4 +318,5 @@ module.exports = {
   setupShop,
   getShopByUserId,
   saveStatusColors,
+  saveStatusVisibility,
 };

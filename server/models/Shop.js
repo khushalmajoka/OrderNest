@@ -17,6 +17,9 @@ const shopSchema = new mongoose.Schema({
   // Row colour per order status: { "Pending": { enabled: true, color: "yellow" } }
   // Statuses missing here use the app's defaults.
   statusColors: { type: mongoose.Schema.Types.Mixed },
+  // Statuses the shop switched OFF (not offered when changing an order's status).
+  // Not set = the app's default (Pending and Completed are off).
+  hiddenStatuses: { type: [String], default: undefined },
   // Main switches for the colouring: all colouring, the whole-row tint, and the
   // coloured line at the start of a row. Not set = on (as it always was).
   colorMaster: { type: Boolean },

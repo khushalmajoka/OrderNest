@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { statusLabel } from "../../orders/utils/statusInfo";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { useSavedFlash } from "../../../common/hooks/useSavedFlash";
@@ -129,7 +130,7 @@ const WhatsAppMessagesCard = ({ shop }) => {
             <div key={status}>
               <div className="flex items-center justify-between gap-2 mb-1">
                 <label htmlFor={`wa-${status}`} className="text-sm font-semibold text-gray-700">
-                  {status}
+                  {statusLabel(status)}
                 </label>
                 {!isDefault && (
                   <button

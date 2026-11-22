@@ -10,6 +10,7 @@ import { useOrders } from "../hooks/useOrders";
 import { useOrderSummary } from "../hooks/useOrderSummary";
 import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import UpdatedLabel from "../components/UpdatedLabel";
+import StatusGuideDialog from "../components/StatusGuideDialog";
 import { trackUse } from "../../../common/utils/usage";
 import { useBalanceHidden, useListAmountsHidden } from "../hooks/useAmountsHidden";
 import SummaryStrip from "../components/SummaryStrip";
@@ -119,6 +120,7 @@ const Dashboard = () => {
     },
   });
   const [refreshing, setRefreshing] = useState(false);
+  const [showStatusGuide, setShowStatusGuide] = useState(false);
   const handleRefreshClick = async () => {
     trackUse("orders.refresh");
     setRefreshing(true);
@@ -356,7 +358,12 @@ const Dashboard = () => {
         ) : (
           // Keep the table on screen (dimmed) while the next page loads
           <div className={loading ? "opacity-60 transition-opacity" : ""}>
-            <UpdatedLabel since={checkedAt} refreshing={refreshing || loading} onRefresh={handleRefreshClick} />
+            <UpdatedLabel
+              since={checkedAt}
+              refreshing={refreshing || loading}
+              onRefresh={handleRefreshClick}
+              onGuide={() => setShowStatusGuide(true)}
+            />
             <OrderList
               orders={orders}
               shop={shop}
@@ -397,6 +404,8 @@ const Dashboard = () => {
             onClose={() => setShowExport(false)}
           />
         )}
+
+        {showStatusGuide && <StatusGuideDialog shop={shop} onClose={() => setShowStatusGuide(false)} />}
 
         {showCreateModal && (
           <CreateOrderModal

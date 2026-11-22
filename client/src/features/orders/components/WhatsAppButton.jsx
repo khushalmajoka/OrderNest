@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { statusLabel } from "../utils/statusInfo";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 import WhatsAppIcon from "../../../common/components/WhatsAppIcon";
@@ -210,7 +211,7 @@ const LanguageDialog = ({ order, shop, onClose }) => {
         <h2 className="text-lg font-semibold text-gray-800 pr-8">Send on WhatsApp</h2>
         <p className="text-sm text-gray-600">
           To {order.customerName || "the customer"} ({order.phone}) about status{" "}
-          <span className="font-medium">{order.status}</span>. Choose a language;
+          <span className="font-medium">{statusLabel(order.status)}</span>. Choose a language;
           WhatsApp opens with the message ready, then tap Send.
         </p>
 

@@ -1,6 +1,8 @@
 // Order filters: what the filter window holds, how it is sent to the server,
 // and how it is shown as removable chips.
 
+import { statusLabel } from "./statusInfo";
+
 export const STATUSES = [
   "Order Received",
   "Pending",
@@ -76,7 +78,7 @@ const niceDate = (value) => {
 export const filterChips = (f) => {
   const chips = [];
   if (f.status.length) {
-    chips.push({ id: "status", label: `Status: ${f.status.join(", ")}`, clear: { status: [] } });
+    chips.push({ id: "status", label: `Status: ${f.status.map(statusLabel).join(", ")}`, clear: { status: [] } });
   }
   if (f.overdue) chips.push({ id: "overdue", label: "Overdue", clear: { overdue: false } });
   if (f.hasBalance) chips.push({ id: "hasBalance", label: "Balance due", clear: { hasBalance: false } });

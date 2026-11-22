@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { statusHint, statusLabel } from "../utils/statusInfo";
 import { Check, ChevronDown, ChevronUp, Lock, Pencil, Share2, Trash2, Truck } from "lucide-react";
 import { formatDay, formatDateTime } from "../../../common/utils/formatDate";
 import { DeliverySlipDialog, OrderShareDialog, WithOpening } from "../lazyDialogs";
@@ -72,7 +73,7 @@ const OrderMobileCard = ({
               return (
                 <div key={key}>
                   <span className="block text-xs text-gray-600 mb-1">{column.label}</span>
-                  <FieldEditor column={column} form={edit.form} set={edit.set} shopId={shop._id} large onEnter={edit.save} canCloseOld={access.admin} />
+                  <FieldEditor column={column} form={edit.form} set={edit.set} shopId={shop._id} shop={shop} originalStatus={order.status} large onEnter={edit.save} canCloseOld={access.admin} />
                 </div>
               );
             })}
@@ -136,11 +137,12 @@ const OrderMobileCard = ({
           </p>
         </div>
         <span
+          title={statusHint(order.status)}
           className={`shrink-0 px-2 py-1 rounded-full text-xs font-medium text-center ${
             statusStyle ? statusStyle.badge : "bg-orange-100 text-orange-700"
           }`}
         >
-          {order.status}
+          {statusLabel(order.status)}
         </span>
       </div>
 

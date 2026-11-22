@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { statusHint, statusLabel } from "../utils/statusInfo";
 import { EMPTY_FILTERS, STATUSES } from "../utils/filters";
 
 const inputClass =
@@ -99,13 +100,14 @@ const FilterPanel = ({ filters, onApply, onClose, showAmounts = true }) => {
                     type="button"
                     aria-pressed={on}
                     onClick={() => toggleStatus(status)}
+                    title={statusHint(status)}
                     className={`px-3 py-1.5 rounded-full border text-sm ${
                       on
                         ? "bg-orange-500 border-orange-500 text-white"
                         : "bg-white border-gray-300 text-gray-700"
                     }`}
                   >
-                    {status}
+                    {statusLabel(status)}
                   </button>
                 );
               })}

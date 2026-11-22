@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { statusLabel } from "../../orders/utils/statusInfo";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "../../../common/utils/api";
@@ -221,7 +222,7 @@ const CloseOldOrdersCard = ({ shop }) => {
                   onChange={() => toggleStatus(status)}
                   className="w-4 h-4 accent-orange-500"
                 />
-                {status}
+                {statusLabel(status)}
               </label>
             ))}
           </div>
@@ -302,7 +303,7 @@ const CloseOldOrdersCard = ({ shop }) => {
                   </p>
                   <p className="text-gray-600">
                     {Object.entries(preview.byStatus)
-                      .map(([status, n]) => `${status}: ${n}`)
+                      .map(([status, n]) => `${statusLabel(status)}: ${n}`)
                       .join(" · ")}
                   </p>
                   <p className="text-gray-600">

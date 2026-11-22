@@ -1,4 +1,5 @@
 import { formatDay, formatDateTime } from "../../../common/utils/formatDate";
+import { statusHint, statusLabel } from "./statusInfo";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
 
 // "₹1500", or dots when amounts are hidden (the eye button on the dashboard)
@@ -39,12 +40,13 @@ export const ORDER_COLUMNS = [
     cell: (o, { statusStyle }) =>
       statusStyle ? (
         <span
+          title={statusHint(o.status)}
           className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${statusStyle.badge}`}
         >
-          {o.status}
+          {statusLabel(o.status)}
         </span>
       ) : (
-        o.status
+        <span title={statusHint(o.status)}>{statusLabel(o.status)}</span>
       ),
   },
   {

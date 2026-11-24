@@ -8,22 +8,12 @@ import {
 import { Toaster } from "react-hot-toast";
 import LoadingScreen from "./common/components/LoadingScreen";
 import ErrorBoundary from "./common/components/ErrorBoundary";
-import { lazyWithRetry } from "./common/utils/lazyWithRetry";
+import { pages } from "./common/utils/pages";
 
-// Every page is downloaded only when it is opened, so a customer who just
-// tracks an order does not download the whole shop app.
-const TrackOrderPage = lazyWithRetry(() => import("./features/tracking/pages/TrackOrderPage"));
-const LoginPage = lazyWithRetry(() => import("./features/auth/pages/LoginPage"));
-const SignupPage = lazyWithRetry(() => import("./features/auth/pages/SignupPage"));
-const ForgotPasswordPage = lazyWithRetry(() => import("./features/auth/pages/ForgotPasswordPage"));
-const VerifyEmailPage = lazyWithRetry(() => import("./features/auth/pages/VerifyEmailPage"));
-const DashboardPage = lazyWithRetry(() => import("./features/orders/pages/DashboardPage"));
-const Onboarding = lazyWithRetry(() => import("./features/shop/pages/Onboarding"));
-const Settings = lazyWithRetry(() => import("./features/shop/pages/Settings"));
-const StaffPage = lazyWithRetry(() => import("./features/shop/pages/StaffPage"));
-const ActivityPage = lazyWithRetry(() => import("./features/shop/pages/ActivityPage"));
-const ProductsPage = lazyWithRetry(() => import("./features/products/pages/ProductsPage"));
-const DeveloperPage = lazyWithRetry(() => import("./features/developer/pages/DeveloperPage"));
+const {
+  TrackOrderPage, LoginPage, SignupPage, ForgotPasswordPage, VerifyEmailPage, DashboardPage,
+  Onboarding, Settings, StaffPage, ActivityPage, ProductsPage, DeveloperPage,
+} = pages;
 
 function App() {
   return (

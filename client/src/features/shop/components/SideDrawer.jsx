@@ -5,7 +5,7 @@ import LogoutDialog from "./LogoutDialog";
 import { navItemsFor } from "./navItems";
 
 // The side menu for phones (on a computer the pages are in the top bar).
-const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin, isDeveloper = false, account = null }) => {
+const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin, isDeveloper = false, account = null, onOpening }) => {
   const [showDrawer, setShowDrawer] = useState(false);
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const navigate = useNavigate();
@@ -70,6 +70,7 @@ const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin, isDeveloper = false, a
             <button
               key={path}
               onClick={() => {
+                if (!current) onOpening?.(path);
                 navigate(path);
                 onClose();
               }}

@@ -6,6 +6,7 @@ import LogoutDialog from "./LogoutDialog";
 import DevBanner from "./DevBanner";
 import { navItemsFor } from "./navItems";
 import { getShopLogo } from "../../../common/utils/utils";
+import { preloadPage, preloadWhenIdle } from "../../../common/utils/pages";
 
 // The top bar. On a computer (768 px and wider) the pages and Logout are right
 // here as icons, one click away (names are written next to the icons on wider
@@ -16,6 +17,20 @@ const Navbar = ({ shop, account, onLogout }) => {
   const { pathname } = useLocation();
   const isAdmin = account?.role === "admin";
   const items = navItemsFor(isAdmin, Boolean(account?.isDeveloper), account);
+  // the page being opened: a page that is not downloaded yet takes a moment, so say so
+  const [opening, setOpening] = useState(null);
+  const paths = items.map((i) => i.path).join("|");
+
+  // quietly download the other pages, so a click on them is instant
+  useEffect(() => preloadWhenIdle(paths ? paths.split("|") : []), [paths]);
+
+  // if it never opens (a bad connection), stop saying "opening" after a while
+  useEffect(() => {
+    if (!opening) return undefined;
+    const timer = setTimeout(() => setOpening(null), 20000);
+    return () => clearTimeout(timer);
+  }, [opening]);
+  const openingItem = items.find((i) => i.path === opening);
 
   // Escape closes the logout question
   useEffect(() => {
@@ -31,6 +46,11 @@ const Navbar = ({ shop, account, onLogout }) => {
     <>
       {/* One sticky block: the developer banner (if any) and the bar stay together */}
       <div className="sticky top-0 z-10">
+      {openingItem && (
+        <div role="status" className="absolute top-0 inset-x-0 h-1 bg-orange-500 animate-pulse motion-reduce:animate-none z-10">
+          <span className="sr-only">Opening {openingItem.label}</span>
+        </div>
+      )}
       {account?.devMode && <DevBanner shop={shop} />}
       <nav className="bg-orange-50 border-b border-orange-200 shadow-md px-4 md:px-6 py-3 flex justify-between items-center gap-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -53,13 +73,20 @@ const Navbar = ({ shop, account, onLogout }) => {
                 <li key={path}>
                   <Link
                     to={path}
+                    onClick={() => !current && setOpening(path)}
+                    onPointerEnter={() => preloadPage(path)}
+                    onFocus={() => preloadPage(path)}
+                    onTouchStart={() => preloadPage(path)}
+                    aria-busy={opening === path ? "true" : undefined}
                     aria-current={current ? "page" : undefined}
                     aria-label={label}
                     title={label}
                     className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition ${
                       current
                         ? "bg-orange-200 text-orange-900"
-                        : "text-orange-800 hover:bg-orange-100"
+                        : opening === path
+                          ? "bg-orange-100 text-orange-800 animate-pulse motion-reduce:animate-none"
+                          : "text-orange-800 hover:bg-orange-100"
                     }`}
                   >
                     <Icon size={20} className={current ? "text-orange-800" : "text-orange-600"} />
@@ -106,6 +133,7 @@ const Navbar = ({ shop, account, onLogout }) => {
           isAdmin={isAdmin}
           isDeveloper={Boolean(account?.isDeveloper)}
           account={account}
+          onOpening={setOpening}
         />
       </div>
 

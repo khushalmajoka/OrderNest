@@ -4,6 +4,8 @@ import toast from "react-hot-toast";
 import ModalShell, { Field, inputClass } from "../../../common/components/ModalShell";
 import { getErrorMessage } from "../../../common/utils/api";
 import { DIM_UNITS, PRICE_UNITS, SIZE_KINDS, WEIGHT_UNITS } from "../utils/productOptions";
+import { uploadPicture } from "../utils/pictures";
+import PicturesField from "./PicturesField";
 
 const blank = {
   name: "",
@@ -63,11 +65,13 @@ const num = "w-full border border-gray-300 p-2 rounded focus:outline-none focus:
 //   canSetPrice: this person may see and set prices
 //   categories / canSetCategory: only the admin picks a category
 //   onSaved(product): called after a good save
-const ProductFormModal = ({ product, canSetPrice, categories = [], canSetCategory = false, onClose, onSaved, defaultName = "" }) => {
+const ProductFormModal = ({ product, canSetPrice, categories = [], canSetCategory = false, onClose, onSaved, onPicturesChanged, defaultName = "" }) => {
   const start = product ? fromProduct(product) : { ...blank, name: defaultName };
   const [form, setForm] = useState(start);
   const [saving, setSaving] = useState(false);
-  const dirty = JSON.stringify(form) !== JSON.stringify(start);
+  const [images, setImages] = useState(product?.images || []); // saved pictures (changes are saved at once)
+  const [pending, setPending] = useState([]); // pictures of a NEW product, saved with it
+  const dirty = JSON.stringify(form) !== JSON.stringify(start) || pending.length > 0;
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
 
   const submit = async (e) => {
@@ -82,7 +86,19 @@ const ProductFormModal = ({ product, canSetPrice, categories = [], canSetCategor
         data: toBody(form, canSetPrice, canSetCategory),
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
+      // a new product: now save the pictures chosen for it
+      let lost = 0;
+      if (!product) {
+        for (const picture of pending) {
+          try {
+            await uploadPicture(res.data.product._id, picture);
+          } catch {
+            lost += 1;
+          }
+        }
+      }
       toast.success(product ? "Product saved." : "Product added.");
+      if (lost) toast.error(`${lost} ${lost === 1 ? "picture" : "pictures"} could not be saved. Open Edit on the product to add ${lost === 1 ? "it" : "them"} again.`);
       onSaved(res.data.product);
     } catch (err) {
       toast.error(getErrorMessage(err, "Could not save the product."));
@@ -172,6 +188,19 @@ const ProductFormModal = ({ product, canSetPrice, categories = [], canSetCategor
           </select>
         </Field>
       )}
+      <div role="group" aria-label="Pictures">
+        <span className="block text-sm font-medium text-gray-700 mb-1">
+          Pictures<span className="font-normal text-gray-400"> (optional)</span>
+        </span>
+        <PicturesField
+          productId={product?._id || null}
+          images={images}
+          onImages={setImages}
+          pending={pending}
+          onPending={setPending}
+          onChanged={onPicturesChanged}
+        />
+      </div>
       <Field label="Notes" hint="(optional, e.g. price changes with the design)">
         <textarea value={form.notes} onChange={set("notes")} rows={3} maxLength={300} className={inputClass} />
       </Field>

@@ -25,6 +25,8 @@ const productSchema = new mongoose.Schema(
     notes: { type: String, maxlength: 300 },
     // the group it belongs to (set only by the admin); empty = Uncategorized
     category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
+    // pictures, in the order shown (the first is the main one); the pictures live in ProductImage
+    images: [{ type: mongoose.Schema.Types.ObjectId, ref: "ProductImage" }],
     active: { type: Boolean, default: true },
     // lower case "name|size": the same product cannot be added twice in a shop
     nameKey: { type: String, required: true },

@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "../../../common/utils/api";
 import { productLabel, priceText } from "../utils/productOptions";
+import ProductThumb from "./ProductThumb";
 
 const inputClass =
   "w-full border border-gray-300 rounded px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-400";
@@ -130,10 +131,13 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
                     setQuery("");
                     onPick(p);
                   }}
-                  className="w-full text-left px-3 py-2 min-h-[44px] hover:bg-orange-50 focus:bg-orange-50 focus:outline-none"
+                  className="w-full text-left px-3 py-2 min-h-[44px] hover:bg-orange-50 focus:bg-orange-50 focus:outline-none flex items-center gap-3"
                 >
-                  <span className="block text-sm text-gray-900">{productLabel(p)}</span>
-                  {showPrice && priceText(p) && <span className="block text-xs text-gray-600">{priceText(p)}</span>}
+                  {p.images?.length > 0 && <ProductThumb product={p} size="w-10 h-10" />}
+                  <span className="min-w-0">
+                    <span className="block text-sm text-gray-900">{productLabel(p)}</span>
+                    {showPrice && priceText(p) && <span className="block text-xs text-gray-600">{priceText(p)}</span>}
+                  </span>
                 </button>
               </li>
             ))

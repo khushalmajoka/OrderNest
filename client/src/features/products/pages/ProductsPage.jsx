@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { ChevronDown, ChevronRight, FolderCog, History, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderCog, History, LayoutGrid, List, Plus } from "lucide-react";
 import Navbar from "../../shop/components/Navbar";
 import LoadingScreen from "../../../common/components/LoadingScreen";
 import { Bar, SkeletonRegion } from "../../../common/components/Skeleton";
@@ -14,7 +14,8 @@ import ProductFormModal from "../components/ProductFormModal";
 import BuildFromOrdersDialog from "../components/BuildFromOrdersDialog";
 import TidySizesDialog from "../components/TidySizesDialog";
 import CategoriesDialog from "../components/CategoriesDialog";
-import { priceText } from "../utils/productOptions";
+import ProductItem from "../components/ProductItem";
+import PictureViewer from "../components/PictureViewer";
 
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 
@@ -45,6 +46,22 @@ const ProductsPage = () => {
   const [moveTo, setMoveTo] = useState("");
   const [moving, setMoving] = useState(false);
   const [showCats, setShowCats] = useState(false);
+  const [viewing, setViewing] = useState(null); // the product whose pictures are shown big
+  const [view, setView] = useState(() => {
+    try {
+      return localStorage.getItem("productsView") === "cards" ? "cards" : "list";
+    } catch {
+      return "list";
+    }
+  });
+  const chooseView = (v) => {
+    setView(v);
+    try {
+      localStorage.setItem("productsView", v);
+    } catch {
+      /* storage blocked: it just is not remembered */
+    }
+  };
 
   useEffect(() => {
     if (account && !allowed) navigate("/shop/dashboard"); // not for this person
@@ -184,7 +201,7 @@ const ProductsPage = () => {
     <div className="min-h-screen bg-orange-50 font-poppins">
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
 
-      <div className="p-4 md:p-8 max-w-3xl mx-auto">
+      <div className={`p-4 md:p-8 mx-auto ${view === "cards" ? "max-w-5xl" : "max-w-3xl"}`}>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
           <h1 className="text-2xl font-bold text-orange-700 flex items-center gap-2">
             Products
@@ -253,6 +270,19 @@ const ProductsPage = () => {
             <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} className="w-4 h-4 accent-orange-500" />
             Show archived
           </label>
+          <div role="group" aria-label="How to show the products" className="flex rounded-lg border border-gray-300 overflow-hidden bg-white">
+            {[["list", "List", List], ["cards", "Cards", LayoutGrid]].map(([v, text, Icon]) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => chooseView(v)}
+                aria-pressed={view === v}
+                className={`flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-sm ${view === v ? "bg-orange-500 text-white" : "text-gray-700 hover:bg-orange-50"}`}
+              >
+                <Icon size={16} /> {text}
+              </button>
+            ))}
+          </div>
         </div>
 
         {(categories.length > 0 || counts.none < (products || []).length) && products && (
@@ -341,54 +371,23 @@ const ProductsPage = () => {
                     </p>
                   )}
                   {open && g.items.length > 0 && (
-                    <ul className="space-y-2" aria-label={showHeading ? g.name : "Products"}>
+                    <ul
+                      className={view === "cards" ? "grid grid-cols-2 md:grid-cols-3 gap-3" : "space-y-2"}
+                      aria-label={showHeading ? g.name : "Products"}
+                    >
                       {g.items.map((p) => (
-                        <li
+                        <ProductItem
                           key={p._id}
-                          className={`bg-white rounded-lg border border-orange-100 p-3 sm:p-4 flex flex-wrap items-start justify-between gap-3 ${p.active ? "" : "opacity-70"}`}
-                        >
-                          <div className="min-w-0 flex gap-3">
-                            {isAdmin && (
-                              <input
-                                type="checkbox"
-                                checked={selected.has(p._id)}
-                                onChange={() => toggleSelect(p._id)}
-                                aria-label={`Tick ${p.name}${p.sizeLabel ? " " + p.sizeLabel : ""}`}
-                                className="w-5 h-5 mt-0.5 accent-orange-500 shrink-0"
-                              />
-                            )}
-                            <div className="min-w-0">
-                              <p className="font-medium text-gray-900 break-words">
-                                {p.name}
-                                {p.sizeLabel && <span className="text-gray-600 font-normal"> · {p.sizeLabel}</span>}
-                                {!p.active && (
-                                  <span className="ml-2 text-xs rounded-full bg-gray-200 text-gray-700 px-2 py-0.5">Archived</span>
-                                )}
-                              </p>
-                              {priceText(p) && <p className="text-sm text-gray-700">{priceText(p)}</p>}
-                              {p.notes && <p className="text-xs text-gray-500 break-words mt-0.5">{p.notes}</p>}
-                            </div>
-                          </div>
-                          <div className="flex gap-2 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => setEditing(p)}
-                              aria-label={`Edit ${p.name}`}
-                              className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-orange-50"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              disabled={busyId === p._id}
-                              onClick={() => setActive(p, !p.active)}
-                              aria-label={`${p.active ? "Archive" : "Restore"} ${p.name}`}
-                              className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-orange-50 disabled:opacity-60"
-                            >
-                              {p.active ? "Archive" : "Restore"}
-                            </button>
-                          </div>
-                        </li>
+                          p={p}
+                          view={view}
+                          isAdmin={isAdmin}
+                          selected={selected.has(p._id)}
+                          onToggle={() => toggleSelect(p._id)}
+                          onEdit={() => setEditing(p)}
+                          onArchive={() => setActive(p, !p.active)}
+                          busy={busyId === p._id}
+                          onPictures={() => setViewing(p)}
+                        />
                       ))}
                     </ul>
                   )}
@@ -440,6 +439,7 @@ const ProductsPage = () => {
           onChanged={load}
         />
       )}
+      {viewing && <PictureViewer product={products?.find((x) => x._id === viewing._id) || viewing} onClose={() => setViewing(null)} />}
       {showBuild && <BuildFromOrdersDialog onClose={() => setShowBuild(false)} onAdded={() => { load(); loadTidy(); }} />}
       {showTidy && (
         <TidySizesDialog
@@ -459,6 +459,7 @@ const ProductsPage = () => {
           canSetPrice={canSetPrice}
           categories={categories}
           canSetCategory={isAdmin}
+          onPicturesChanged={load}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);

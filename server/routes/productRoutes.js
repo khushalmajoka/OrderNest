@@ -4,6 +4,7 @@ const authenticate = require("../middlewares/authenticate");
 const loadUser = require("../middlewares/loadUser");
 const loadShop = require("../middlewares/loadShop");
 const { requirePermission, requireAdmin } = require("../middlewares/access");
+const { addImage, deleteImage, orderImages, getImage } = require("../controllers/productImageController");
 const { createCategory, renameCategory, deleteCategory, moveProducts } = require("../controllers/categoryController");
 const { countUse } = require("../utils/usage");
 
@@ -21,6 +22,11 @@ router.post("/tidy-sizes", authenticate, loadUser, loadShop, requirePermission("
 router.post("/", authenticate, loadUser, loadShop, requirePermission("manageProducts"), countUse("product.create"), createProduct);
 router.put("/:id", authenticate, loadUser, loadShop, requirePermission("manageProducts"), countUse("product.edit"), updateProduct);
 
+// Pictures: see (anyone who sees products), add / remove / reorder (Manage products)
+router.get("/images/:imageId", authenticate, loadUser, loadShop, getImage);
+router.post("/:id/images", authenticate, loadUser, loadShop, requirePermission("manageProducts"), countUse("product.image"), addImage);
+router.put("/:id/images/order", authenticate, loadUser, loadShop, requirePermission("manageProducts"), countUse("product.image"), orderImages);
+router.delete("/images/:imageId", authenticate, loadUser, loadShop, requirePermission("manageProducts"), countUse("product.image"), deleteImage);
 // Categories: the admin only (made, renamed, deleted, and products moved into them)
 router.post("/categories", authenticate, loadUser, loadShop, requireAdmin, countUse("category.manage"), createCategory);
 router.put("/categories/:id", authenticate, loadUser, loadShop, requireAdmin, countUse("category.manage"), renameCategory);

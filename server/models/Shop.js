@@ -43,6 +43,8 @@ const shopSchema = new mongoose.Schema({
   // and a short note printed at the bottom of every slip.
   slipFields: { type: mongoose.Schema.Types.Mixed },
   slipNote: { type: String, maxlength: 200, default: "" },
+  // Show a product's note (e.g. Landscape) on the share picture. Not set = on.
+  pictureProductNote: { type: Boolean },
 
   // Texts the shop changed for the WhatsApp messages:
   // { en: { "Pending": "text..." }, hi: {...}, hinglish: {...} }

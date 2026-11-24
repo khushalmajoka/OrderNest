@@ -63,6 +63,7 @@ const parsePart = (text) => {
   let rest = String(text ?? "");
   let size = { kind: "none" };
   let sizeLabel = "";
+  let written = "";
 
   let threeQuantity = null;
   let dim = rest.match(DIMENSIONS);
@@ -81,8 +82,12 @@ const parsePart = (text) => {
   if (dim) {
     const nums = [dim[1], dim[2], dim[3]].filter(Boolean).map(numberText);
     const dimUnit = unitOf(dim[4]);
-    size = { kind: "dimensions", length: Number(nums[0]), breadth: Number(nums[1]), ...(nums[2] ? { height: Number(nums[2]) } : {}), dimUnit };
-    sizeLabel = `${nums.join(" x ")} ${dimUnit}`;
+    // 8 x 10 and 10 x 8 are one size: the smaller number first (how it was typed is kept in `written`)
+    const first = Math.min(Number(nums[0]), Number(nums[1]));
+    const second = Math.max(Number(nums[0]), Number(nums[1]));
+    size = { kind: "dimensions", length: first, breadth: second, ...(nums[2] ? { height: Number(nums[2]) } : {}), dimUnit };
+    sizeLabel = `${[first, second, nums[2]].filter((n) => n !== undefined).map(numberText).join(" x ")} ${dimUnit}`;
+    written = `${nums.join(" x ")} ${dimUnit}`;
     rest = rest.replace(dim[0], " ");
   } else {
     const weight = rest.match(WEIGHT);
@@ -120,7 +125,7 @@ const parsePart = (text) => {
   const name = singularName(titleCase(words.join(" "))).slice(0, 100).trim();
   if (name.length < 2 || !/\p{L}{2}/u.test(name)) return null;
 
-  return { name, size, sizeLabel, quantity };
+  return { name, size, sizeLabel, written, quantity };
 };
 
 // The text of an order -> its products ("Frame 12x18 + Resin 8x11" is two)
@@ -154,10 +159,11 @@ const suggestProducts = (orders, existingKeys, { min = 2, withPrices = true } = 
       }
       let g = groups.get(key);
       if (!g) {
-        g = { key, name: part.name, size: part.size, sizeLabel: part.sizeLabel, count: 0, prices: new Map() };
+        g = { key, name: part.name, size: part.size, sizeLabel: part.sizeLabel, count: 0, prices: new Map(), written: new Map() };
         groups.set(key, g);
       }
       g.count += 1;
+      if (part.written) g.written.set(part.written, (g.written.get(part.written) || 0) + 1);
       const total = Number(order.total);
       if (!part.multi && Number.isFinite(total) && total > 0) {
         const unit = Math.round((part.quantity ? total / part.quantity : total) * 100) / 100;
@@ -170,9 +176,22 @@ const suggestProducts = (orders, existingKeys, { min = 2, withPrices = true } = 
   const all = [...groups.values()].filter((g) => g.count >= min).sort((a, b) => b.count - a.count || a.key.localeCompare(b.key));
   const suggestions = all.slice(0, MAX_SUGGESTIONS).map((g) => {
     const top = withPrices && g.prices.size ? best(g.prices) : null;
-    return { name: g.name, size: g.size, sizeLabel: g.sizeLabel, count: g.count, ...(top ? { usualPrice: top[0], usualCount: top[1] } : {}) };
+    // how the size was typed in the orders, when it was typed both ways (8 x 10 and 10 x 8)
+    const writtenAs = g.written.size > 1 ? [...g.written.entries()].sort((a, b) => b[1] - a[1]).map(([label, count]) => ({ label, count })) : undefined;
+    return { name: g.name, size: g.size, sizeLabel: g.sizeLabel, count: g.count, ...(writtenAs ? { writtenAs } : {}), ...(top ? { usualPrice: top[0], usualCount: top[1] } : {}) };
   });
   return { suggestions, groups: all.length, orders: all.reduce((sum, g) => sum + g.count, 0), alreadyInList: known.size };
 };
 
-module.exports = { parseItem, parsePart, suggestProducts, keyOf, MAX_SUGGESTIONS };
+// The size of a saved product with the smaller number first ("18 x 12 inch" -> "12 x 18 inch").
+// Products made before this rule may still be written the other way round.
+const sizeLabelOf = (product) => {
+  const size = product.size;
+  if (size && size.kind === "dimensions" && size.length > size.breadth) {
+    const nums = [size.breadth, size.length, size.height].filter((n) => n !== undefined && n !== null);
+    return `${nums.map(numberText).join(" x ")} ${size.dimUnit}`;
+  }
+  return product.sizeLabel || "";
+};
+
+module.exports = { parseItem, parsePart, suggestProducts, keyOf, sizeLabelOf, MAX_SUGGESTIONS };

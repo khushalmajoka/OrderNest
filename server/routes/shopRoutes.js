@@ -7,6 +7,7 @@ const {
   saveStatusVisibility,
   saveWhatsappPrompt,
   saveNeedsReview,
+  saveSharePicture,
   saveTableColumns,
   saveSlipSettings,
   saveShopProfile,
@@ -35,6 +36,15 @@ router.put(
   requireAdmin,
   countUse("settings.statuses"),
   saveStatusVisibility
+);
+
+router.put(
+  "/settings/share-picture",
+  authenticate,
+  loadUser,
+  requireAdmin,
+  countUse("settings.share_picture"),
+  saveSharePicture
 );
 
 router.put(

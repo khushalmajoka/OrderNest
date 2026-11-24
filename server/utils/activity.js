@@ -57,6 +57,11 @@ const ORDER_FIELDS = [
     label: "Quantity",
     read: (v) => (Array.isArray(v) ? v.map((l) => `${l.quantity} ${l.unit && l.unit !== "piece" ? l.unit : ""}`.trim()).join(", ") : ""),
   },
+  {
+    key: "lines",
+    label: "Product note",
+    read: (v) => (Array.isArray(v) ? v.map((l) => String(l.note || "").trim()).filter(Boolean).join(", ") : ""),
+  },
   { key: "total", label: "Total", read: (v) => Number(v) || 0, show: money },
   { key: "advance", label: "Advance", read: (v) => Number(v) || 0, show: money },
   { key: "status", label: "Status", read: (v) => String(v ?? "") },

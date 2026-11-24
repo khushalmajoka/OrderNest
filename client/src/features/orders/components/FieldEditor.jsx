@@ -42,7 +42,7 @@ const FieldEditor = ({ column, form, set, shopId, shop, originalStatus, large = 
             {texts.map((t, i) => (
               <p key={i} className="flex items-start gap-1">
                 <Package size={13} className="mt-1 shrink-0 text-orange-600" aria-hidden="true" />
-                <span className="break-words">{t.label} × {t.qty}</span>
+                <span className="break-words">{t.label} × {t.qty}{t.note ? ` · ${t.note}` : ""}</span>
               </p>
             ))}
           </div>

@@ -11,6 +11,8 @@ import { priceText, productLabel, quantityUnit } from "../utils/productOptions";
 const LinesEditor = ({ lines, onChange, showPrice = true, canCreate = false, canSetPrice = false }) => {
   const setQuantity = (index, quantity) =>
     onChange(lines.map((l, i) => (i === index ? { ...l, quantity } : l)));
+  const setNote = (index, note) =>
+    onChange(lines.map((l, i) => (i === index ? { ...l, note } : l)));
   const remove = (index) => onChange(lines.filter((_, i) => i !== index));
   const add = (product) => {
     // the same product again: one more of it
@@ -18,7 +20,7 @@ const LinesEditor = ({ lines, onChange, showPrice = true, canCreate = false, can
     if (at >= 0) {
       onChange(lines.map((l, i) => (i === at ? { ...l, quantity: String((Number(l.quantity) || 0) + 1) } : l)));
     } else {
-      onChange([...lines, { product, quantity: "1" }]);
+      onChange([...lines, { product, quantity: "1", note: "" }]);
     }
   };
 
@@ -58,6 +60,36 @@ const LinesEditor = ({ lines, onChange, showPrice = true, canCreate = false, can
                     className="w-28 border border-gray-300 rounded px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
                   />
                 </label>
+                {/* sizes like 8 x 10 are one size either way round: the direction is a small note on the order */}
+                {(/\d\s*x\s*\d/i.test(line.product.sizeLabel || "") || line.note) && (
+                  <div className="mt-2">
+                    <label className="block text-sm text-gray-700">
+                      Direction or note (optional)
+                      <input
+                        type="text"
+                        value={line.note || ""}
+                        maxLength={40}
+                        onChange={(e) => setNote(i, e.target.value)}
+                        placeholder="e.g. Landscape"
+                        aria-label={`Note for ${productLabel(line.product)}`}
+                        className="mt-1 block w-full border border-gray-300 rounded px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white"
+                      />
+                    </label>
+                    <div className="mt-1 flex gap-2">
+                      {["Portrait", "Landscape"].map((word) => (
+                        <button
+                          key={word}
+                          type="button"
+                          onClick={() => setNote(i, line.note === word ? "" : word)}
+                          aria-pressed={line.note === word}
+                          className={`px-3 py-2 min-h-[44px] rounded-full border text-sm ${line.note === word ? "bg-orange-500 border-orange-500 text-white" : "border-gray-300 text-gray-700 bg-white hover:bg-orange-50"}`}
+                        >
+                          {word}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </li>
             );
           })}

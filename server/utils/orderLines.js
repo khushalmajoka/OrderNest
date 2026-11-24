@@ -7,6 +7,7 @@ const Product = require("../models/Product");
 
 const MAX_LINES = 20;
 const MAX_QUANTITY = 1000000;
+const MAX_NOTE = 40;
 
 // Returns { lines } (ready to save) or { error: "message" }.
 //   raw:      what the screen sent (an array)
@@ -57,6 +58,10 @@ const checkLines = async (raw, { shopId, seesAmounts, existing = [] }) => {
       unitPrice = had.get(line.product)?.unitPrice ?? product.price;
     }
 
+    const note = line.note === undefined || line.note === null ? "" : String(line.note).replace(/\s+/g, " ").trim();
+    if (note.length > MAX_NOTE) return { error: `The note is too long (${MAX_NOTE} letters at most).` };
+    if (typeof line.note === "object" && line.note !== null) return { error: "The note must be text." };
+
     lines.push({
       product: product._id,
       name: product.name,
@@ -64,6 +69,7 @@ const checkLines = async (raw, { shopId, seesAmounts, existing = [] }) => {
       unit: product.priceUnit || "piece",
       quantity,
       ...(unitPrice !== undefined ? { unitPrice } : {}),
+      ...(note ? { note } : {}),
     });
   }
   return { lines };

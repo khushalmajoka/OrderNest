@@ -9,6 +9,7 @@ module.exports = [
   "customerPhone",
   "deliveryAddress",
   "item",
+  "productNote", // the note on a product, e.g. Landscape
   "expectedDelivery",
   "executive",
   "orderDate",

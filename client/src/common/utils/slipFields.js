@@ -14,6 +14,7 @@ export const SLIP_GROUPS = [
     fields: [
       { key: "orderId", label: "Order ID" },
       { key: "item", label: "Item" },
+      { key: "productNote", label: "Note on a product (for example Landscape)" },
       { key: "expectedDelivery", label: "Expected delivery date" },
       { key: "orderDate", label: "Order date" },
       { key: "executive", label: "Order executive" },

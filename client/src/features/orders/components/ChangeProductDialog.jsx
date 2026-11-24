@@ -14,9 +14,12 @@ const startLines = (order) =>
   (order.lines || []).map((l) => ({
     product: { _id: String(l.product), name: l.name, sizeLabel: l.sizeLabel || "", price: l.unitPrice, priceUnit: l.unit || "piece" },
     quantity: String(l.quantity),
+    note: l.note || "",
   }));
+// the products and quantities (money follows these), and the notes (money does not)
 const sameLines = (a, b) =>
   JSON.stringify(a.map((l) => [l.product._id, Number(l.quantity)])) === JSON.stringify(b.map((l) => [l.product._id, Number(l.quantity)]));
+const sameNotes = (a, b) => JSON.stringify(a.map((l) => (l.note || "").trim())) === JSON.stringify(b.map((l) => (l.note || "").trim()));
 
 // "Change products" for an order that already exists: one or several products
 // from the shop's list, each with its quantity. If the prices are known, the
@@ -38,13 +41,14 @@ const ChangeProductDialog = ({ order, canSeePrices, canManageProducts = false, o
   }, [onClose, saving]);
 
   const quantitiesOk = lines.every((l) => Number(l.quantity) > 0);
-  const changed = !sameLines(lines, initial);
+  const moneyChanged = !sameLines(lines, initial);
+  const changed = moneyChanged || !sameNotes(lines, initial);
   const newTotal = canSeePrices && quantitiesOk ? linesTotal(lines) : "";
-  const asksAboutMoney = changed && newTotal !== "";
+  const asksAboutMoney = moneyChanged && newTotal !== "";
   const advance = Number(order.advance) || 0;
   const advanceTooBig = asksAboutMoney && updateMoney === true && advance > Number(newTotal);
   const ready = lines.length > 0 && quantitiesOk && changed && (!asksAboutMoney || updateMoney !== null) && !advanceTooBig;
-  const someNoPrice = canSeePrices && changed && quantitiesOk && lines.length > 0 && newTotal === "";
+  const someNoPrice = canSeePrices && moneyChanged && quantitiesOk && lines.length > 0 && newTotal === "";
 
   const change = (next) => {
     setLines(next);
@@ -65,6 +69,7 @@ const ChangeProductDialog = ({ order, canSeePrices, canManageProducts = false, o
           lines: lines.map((l) => ({
             product: l.product._id,
             quantity: Number(l.quantity),
+            ...(l.note && l.note.trim() ? { note: l.note.trim() } : {}),
             ...(canSeePrices && l.product.price !== undefined && l.product.price !== null ? { unitPrice: l.product.price } : {}),
           })),
         },

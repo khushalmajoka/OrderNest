@@ -12,6 +12,7 @@ import { can } from "../../../common/utils/permissions";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
 import ProductFormModal from "../components/ProductFormModal";
 import BuildFromOrdersDialog from "../components/BuildFromOrdersDialog";
+import TidySizesDialog from "../components/TidySizesDialog";
 import { priceText } from "../utils/productOptions";
 
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
@@ -32,6 +33,8 @@ const ProductsPage = () => {
   const [editing, setEditing] = useState(null); // null | "new" | a product
   const [busyId, setBusyId] = useState(null);
   const [showBuild, setShowBuild] = useState(false);
+  const [tidyPlan, setTidyPlan] = useState([]); // products whose size is written the other way round
+  const [showTidy, setShowTidy] = useState(false);
 
   useEffect(() => {
     if (account && !allowed) navigate("/shop/dashboard"); // not for this person
@@ -58,6 +61,19 @@ const ProductsPage = () => {
   useEffect(() => {
     if (allowed) load();
   }, [allowed, load]);
+
+  // Products with a size written the other way round (10 x 8): offered to be fixed
+  const loadTidy = useCallback(async () => {
+    try {
+      const res = await axios.get(`${process.env.REACT_APP_BASE_URL}/api/products/tidy-sizes`, { headers: headers() });
+      setTidyPlan(res.data.plan || []);
+    } catch {
+      setTidyPlan([]); // not important: the page works without it
+    }
+  }, []);
+  useEffect(() => {
+    if (allowed) loadTidy();
+  }, [allowed, loadTidy]);
 
   const setActive = async (product, active) => {
     setBusyId(product._id);
@@ -124,6 +140,17 @@ const ProductsPage = () => {
           problems or change. It does not change your orders. If something looks wrong, please tell the
           developer.
         </p>
+        {tidyPlan.length > 0 && (
+          <div role="region" aria-label="Sizes to fix" className="mb-3 flex flex-col sm:flex-row sm:items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
+            <p className="text-sm text-gray-800 flex-1">
+              {tidyPlan.length} {tidyPlan.length === 1 ? "product has" : "products have"} a size written the other way round (like 18 x 12).
+              8 x 10 and 10 x 8 are one size, so they should be written the same way.
+            </p>
+            <button type="button" onClick={() => setShowTidy(true)} className="px-4 py-2 min-h-[44px] rounded-lg bg-orange-500 text-white text-sm font-medium hover:bg-orange-600">
+              Review and fix
+            </button>
+          </div>
+        )}
         <p className="text-sm text-gray-600 mb-4">
           Your list of products. In Create order you pick from it, and its price fills in.
           Changing a product never changes an old order.
@@ -209,7 +236,18 @@ const ProductsPage = () => {
         )}
       </div>
 
-      {showBuild && <BuildFromOrdersDialog onClose={() => setShowBuild(false)} onAdded={load} />}
+      {showBuild && <BuildFromOrdersDialog onClose={() => setShowBuild(false)} onAdded={() => { load(); loadTidy(); }} />}
+      {showTidy && (
+        <TidySizesDialog
+          plan={tidyPlan}
+          canSeePrices={canSetPrice}
+          onClose={() => setShowTidy(false)}
+          onDone={() => {
+            load();
+            loadTidy();
+          }}
+        />
+      )}
 
       {editing && (
         <ProductFormModal

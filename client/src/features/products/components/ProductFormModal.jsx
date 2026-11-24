@@ -137,7 +137,7 @@ const ProductFormModal = ({ product, canSetPrice, onClose, onSaved, defaultName 
               <option key={u.value} value={u.value}>{u.label}</option>
             ))}
           </select>
-          <p className="text-xs text-gray-500">Height is optional.</p>
+          <p className="text-xs text-gray-500">Height is optional. 10 x 8 is the same size as 8 x 10: it is always kept with the smaller number first.</p>
         </div>
       )}
 

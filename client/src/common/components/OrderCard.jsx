@@ -4,6 +4,8 @@ import { orderLineTexts } from "../../features/products/utils/productOptions";
 
 // The shop comes from the dashboard (no extra request per order).
 const OrderCard = React.forwardRef(({ order, shop }, ref) => {
+  // the note of a product (e.g. Landscape) is printed unless the admin switched it off in Settings
+  const showNote = shop?.pictureProductNote !== false;
   return (
     <div
       ref={ref}
@@ -41,9 +43,9 @@ const OrderCard = React.forwardRef(({ order, shop }, ref) => {
             <p>
               <b>{orderLineTexts(order).length > 1 ? "Items" : "Item"}:</b>{" "}
               {orderLineTexts(order).length > 1
-                ? orderLineTexts(order).map((t) => `${t.label} × ${t.qty}`).join(", ")
+                ? orderLineTexts(order).map((t) => `${t.label} × ${t.qty}${showNote && t.note ? ` (${t.note})` : ""}`).join(", ")
                 : order.item}
-              {orderLineTexts(order).length === 1 && <> (Quantity: {orderLineTexts(order)[0].qty})</>}
+              {orderLineTexts(order).length === 1 && <> (Quantity: {orderLineTexts(order)[0].qty}{showNote && orderLineTexts(order)[0].note ? `, ${orderLineTexts(order)[0].note}` : ""})</>}
             </p>
             {order.balance !== undefined && (
               <p>

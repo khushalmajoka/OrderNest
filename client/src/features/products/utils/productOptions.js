@@ -59,7 +59,7 @@ export const lineLabel = (line) => (line.sizeLabel ? `${line.name} (${line.sizeL
 
 // The products of an order as [{ label, qty }] (empty for an order typed by hand)
 export const orderLineTexts = (order) =>
-  (order?.lines || []).map((l) => ({ label: lineLabel(l), qty: quantityText(l.quantity, l.unit) }));
+  (order?.lines || []).map((l) => ({ label: lineLabel(l), qty: quantityText(l.quantity, l.unit), note: String(l.note || "").trim() }));
 
 // Total of the lines being edited: "" when any line has no price (then nothing can be worked out)
 export const linesTotal = (lines) => {

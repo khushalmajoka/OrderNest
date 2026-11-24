@@ -9,7 +9,7 @@ const { can } = require("../utils/permissions");
 const { checkProductInput } = require("../utils/productInput");
 const { logActivity } = require("../utils/activity");
 const Order = require("../models/Order");
-const { suggestProducts, keyOf, MAX_SUGGESTIONS } = require("../utils/productSuggestions");
+const { suggestProducts, keyOf, sizeLabelOf, MAX_SUGGESTIONS } = require("../utils/productSuggestions");
 
 const MAX_PRODUCTS = 2000;
 const escapeRegex = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -44,10 +44,14 @@ exports.listProducts = async (req, res, next) => {
     const wantArchived = req.query.archived === "1" && canManage(req);
     if (!wantArchived) filter.active = true;
 
+    // every word typed must be found in the name, size or notes (in any order: "10 x 8" finds "8 x 10")
     const search = String(req.query.search ?? "").trim().slice(0, 100);
-    if (search) {
-      const pattern = new RegExp(escapeRegex(search), "i");
-      filter.$or = [{ name: pattern }, { sizeLabel: pattern }, { notes: pattern }];
+    const words = search.split(/\s+/).filter(Boolean);
+    if (words.length) {
+      filter.$and = words.map((word) => {
+        const pattern = new RegExp(escapeRegex(word), "i");
+        return { $or: [{ name: pattern }, { sizeLabel: pattern }, { notes: pattern }] };
+      });
     }
     const limit = Math.min(500, Math.max(1, parseInt(req.query.limit, 10) || 200));
     const products = await Product.find(filter).sort({ active: -1, name: 1, sizeLabel: 1 }).limit(limit);
@@ -125,7 +129,7 @@ exports.updateProduct = async (req, res, next) => {
 
     if (checked.values.nameKey !== before.nameKey) {
       const dup = await Product.findOne({ shop: req.shop._id, nameKey: checked.values.nameKey, _id: { $ne: product._id } });
-      if (dup) return res.status(400).json({ message: "Another product has the same name and size." });
+      if (dup) return res.status(400).json({ message: "Another product has the same name and size (a size is always kept with the smaller number first, so 10 x 8 is 8 x 10)." });
     }
 
     Object.assign(product, checked.values);
@@ -179,10 +183,10 @@ exports.suggestFromOrders = async (req, res, next) => {
     const min = req.query.min === "1" ? 1 : 2;
     const [orders, products] = await Promise.all([
       Order.find({ shop: req.shop._id, item: { $exists: true, $ne: "" } }).select("item total lines").limit(50000).lean(),
-      Product.find({ shop: req.shop._id }).select("name sizeLabel").lean(),
+      Product.find({ shop: req.shop._id }).select("name sizeLabel size").lean(),
     ]);
     // products already in the list (even archived): the same name + size is never suggested again
-    const existing = new Set(products.map((p) => keyOf(p.name, p.sizeLabel)));
+    const existing = new Set(products.map((p) => keyOf(p.name, sizeLabelOf(p))));
     const result = suggestProducts(orders, existing, { min, withPrices: seesAmounts(req) });
     res.status(200).json({ ...result, ordersRead: orders.length, canSeePrices: seesAmounts(req) });
   } catch (error) {
@@ -252,6 +256,116 @@ exports.createFromOrders = async (req, res, next) => {
       });
     }
     res.status(201).json({ created, skipped });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// ---------- "Make sizes the same way": 8 x 10 and 10 x 8 are one size ----------
+// Products made before the rule may be written with the bigger number first.
+// The plan (read only): each such product is either RENAMED to the smaller-first
+// size, or, when the same product already exists that way, MERGED into it (the
+// reversed one is archived). Orders are never changed: they keep what they saved.
+const buildTidyPlan = async (shopId) => {
+  const all = await Product.find({ shop: shopId }).lean();
+  const reversed = all.filter((p) => p.size && p.size.kind === "dimensions" && p.size.length > p.size.breadth);
+  const wrongIds = new Set(reversed.map((p) => String(p._id))); // none of these can be the "right" product
+  const wrong = reversed.filter((p) => p.active); // archived ones are out of the way already: left alone
+  // where each correct product lives (active ones win)
+  const homes = new Map();
+  for (const p of [...all].sort((a, b) => Number(b.active) - Number(a.active))) {
+    if (wrongIds.has(String(p._id))) continue;
+    const key = keyOf(p.name, sizeLabelOf(p));
+    if (!homes.has(key)) homes.set(key, p);
+  }
+  const plan = [];
+  for (const p of wrong.sort((a, b) => Number(b.active) - Number(a.active) || String(a.name).localeCompare(b.name))) {
+    const to = sizeLabelOf(p);
+    const key = keyOf(p.name, to);
+    const home = homes.get(key);
+    if (home) {
+      plan.push({ _id: String(p._id), name: p.name, from: p.sizeLabel, to, action: "merge", price: p.price, active: p.active, into: { _id: String(home._id), price: home.price, active: home.active } });
+    } else {
+      homes.set(key, p); // the next one with the same name and size is merged into this one
+      plan.push({ _id: String(p._id), name: p.name, from: p.sizeLabel, to, action: "rename", price: p.price, active: p.active });
+    }
+  }
+  return plan;
+};
+
+const presentPlan = (req, plan) =>
+  plan.map((item) => {
+    const out = { ...item };
+    if (!seesAmounts(req)) {
+      delete out.price;
+      if (out.into) out.into = { _id: out.into._id, active: out.into.active };
+    }
+    return out;
+  });
+
+// GET /api/products/tidy-sizes   (reads only)
+exports.tidySizesPlan = async (req, res, next) => {
+  try {
+    res.status(200).json({ plan: presentPlan(req, await buildTidyPlan(req.shop._id)) });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// POST /api/products/tidy-sizes   { ids: [...] }  (the products of the plan to fix; the plan is worked out again here)
+exports.tidySizesApply = async (req, res, next) => {
+  try {
+    const ids = req.body?.ids;
+    if (!Array.isArray(ids) || ids.length === 0 || ids.some((i) => typeof i !== "string")) {
+      return res.status(400).json({ message: "Please choose the products first." });
+    }
+    const chosen = new Set(ids);
+    const plan = (await buildTidyPlan(req.shop._id)).filter((i) => chosen.has(i._id));
+    let renamed = 0;
+    let merged = 0;
+    for (const item of plan) {
+      const product = await Product.findOne({ _id: item._id, shop: req.shop._id });
+      if (!product) continue;
+      if (item.action === "rename") {
+        const checked = checkProductInput({ name: product.name, size: product.size, price: product.price, priceUnit: product.priceUnit, notes: product.notes });
+        if (checked.error) continue;
+        const dup = await Product.findOne({ shop: req.shop._id, nameKey: checked.values.nameKey, _id: { $ne: product._id } });
+        if (dup) continue; // taken in the meantime: left as it is
+        product.size = checked.values.size;
+        product.sizeLabel = checked.values.sizeLabel;
+        product.nameKey = checked.values.nameKey;
+        await product.save();
+        renamed += 1;
+      } else {
+        // the same product already exists the right way round: this one is archived.
+        // If that one has no price yet, it takes this one's price.
+        const keeper = await Product.findOne({ _id: item.into._id, shop: req.shop._id });
+        if (keeper && seesAmounts(req) && (keeper.price === undefined || keeper.price === null) && product.price !== undefined && product.price !== null) {
+          keeper.price = product.price;
+          keeper.priceUnit = product.priceUnit;
+          await keeper.save();
+        }
+        // an archived keeper comes back when the product being merged was in use, so the product does not vanish
+        if (keeper && product.active && !keeper.active) {
+          keeper.active = true;
+          await keeper.save();
+        }
+        if (product.active) {
+          product.active = false;
+          await product.save();
+        }
+        merged += 1;
+      }
+    }
+    if (renamed || merged) {
+      logActivity(req, {
+        kind: "product",
+        action: "product.update",
+        targetLabel: `${renamed + merged} products`,
+        summary: `Made product sizes the same way (smaller number first): ${renamed} renamed, ${merged} merged into the same product`,
+      });
+    }
+    res.status(200).json({ renamed, merged });
   } catch (error) {
     return next(error);
   }

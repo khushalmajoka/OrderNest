@@ -351,7 +351,22 @@ const saveNeedsReview = async (req, res, next) => {
   }
 };
 
+// PUT /api/shop/settings/share-picture   { productNote: true }
+// Whether the note of a product (e.g. Landscape) is printed on the share picture.
+const saveSharePicture = async (req, res, next) => {
+  try {
+    const { productNote } = req.body || {};
+    if (typeof productNote !== "boolean") return res.status(400).json({ error: "Please choose on or off." });
+    const shop = await Shop.findOneAndUpdate({ owner: req.user.id }, { pictureProductNote: productNote }, { new: true });
+    if (!shop) return res.status(404).json({ error: "Shop not found" });
+    res.status(200).json({ pictureProductNote: shop.pictureProductNote });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
+  saveSharePicture,
   saveNeedsReview,
   saveShopProfile,
   saveWhatsappMessages,

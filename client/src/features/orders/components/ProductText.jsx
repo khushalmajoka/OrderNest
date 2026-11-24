@@ -14,6 +14,7 @@ const ProductText = ({ order }) => {
           <Package size={13} className="mt-1 shrink-0 text-orange-600" aria-hidden="true" />
           <span className="break-words min-w-0">
             {t.label} <span className="font-normal text-gray-600 whitespace-nowrap">× {t.qty}</span>
+            {t.note && <span className="font-normal text-gray-600"> · {t.note}</span>}
           </span>
         </span>
       ))}

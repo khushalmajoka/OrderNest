@@ -34,8 +34,11 @@ const checkProductInput = (input = {}, { existing } = {}) => {
     size = { kind, weight, weightUnit };
     sizeLabel = `${show(weight)} ${weightUnit}`;
   } else if (kind === "dimensions") {
-    const length = positive(sizeIn.length);
-    const breadth = positive(sizeIn.breadth);
+    const typedLength = positive(sizeIn.length);
+    const typedBreadth = positive(sizeIn.breadth);
+    // 8 x 10 and 10 x 8 are the same size: it is always kept with the smaller number first
+    const length = typedLength && typedBreadth ? Math.min(typedLength, typedBreadth) : typedLength;
+    const breadth = typedLength && typedBreadth ? Math.max(typedLength, typedBreadth) : typedBreadth;
     const height = positive(sizeIn.height);
     if (!length || !breadth) return { error: "Please enter the length and the breadth as numbers above 0." };
     if (sizeIn.height !== "" && sizeIn.height != null && !height) {

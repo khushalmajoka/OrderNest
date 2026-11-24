@@ -30,6 +30,8 @@ module.exports = [
   { key: "settings.profile", label: "Shop details saved", group: "Settings", where: "server" },
   { key: "settings.statuses", label: "Statuses switched on/off", group: "Settings", where: "server" },
   { key: "product.from_orders", label: "Products added from old orders", group: "Products", where: "server" },
+  { key: "settings.share_picture", label: "Share picture setting saved", group: "Settings", where: "server" },
+  { key: "products.tidy_sizes", label: "Product sizes made the same way", group: "Products", where: "server" },
   { key: "settings.needs_review", label: "Needs review setting saved", group: "Settings", where: "server" },
   { key: "orders.review_snooze", label: "Needs review: Not yet", group: "Orders", where: "server" },
   { key: "orders.review_open", label: "Needs review list opened", group: "Orders", where: "client" },

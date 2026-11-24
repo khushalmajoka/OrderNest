@@ -101,6 +101,7 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
                 lines: lines.map((l) => ({
                   product: l.product._id,
                   quantity: Number(l.quantity),
+                  ...(l.note && l.note.trim() ? { note: l.note.trim() } : {}),
                   ...(canSeePrices && l.product.price !== undefined && l.product.price !== null ? { unitPrice: l.product.price } : {}),
                 })),
               }

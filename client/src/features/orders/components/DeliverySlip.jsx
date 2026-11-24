@@ -97,7 +97,7 @@ const DeliverySlip = React.forwardRef(({ order, shop, fields, edits = {}, note }
               <b>Items:</b>
               <ul className="ml-4 list-disc">
                 {texts.map((t, i) => (
-                  <li key={i} className="break-words">{t.label} × {t.qty}</li>
+                  <li key={i} className="break-words">{t.label} × {t.qty}{fields.productNote && t.note ? ` (${t.note})` : ""}</li>
                 ))}
               </ul>
             </div>
@@ -109,6 +109,11 @@ const DeliverySlip = React.forwardRef(({ order, shop, fields, edits = {}, note }
           {fields.item && texts.length === 1 && edits.item === undefined && (
             <p>
               <b>Quantity:</b> {texts[0].qty}
+            </p>
+          )}
+          {fields.item && fields.productNote && texts.length === 1 && texts[0].note && edits.item === undefined && (
+            <p>
+              <b>Note:</b> {texts[0].note}
             </p>
           )}
           {fields.expectedDelivery && (

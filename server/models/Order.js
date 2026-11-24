@@ -68,6 +68,8 @@ const orderSchema = new mongoose.Schema(
             unit: { type: String, default: "piece" },
             quantity: { type: Number, min: 0 },
             unitPrice: { type: Number, min: 0 },
+            // a short note about this product on this order, e.g. "Landscape" (direction of a frame)
+            note: { type: String, maxlength: 40 },
           },
           { _id: false }
         ),

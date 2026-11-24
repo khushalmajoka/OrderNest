@@ -124,7 +124,7 @@ const BuildFromOrdersDialog = ({ onClose, onAdded }) => {
           <p className="text-sm text-gray-600">
             The app read the Product of your old orders and split each one into a <strong>name</strong> and a{" "}
             <strong>size</strong>, so "12 by 18 frame", "Frame 12x18" and "FRAME (12-18)" are one size of the product <em>Frame</em>.
-            A number in front ("5 pcs cutout", "4 sachet") is a quantity, not part of the name. Each product is shown once,
+            A number in front ("5 pcs cutout", "4 sachet") is a quantity, not part of the name. 8 x 10 and 10 x 8 are one size (the smaller number first). Each product is shown once,
             with a line for each of its sizes. <strong>Each size is added as its own product</strong>, because the price can be different for each size.{" "}
             <strong>Nothing is saved until you press Add, and your orders are not changed.</strong>
           </p>
@@ -210,6 +210,11 @@ const BuildFromOrdersDialog = ({ onClose, onAdded }) => {
                                   <span className="font-medium">Size:</span> {item.sizeLabel || "none"}
                                 </p>
                                 <p className="text-xs text-gray-500">Used in {item.count} {item.count === 1 ? "order" : "orders"}</p>
+                                {item.writtenAs && (
+                                  <p className="text-xs text-gray-500">
+                                    Typed both ways: {item.writtenAs.map((w) => `${w.label} (${w.count} ${w.count === 1 ? "order" : "orders"})`).join(", ")}. It is one size.
+                                  </p>
+                                )}
                               </div>
                               {data.canSeePrices && (
                                 <label className="text-xs text-gray-700 w-full sm:w-auto sm:shrink-0 pl-8 sm:pl-0">

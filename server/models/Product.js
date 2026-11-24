@@ -23,6 +23,8 @@ const productSchema = new mongoose.Schema(
     price: { type: Number, min: 0 },
     priceUnit: { type: String, default: "piece" },
     notes: { type: String, maxlength: 300 },
+    // the group it belongs to (set only by the admin); empty = Uncategorized
+    category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
     active: { type: Boolean, default: true },
     // lower case "name|size": the same product cannot be added twice in a shop
     nameKey: { type: String, required: true },
@@ -32,5 +34,6 @@ const productSchema = new mongoose.Schema(
 
 productSchema.index({ shop: 1, nameKey: 1 }, { unique: true });
 productSchema.index({ shop: 1, active: 1, name: 1 });
+productSchema.index({ shop: 1, category: 1 });
 
 module.exports = mongoose.model("Product", productSchema);

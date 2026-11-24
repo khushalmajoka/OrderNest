@@ -3,7 +3,8 @@ const { listProducts, createProduct, updateProduct, suggestFromOrders, createFro
 const authenticate = require("../middlewares/authenticate");
 const loadUser = require("../middlewares/loadUser");
 const loadShop = require("../middlewares/loadShop");
-const { requirePermission } = require("../middlewares/access");
+const { requirePermission, requireAdmin } = require("../middlewares/access");
+const { createCategory, renameCategory, deleteCategory, moveProducts } = require("../controllers/categoryController");
 const { countUse } = require("../utils/usage");
 
 const router = express.Router();
@@ -19,5 +20,11 @@ router.post("/tidy-sizes", authenticate, loadUser, loadShop, requirePermission("
 // Add / edit / archive: the admin and staff with "Manage products"
 router.post("/", authenticate, loadUser, loadShop, requirePermission("manageProducts"), countUse("product.create"), createProduct);
 router.put("/:id", authenticate, loadUser, loadShop, requirePermission("manageProducts"), countUse("product.edit"), updateProduct);
+
+// Categories: the admin only (made, renamed, deleted, and products moved into them)
+router.post("/categories", authenticate, loadUser, loadShop, requireAdmin, countUse("category.manage"), createCategory);
+router.put("/categories/:id", authenticate, loadUser, loadShop, requireAdmin, countUse("category.manage"), renameCategory);
+router.delete("/categories/:id", authenticate, loadUser, loadShop, requireAdmin, countUse("category.manage"), deleteCategory);
+router.post("/move", authenticate, loadUser, loadShop, requireAdmin, countUse("category.move"), moveProducts);
 
 module.exports = router;

@@ -5,6 +5,7 @@
 // and cannot change them. Nothing here changes an old order.
 const mongoose = require("mongoose");
 const Product = require("../models/Product");
+const Category = require("../models/Category");
 const { can } = require("../utils/permissions");
 const { checkProductInput } = require("../utils/productInput");
 const { logActivity } = require("../utils/activity");
@@ -27,6 +28,17 @@ const present = (req, product) => {
     delete p.priceUnit;
   }
   return p;
+};
+
+// Only the admin sets a category. Returns { skip } (not sent / not allowed), { error } or { value }.
+const resolveCategory = async (req, body) => {
+  if (req.account.role !== "admin" || !("category" in (body || {}))) return { skip: true };
+  const id = body.category;
+  if (id === null || id === "" || id === undefined) return { value: null };
+  if (!mongoose.Types.ObjectId.isValid(id)) return { error: "Please choose a category." };
+  const found = await Category.findOne({ _id: id, shop: req.shop._id }).select("name").lean();
+  if (!found) return { error: "Please choose a category." };
+  return { value: found._id, name: found.name };
 };
 
 const money = (n) => `₹${Number(n) || 0}`;
@@ -54,8 +66,18 @@ exports.listProducts = async (req, res, next) => {
       });
     }
     const limit = Math.min(500, Math.max(1, parseInt(req.query.limit, 10) || 200));
-    const products = await Product.find(filter).sort({ active: -1, name: 1, sizeLabel: 1 }).limit(limit);
-    res.status(200).json({ products: products.map((p) => present(req, p)), canManage: canManage(req) });
+    // both asked at the same time (each trip to the database takes time)
+    const [products, categories] = await Promise.all([
+      Product.find(filter).sort({ active: -1, name: 1, sizeLabel: 1 }).limit(limit),
+      Category.find({ shop: req.shop._id }).select("name").sort({ nameKey: 1 }).lean(),
+    ]);
+    res.status(200).json({
+      products: products.map((p) => present(req, p)),
+      categories,
+      canManage: canManage(req),
+      // only the admin makes categories and moves products between them
+      canManageCategories: req.account.role === "admin",
+    });
   } catch (error) {
     return next(error);
   }
@@ -84,9 +106,11 @@ exports.createProduct = async (req, res, next) => {
       });
     }
 
+    const cat = await resolveCategory(req, req.body);
+    if (cat.error) return res.status(400).json({ message: cat.error });
     let product;
     try {
-      product = await Product.create({ shop: req.shop._id, ...checked.values });
+      product = await Product.create({ shop: req.shop._id, ...checked.values, ...(cat.value ? { category: cat.value } : {}) });
     } catch (err) {
       if (err.code === 11000) return res.status(400).json({ message: "This product (same name and size) already exists." });
       throw err;
@@ -132,8 +156,12 @@ exports.updateProduct = async (req, res, next) => {
       if (dup) return res.status(400).json({ message: "Another product has the same name and size (a size is always kept with the smaller number first, so 10 x 8 is 8 x 10)." });
     }
 
+    const cat = await resolveCategory(req, req.body);
+    if (cat.error) return res.status(400).json({ message: cat.error });
+
     Object.assign(product, checked.values);
     if (checked.values.price === undefined) product.price = undefined;
+    if (!cat.skip) product.category = cat.value || undefined;
     let archivedNow = null;
     if (typeof req.body.active === "boolean" && req.body.active !== before.active) {
       product.active = req.body.active;
@@ -152,6 +180,10 @@ exports.updateProduct = async (req, res, next) => {
       const to = f.read(after);
       return from === to ? [] : [{ field: f.label, from, to }];
     });
+    if (!cat.skip && String(before.category || "") !== String(cat.value || "")) {
+      const oldCat = before.category ? await Category.findById(before.category).select("name").lean() : null;
+      changes.push({ field: "Category", from: oldCat?.name || "(none)", to: cat.name || "(none)" });
+    }
     if (changes.length) {
       logActivity(req, {
         kind: "product",

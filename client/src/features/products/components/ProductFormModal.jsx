@@ -18,6 +18,7 @@ const blank = {
   price: "",
   priceUnit: "piece",
   notes: "",
+  category: "",
 };
 
 // The form values from a saved product
@@ -34,10 +35,11 @@ const fromProduct = (p) => ({
   price: p.price ?? "",
   priceUnit: p.priceUnit || "piece",
   notes: p.notes || "",
+  category: p.category || "",
 });
 
 // What is sent to the server
-const toBody = (f, canSetPrice) => {
+const toBody = (f, canSetPrice, canSetCategory) => {
   const size = { kind: f.kind };
   if (f.kind === "weight") Object.assign(size, { weight: f.weight, weightUnit: f.weightUnit });
   if (f.kind === "dimensions") {
@@ -45,6 +47,7 @@ const toBody = (f, canSetPrice) => {
   }
   if (f.kind === "text") size.text = f.text;
   const body = { name: f.name, size, notes: f.notes };
+  if (canSetCategory) body.category = f.category || null;
   if (canSetPrice) {
     body.price = f.price;
     body.priceUnit = f.priceUnit;
@@ -58,8 +61,9 @@ const num = "w-full border border-gray-300 p-2 rounded focus:outline-none focus:
 // by Create order ("+ New product").
 //   product: the product being edited (none = a new one)
 //   canSetPrice: this person may see and set prices
+//   categories / canSetCategory: only the admin picks a category
 //   onSaved(product): called after a good save
-const ProductFormModal = ({ product, canSetPrice, onClose, onSaved, defaultName = "" }) => {
+const ProductFormModal = ({ product, canSetPrice, categories = [], canSetCategory = false, onClose, onSaved, defaultName = "" }) => {
   const start = product ? fromProduct(product) : { ...blank, name: defaultName };
   const [form, setForm] = useState(start);
   const [saving, setSaving] = useState(false);
@@ -75,7 +79,7 @@ const ProductFormModal = ({ product, canSetPrice, onClose, onSaved, defaultName 
       const res = await axios({
         method: product ? "put" : "post",
         url,
-        data: toBody(form, canSetPrice),
+        data: toBody(form, canSetPrice, canSetCategory),
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
       toast.success(product ? "Product saved." : "Product added.");
@@ -158,6 +162,16 @@ const ProductFormModal = ({ product, canSetPrice, onClose, onSaved, defaultName 
         </Field>
       )}
 
+      {canSetCategory && (
+        <Field label="Category" hint="(optional, you make the categories on this page)">
+          <select value={form.category} onChange={set("category")} className={inputClass} aria-label="Category">
+            <option value="">Uncategorized</option>
+            {categories.map((c) => (
+              <option key={c._id} value={c._id}>{c.name}</option>
+            ))}
+          </select>
+        </Field>
+      )}
       <Field label="Notes" hint="(optional, e.g. price changes with the design)">
         <textarea value={form.notes} onChange={set("notes")} rows={3} maxLength={300} className={inputClass} />
       </Field>

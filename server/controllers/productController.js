@@ -8,6 +8,8 @@ const Product = require("../models/Product");
 const { can } = require("../utils/permissions");
 const { checkProductInput } = require("../utils/productInput");
 const { logActivity } = require("../utils/activity");
+const Order = require("../models/Order");
+const { normalize, suggestProducts, MAX_SUGGESTIONS } = require("../utils/productSuggestions");
 
 const MAX_PRODUCTS = 2000;
 const escapeRegex = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -164,6 +166,93 @@ exports.updateProduct = async (req, res, next) => {
       });
     }
     res.status(200).json({ product: present(req, product), changed: changes.length > 0 || archivedNow !== null });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// GET /api/products/from-orders?min=2
+// Suggestions for the product list, read from the Product text of old orders.
+// Only reads. Products already in the list are left out.
+exports.suggestFromOrders = async (req, res, next) => {
+  try {
+    const min = req.query.min === "1" ? 1 : 2;
+    const [orders, products] = await Promise.all([
+      Order.find({ shop: req.shop._id, item: { $exists: true, $ne: "" } }).select("item total").limit(50000).lean(),
+      Product.find({ shop: req.shop._id }).select("name sizeLabel").lean(),
+    ]);
+    const existing = new Set();
+    for (const p of products) {
+      existing.add(normalize(p.name));
+      if (p.sizeLabel) existing.add(normalize(`${p.name} ${p.sizeLabel}`));
+    }
+    const result = suggestProducts(orders, existing, { min, withTotals: seesAmounts(req) });
+    res.status(200).json({ ...result, ordersRead: orders.length, canSeePrices: seesAmounts(req) });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// POST /api/products/from-orders   { items: [{ name, price? }] }
+// Adds the chosen suggestions as products (no size, price per piece). Orders are not touched.
+exports.createFromOrders = async (req, res, next) => {
+  try {
+    const items = req.body?.items;
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: "Please choose at least one product." });
+    }
+    if (items.length > MAX_SUGGESTIONS) {
+      return res.status(400).json({ message: `You can add up to ${MAX_SUGGESTIONS} products at once.` });
+    }
+    const have = await Product.countDocuments({ shop: req.shop._id });
+    if (have + items.length > MAX_PRODUCTS) {
+      return res.status(400).json({ message: `A shop can have up to ${MAX_PRODUCTS} products.` });
+    }
+
+    const docs = [];
+    const seen = new Set();
+    let skipped = 0;
+    for (const item of items) {
+      if (!item || typeof item !== "object") return res.status(400).json({ message: "Something in the list is not right." });
+      const input = { name: item.name };
+      if (seesAmounts(req) && item.price !== undefined && item.price !== null && item.price !== "") input.price = item.price;
+      const checked = checkProductInput(input);
+      if (checked.error) return res.status(400).json({ message: `"${String(item.name ?? "").slice(0, 40)}": ${checked.error}` });
+      // the same name twice in one request is added once
+      if (seen.has(checked.values.nameKey)) {
+        skipped += 1;
+        continue;
+      }
+      seen.add(checked.values.nameKey);
+      docs.push({ shop: req.shop._id, ...checked.values });
+    }
+
+    // already in the list (even archived): skipped
+    const existing = new Set((await Product.find({ shop: req.shop._id, nameKey: { $in: docs.map((d) => d.nameKey) } }).select("nameKey").lean()).map((p) => p.nameKey));
+    const fresh = docs.filter((d) => !existing.has(d.nameKey));
+    skipped += docs.length - fresh.length;
+
+    let created = 0;
+    if (fresh.length) {
+      try {
+        const result = await Product.insertMany(fresh, { ordered: false });
+        created = result.length;
+      } catch (err) {
+        // a race with another add: the rest were still saved
+        if (err.code === 11000 || err.writeErrors) created = err.insertedDocs?.length ?? fresh.length - (err.writeErrors?.length || 0);
+        else throw err;
+      }
+      skipped += fresh.length - created;
+    }
+    if (created) {
+      logActivity(req, {
+        kind: "product",
+        action: "product.create",
+        targetLabel: `${created} products`,
+        summary: `Added ${created} ${created === 1 ? "product" : "products"} from old orders`,
+      });
+    }
+    res.status(201).json({ created, skipped });
   } catch (error) {
     return next(error);
   }

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Plus } from "lucide-react";
+import { History, Plus } from "lucide-react";
 import Navbar from "../../shop/components/Navbar";
 import LoadingScreen from "../../../common/components/LoadingScreen";
 import { Bar, SkeletonRegion } from "../../../common/components/Skeleton";
@@ -11,6 +11,7 @@ import { getErrorMessage } from "../../../common/utils/api";
 import { can } from "../../../common/utils/permissions";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
 import ProductFormModal from "../components/ProductFormModal";
+import BuildFromOrdersDialog from "../components/BuildFromOrdersDialog";
 import { priceText } from "../utils/productOptions";
 
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
@@ -30,6 +31,7 @@ const ProductsPage = () => {
   const [loadError, setLoadError] = useState(null);
   const [editing, setEditing] = useState(null); // null | "new" | a product
   const [busyId, setBusyId] = useState(null);
+  const [showBuild, setShowBuild] = useState(false);
 
   useEffect(() => {
     if (account && !allowed) navigate("/shop/dashboard"); // not for this person
@@ -97,13 +99,22 @@ const ProductsPage = () => {
             Products
             <span className="text-xs font-semibold uppercase rounded-full bg-amber-200 text-amber-900 px-2 py-0.5">Beta</span>
           </h1>
-          <button
-            type="button"
-            onClick={() => setEditing("new")}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600"
-          >
-            <Plus size={18} /> Add product
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setShowBuild(true)}
+              className="flex items-center gap-1.5 px-4 py-2 min-h-[44px] rounded-lg border border-orange-400 text-orange-700 font-medium hover:bg-orange-100"
+            >
+              <History size={18} /> Build from old orders
+            </button>
+            <button
+              type="button"
+              onClick={() => setEditing("new")}
+              className="flex items-center gap-1.5 px-4 py-2 min-h-[44px] rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600"
+            >
+              <Plus size={18} /> Add product
+            </button>
+          </div>
         </div>
         <p
           role="note"
@@ -197,6 +208,8 @@ const ProductsPage = () => {
           </ul>
         )}
       </div>
+
+      {showBuild && <BuildFromOrdersDialog onClose={() => setShowBuild(false)} onAdded={load} />}
 
       {editing && (
         <ProductFormModal

@@ -9,7 +9,7 @@ const { can } = require("../utils/permissions");
 const { checkProductInput } = require("../utils/productInput");
 const { logActivity } = require("../utils/activity");
 const Order = require("../models/Order");
-const { normalize, suggestProducts, MAX_SUGGESTIONS } = require("../utils/productSuggestions");
+const { suggestProducts, MAX_SUGGESTIONS } = require("../utils/productSuggestions");
 
 const MAX_PRODUCTS = 2000;
 const escapeRegex = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -178,23 +178,21 @@ exports.suggestFromOrders = async (req, res, next) => {
   try {
     const min = req.query.min === "1" ? 1 : 2;
     const [orders, products] = await Promise.all([
-      Order.find({ shop: req.shop._id, item: { $exists: true, $ne: "" } }).select("item total").limit(50000).lean(),
-      Product.find({ shop: req.shop._id }).select("name sizeLabel").lean(),
+      Order.find({ shop: req.shop._id, item: { $exists: true, $ne: "" } }).select("item total lines").limit(50000).lean(),
+      Product.find({ shop: req.shop._id }).select("nameKey").lean(),
     ]);
-    const existing = new Set();
-    for (const p of products) {
-      existing.add(normalize(p.name));
-      if (p.sizeLabel) existing.add(normalize(`${p.name} ${p.sizeLabel}`));
-    }
-    const result = suggestProducts(orders, existing, { min, withTotals: seesAmounts(req) });
+    // products already in the list (even archived): the same name + size is never suggested again
+    const existing = new Set(products.map((p) => p.nameKey));
+    const result = suggestProducts(orders, existing, { min, withPrices: seesAmounts(req) });
     res.status(200).json({ ...result, ordersRead: orders.length, canSeePrices: seesAmounts(req) });
   } catch (error) {
     return next(error);
   }
 };
 
-// POST /api/products/from-orders   { items: [{ name, price? }] }
-// Adds the chosen suggestions as products (no size, price per piece). Orders are not touched.
+// POST /api/products/from-orders   { items: [{ name, size?, price? }] }
+// Adds the chosen suggestions as products (price per piece). The price only
+// goes on the product: no order is touched, whatever is chosen here.
 exports.createFromOrders = async (req, res, next) => {
   try {
     const items = req.body?.items;
@@ -215,6 +213,7 @@ exports.createFromOrders = async (req, res, next) => {
     for (const item of items) {
       if (!item || typeof item !== "object") return res.status(400).json({ message: "Something in the list is not right." });
       const input = { name: item.name };
+      if (item.size && typeof item.size === "object") input.size = item.size;
       if (seesAmounts(req) && item.price !== undefined && item.price !== null && item.price !== "") input.price = item.price;
       const checked = checkProductInput(input);
       if (checked.error) return res.status(400).json({ message: `"${String(item.name ?? "").slice(0, 40)}": ${checked.error}` });

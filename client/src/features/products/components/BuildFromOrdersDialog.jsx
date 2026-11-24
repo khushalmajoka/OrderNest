@@ -17,7 +17,7 @@ const BuildFromOrdersDialog = ({ onClose, onAdded }) => {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [showOnce, setShowOnce] = useState(false);
-  const [rows, setRows] = useState([]); // { name, count, usualTotal, usualCount, on, usePrice }
+  const [rows, setRows] = useState([]); // { name, size, sizeLabel, count, usualPrice, usualCount, on, usePrice }
   const [saving, setSaving] = useState(false);
 
   const load = useCallback(() => {
@@ -31,7 +31,7 @@ const BuildFromOrdersDialog = ({ onClose, onAdded }) => {
           res.data.suggestions.map((s) => ({
             ...s,
             on: true,
-            usePrice: s.usualTotal !== undefined && s.usualCount / s.count >= AGREE,
+            usePrice: s.usualPrice !== undefined && s.usualCount / s.count >= AGREE,
           }))
         );
       })
@@ -57,7 +57,13 @@ const BuildFromOrdersDialog = ({ onClose, onAdded }) => {
     try {
       const res = await axios.post(
         `${API}/api/products/from-orders`,
-        { items: chosen.map((r) => ({ name: r.name, ...(r.usePrice && r.usualTotal !== undefined ? { price: r.usualTotal } : {}) })) },
+        {
+          items: chosen.map((r) => ({
+            name: r.name,
+            ...(r.size && r.size.kind !== "none" ? { size: r.size } : {}),
+            ...(r.usePrice && r.usualPrice !== undefined ? { price: r.usualPrice } : {}),
+          })),
+        },
         { headers: headers() }
       );
       const { created, skipped } = res.data;
@@ -81,14 +87,18 @@ const BuildFromOrdersDialog = ({ onClose, onAdded }) => {
         <div className="p-5 pb-3 space-y-2 overflow-y-auto">
           <h2 className="text-lg font-semibold text-gray-800">Build the list from old orders</h2>
           <p className="text-sm text-gray-600">
-            The app read the Product of your old orders and found these. <strong>Nothing is saved until you press Add,
-            and your orders are not changed.</strong> The name is kept as it was typed (for example "Chocolate cake 1kg"),
-            so you can fix the names here or later on this page. Sizes are not guessed.
+            The app read the Product of your old orders and split each one into a <strong>name</strong> and a{" "}
+            <strong>size</strong>, so "12 by 18 frame", "Frame 12x18" and "FRAME (12-18)" become one product:
+            <em> Frame, 12 x 18 inch</em>. A number in front ("5 pcs cutout", "4 sachet") is a quantity, not part of the name.
+            Names are written the same way everywhere (capital first letter). <strong>Nothing is saved until you press Add,
+            and your orders are not changed.</strong>
           </p>
           {data && data.canSeePrices && (
-            <p className="text-xs text-gray-500">
-              "Usual total" is the total most of those orders had. Tick it only if it is really the price of one piece,
-              because an order can hold more than one thing.
+            <p className="text-xs text-gray-600 bg-orange-50 border border-orange-100 rounded p-2">
+              <strong>About the price:</strong> ticking "Use ₹120 as the price" only sets the price of that product in
+              your list. <strong>No order changes, and no old total changes.</strong> Later, when you create a new order with
+              this product, ₹120 fills the Total box, and you can change it there (what you type always wins).
+              The price is for <em>one piece</em>: when an order said "5 pcs", the total is divided by 5.
             </p>
           )}
           {error && (
@@ -111,6 +121,11 @@ const BuildFromOrdersDialog = ({ onClose, onAdded }) => {
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm text-gray-700">
                       {rows.length} {rows.length === 1 ? "product" : "products"} found in {data.orders} orders
+                      {data.alreadyInList > 0 && (
+                        <span className="block text-xs text-gray-500">
+                          {data.alreadyInList} already in your list, so not shown again.
+                        </span>
+                      )}
                     </p>
                     <button
                       type="button"
@@ -139,11 +154,14 @@ const BuildFromOrdersDialog = ({ onClose, onAdded }) => {
                             aria-label={`Name for ${row.name}`}
                             className="w-full border border-gray-300 rounded px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
                           />
-                          <p className="text-xs text-gray-500">Used in {row.count} {row.count === 1 ? "order" : "orders"}</p>
-                          {row.usualTotal !== undefined && (
+                          <p className="text-xs text-gray-600">
+                            <span className="font-medium">Size:</span> {row.sizeLabel || "none"} · Used in {row.count}{" "}
+                            {row.count === 1 ? "order" : "orders"}
+                          </p>
+                          {row.usualPrice !== undefined && (
                             <label className="flex items-center gap-2 text-xs text-gray-700 min-h-[32px]">
                               <input type="checkbox" checked={row.usePrice} onChange={(e) => change(i, { usePrice: e.target.checked })} className="w-4 h-4 accent-orange-500" />
-                              Use {money(row.usualTotal)} as the price (usual total: {row.usualCount} of {row.count} orders)
+                              Use {money(row.usualPrice)} as the price of one piece ({row.usualCount} of {row.count} orders had it)
                             </label>
                           )}
                         </div>

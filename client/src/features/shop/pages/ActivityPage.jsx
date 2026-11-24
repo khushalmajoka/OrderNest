@@ -18,7 +18,9 @@ const TABS = [
 ];
 
 const Entry = ({ item, myId }) => {
-  // a change made by the developer (working inside this shop) is always labelled
+  // a change made by the developer (working inside this shop) is always labelled.
+  // myId is empty while the developer is inside a shop: the shop owner is not "You" then,
+  // so the owner's own changes show the owner's name.
   const byDeveloper = Boolean(item.byDeveloper);
   const mine = !byDeveloper && String(item.actor?.id) === String(myId);
   const who = mine ? "You" : item.actor?.name || "Someone";
@@ -220,7 +222,7 @@ const ActivityPage = () => {
                 </h2>
                 <ul className="space-y-2">
                   {group.items.map((item) => (
-                    <Entry key={item._id} item={item} myId={account.id} />
+                    <Entry key={item._id} item={item} myId={account.devMode ? null : account.id} />
                   ))}
                 </ul>
               </section>

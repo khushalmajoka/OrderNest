@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, Check, Lock, Pencil, Share2, Trash2, Truck, X } from "lucide-react";
+import { ArrowRight, Check, Lock, Package, Pencil, Share2, Trash2, Truck, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { DeliverySlipDialog, OrderShareDialog, WithOpening } from "../lazyDialogs";
 import RowActionsMenu from "./RowActionsMenu";
@@ -41,6 +41,7 @@ const OrderTableRow = ({
   onToggleSelect,
   nextStatus = null, // the status "Next step" would move this order to (null = none)
   onNext,
+  onChangeProduct,
 }) => {
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
     useOrderShare(order);
@@ -57,6 +58,7 @@ const OrderTableRow = ({
   // the actions are in the menu too (Delete last, in red)
   const menuItems = [
     access.edit && { key: "edit", label: "Edit order", icon: Pencil, onClick: () => onStartEdit(order) },
+    access.edit && { key: "product", label: "Change product", icon: Package, onClick: () => onChangeProduct(order) },
     access.share && { key: "slip", label: "Delivery slip", icon: Truck, onClick: () => setShowSlip(true) },
     access.share && { key: "share", label: "Share", icon: Share2, onClick: () => setIsShareOpen(true) },
     access.delete && {

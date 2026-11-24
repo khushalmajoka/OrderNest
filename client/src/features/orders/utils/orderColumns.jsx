@@ -1,6 +1,7 @@
 import { formatDay, formatDateTime } from "../../../common/utils/formatDate";
 import { statusHint, statusLabel } from "./statusInfo";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
+import { orderQuantity } from "../../products/utils/productOptions";
 
 // "₹1500", or dots when amounts are hidden (the eye button on the dashboard)
 export const MASK = "₹ ••••";
@@ -28,7 +29,22 @@ export const ORDER_COLUMNS = [
     sort: "customerName",
     cell: (o) => (o.customerName && o.customerName.trim() ? o.customerName : <NameMissing />),
   },
-  { key: "item", label: "Product", sort: "item", cell: (o) => o.item || "-" },
+  {
+    key: "item",
+    label: "Product",
+    sort: "item",
+    // the quantity (when a product was picked) is shown small after the name
+    cell: (o) => {
+      const qty = orderQuantity(o);
+      return qty ? (
+        <>
+          {o.item || "-"} <span className="text-gray-500 whitespace-nowrap">× {qty}</span>
+        </>
+      ) : (
+        o.item || "-"
+      );
+    },
+  },
   { key: "phone", label: "Phone", sort: "phone", cell: (o) => o.phone || "-" },
   { key: "total", label: "Total", sort: "total", cell: (o, { mask } = {}) => money(o.total, mask) },
   { key: "advance", label: "Advance", sort: "advance", cell: (o, { mask } = {}) => money(o.advance, mask) },

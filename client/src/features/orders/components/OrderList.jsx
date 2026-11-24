@@ -12,6 +12,7 @@ import { getErrorMessage } from "../../../common/utils/api";
 import { resolveColumns } from "../utils/orderColumns";
 import { useInlineEdit } from "../hooks/useInlineEdit";
 import { useStatusMoves } from "../hooks/useStatusMoves";
+import ChangeProductDialog from "./ChangeProductDialog";
 import BulkBar from "./BulkBar";
 import { nextStatusOf, offeredStatuses } from "../utils/statusInfo";
 
@@ -53,6 +54,7 @@ const OrderList = ({
   maskAmounts,
 }) => {
   const [deleteId, setDeleteId] = useState(null);
+  const [productOrder, setProductOrder] = useState(null); // order whose product is being changed
   const [activeOrderId, setActiveOrderId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -213,6 +215,7 @@ const OrderList = ({
                 onToggleSelect={toggleSelect}
                 nextStatus={nextStatusOf(shop, order.status)}
                 onNext={goNext}
+                onChangeProduct={setProductOrder}
               />
             ))}
           </div>
@@ -253,6 +256,7 @@ const OrderList = ({
                   onToggleSelect={toggleSelect}
                   nextStatus={nextStatusOf(shop, order.status)}
                   onNext={goNext}
+                  onChangeProduct={setProductOrder}
                 />
               ))}
             </tbody>
@@ -277,6 +281,14 @@ const OrderList = ({
         />
       )}
       {moves.followUpUI}
+      {productOrder && (
+        <ChangeProductDialog
+          order={orders.find((o) => o._id === productOrder._id) || productOrder}
+          canSeePrices={canSeeAmounts}
+          onClose={() => setProductOrder(null)}
+          onSaved={onUpdated}
+        />
+      )}
 
       {showDeleteModal && (
         <DeleteConfirmModal

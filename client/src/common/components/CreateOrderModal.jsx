@@ -10,6 +10,8 @@ import { nameProblem } from "../utils/customerName";
 import ModalShell, { Field, inputClass } from "./ModalShell";
 import SavedLabel from "./SavedLabel";
 import ExecutivePicker from "./ExecutivePicker";
+import ProductPicker from "../../features/products/components/ProductPicker";
+import { productLabel, quantityUnit, totalFor } from "../../features/products/utils/productOptions";
 
 const EMPTY_ORDER = {
   item: "",
@@ -25,10 +27,16 @@ const EMPTY_ORDER = {
 
 // `defaultExecutive`: the logged-in person's name, chosen in "Order executive"
 // to save a tap (it can be changed)
-const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = "" }) => {
+const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = "", canSeePrices = true }) => {
   const [initial, setInitial] = useState(EMPTY_ORDER);
   const [formData, setFormData] = useState(EMPTY_ORDER);
   const [loading, setLoading] = useState(false);
+  // A product picked from the shop's list (optional) and how many
+  const [product, setProduct] = useState(null);
+  const [quantity, setQuantity] = useState("1");
+  // The total we filled in ourselves (price x quantity). It follows the quantity
+  // only until the person types their own total.
+  const autoTotal = useRef("");
   // After a good save the button shows a tick for a moment, then the window closes
   const [done, setDone] = useState(false);
   const closeTimer = useRef(null);
@@ -39,7 +47,7 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
   };
 
   // Anything typed yet? Then tapping outside or Escape will not close the window
-  const dirty = JSON.stringify(formData) !== JSON.stringify(initial);
+  const dirty = JSON.stringify(formData) !== JSON.stringify(initial) || Boolean(product);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -52,10 +60,35 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
     }
   };
 
+  const refreshTotal = (picked, qty) => {
+    if (!canSeePrices || !picked || picked.price === undefined || picked.price === null) return;
+    const next = totalFor(picked.price, qty);
+    if (next === "") return;
+    setFormData((prev) => {
+      // only while the total is empty or still the one we filled in
+      if (prev.total !== "" && prev.total !== autoTotal.current) return prev;
+      autoTotal.current = next;
+      return { ...prev, total: next };
+    });
+  };
+
+  const pickProduct = (picked) => {
+    setProduct(picked);
+    setQuantity("1");
+    setFormData((prev) => ({ ...prev, item: productLabel(picked) }));
+    refreshTotal(picked, "1");
+  };
+
+  const changeQuantity = (value) => {
+    setQuantity(value);
+    refreshTotal(product, value);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (loading || done) return;
+    if (product && !(Number(quantity) > 0)) return toast.error("Please enter the quantity (more than 0).");
 
     // The name may be empty, but not a placeholder like "N" or "NA"
     const badName = nameProblem(formData.customerName);
@@ -68,7 +101,20 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
     try {
       const res = await axios.post(
         `${process.env.REACT_APP_BASE_URL}/api/orders/create`,
-        formData,
+        {
+          ...formData,
+          ...(product
+            ? {
+                lines: [
+                  {
+                    product: product._id,
+                    quantity: Number(quantity),
+                    ...(canSeePrices && product.price !== undefined && product.price !== null ? { unitPrice: product.price } : {}),
+                  },
+                ],
+              }
+            : {}),
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -94,6 +140,13 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
       onClose={onClose}
       onSubmit={handleSubmit}
     >
+      <ProductPicker
+        selected={product}
+        onPick={pickProduct}
+        onClear={() => setProduct(null)}
+        showPrice={canSeePrices}
+      />
+
       <Field label="Item / Product">
         <input
           type="text"
@@ -106,6 +159,29 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
           className={inputClass}
         />
       </Field>
+
+      {product && (
+        <Field
+          label={`Quantity${quantityUnit(product.priceUnit) ? ` (${quantityUnit(product.priceUnit)})` : ""}`}
+          hint={
+            canSeePrices && product.price !== undefined && product.price !== null
+              ? "(Total = price x quantity. You can change the total.)"
+              : ""
+          }
+        >
+          <input
+            type="number"
+            inputMode="decimal"
+            name="quantity"
+            min={0}
+            step="any"
+            value={quantity}
+            onChange={(e) => changeQuantity(e.target.value)}
+            required
+            className={inputClass}
+          />
+        </Field>
+      )}
 
       <Field label="Customer name" hint="(leave empty if not known)">
         <input

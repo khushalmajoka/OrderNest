@@ -1,6 +1,7 @@
 import React from "react";
 import { formatDay, formatDate } from "../../../common/utils/formatDate";
 import { getShopLogo } from "../../../common/utils/utils";
+import { orderQuantity } from "../../products/utils/productOptions";
 
 // The slip that is printed and stuck on the parcel (A6 shape, 420px wide).
 // Black and white on purpose, so it prints clearly on any printer.
@@ -92,6 +93,11 @@ const DeliverySlip = React.forwardRef(({ order, shop, fields, edits = {}, note }
           {fields.item && (
             <p className="break-words">
               <b>Item:</b> {item || "-"}
+            </p>
+          )}
+          {fields.item && orderQuantity(order) && (
+            <p>
+              <b>Quantity:</b> {orderQuantity(order)}
             </p>
           )}
           {fields.expectedDelivery && (

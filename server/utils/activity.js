@@ -52,6 +52,11 @@ const ORDER_FIELDS = [
   { key: "phone", label: "Phone", read: (v) => String(v ?? "").trim() },
   { key: "address", label: "Address", read: (v) => String(v ?? "").trim() },
   { key: "item", label: "Product", read: (v) => String(v ?? "").trim() },
+  {
+    key: "lines",
+    label: "Quantity",
+    read: (v) => (Array.isArray(v) ? v.map((l) => `${l.quantity} ${l.unit && l.unit !== "piece" ? l.unit : ""}`.trim()).join(", ") : ""),
+  },
   { key: "total", label: "Total", read: (v) => Number(v) || 0, show: money },
   { key: "advance", label: "Advance", read: (v) => Number(v) || 0, show: money },
   { key: "status", label: "Status", read: (v) => String(v ?? "") },

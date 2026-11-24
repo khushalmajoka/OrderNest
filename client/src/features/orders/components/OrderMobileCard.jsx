@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { statusHint, statusLabel } from "../utils/statusInfo";
-import { Check, ChevronDown, ChevronUp, Lock, Pencil, Share2, Trash2, Truck, ArrowRight } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Lock, Pencil, Share2, Trash2, Truck, ArrowRight, Package } from "lucide-react";
 import { formatDay, formatDateTime } from "../../../common/utils/formatDate";
 import { DeliverySlipDialog, OrderShareDialog, WithOpening } from "../lazyDialogs";
 import { useOrderShare } from "../hooks/useOrderShare";
 import { useFlashOnChange } from "../hooks/useFlashOnChange";
 import { MASK, NameMissing, ORDER_COLUMNS } from "../utils/orderColumns";
 import FieldEditor from "./FieldEditor";
+import { orderQuantity } from "../../products/utils/productOptions";
 import WhatsAppButton from "./WhatsAppButton";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
 import { getStatusStyle } from "../../../common/utils/statusColors";
@@ -26,6 +27,7 @@ const OrderMobileCard = ({
   onToggleSelect,
   nextStatus = null,
   onNext,
+  onChangeProduct,
 }) => {
   const { cardRef, isShareOpen, setIsShareOpen, handleShare } =
     useOrderShare(order);
@@ -164,7 +166,7 @@ const OrderMobileCard = ({
         <p className="font-medium text-gray-800 break-words">
           {order.customerName && order.customerName.trim() ? order.customerName : <NameMissing />}
         </p>
-        <p className="text-gray-600 break-words">{order.item || "-"}</p>
+        <p className="text-gray-600 break-words">{order.item || "-"}{orderQuantity(order) ? ` × ${orderQuantity(order)}` : ""}</p>
         {order.phone && (
           <a
             href={`tel:${order.phone}`}
@@ -245,6 +247,15 @@ const OrderMobileCard = ({
           className="w-full mt-3 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border border-orange-400 text-orange-700 font-medium"
         >
           <ArrowRight size={16} /> Next step: {statusLabel(nextStatus)}
+        </button>
+      )}
+
+      {access.edit && (
+        <button
+          onClick={() => onChangeProduct(order)}
+          className="w-full mt-3 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border text-gray-700"
+        >
+          <Package size={16} /> Change product
         </button>
       )}
 

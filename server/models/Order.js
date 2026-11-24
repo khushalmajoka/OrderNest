@@ -55,6 +55,25 @@ const orderSchema = new mongoose.Schema(
     expectedDeliveryDate: {
       type: Date,
     },
+    // The products on the order (picked from the shop's product list). `item`
+    // stays the text people see; name/size are copied from the product at
+    // save time so later product changes never touch an old order.
+    lines: {
+      type: [
+        new mongoose.Schema(
+          {
+            product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
+            name: String,
+            sizeLabel: String,
+            unit: { type: String, default: "piece" },
+            quantity: { type: Number, min: 0 },
+            unitPrice: { type: Number, min: 0 },
+          },
+          { _id: false }
+        ),
+      ],
+      default: undefined,
+    },
     // "Not yet" in the Needs review list: leave this order out until this time
     reviewSnoozedUntil: {
       type: Date,

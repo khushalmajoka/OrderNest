@@ -442,6 +442,7 @@ const Dashboard = () => {
           <CreateOrderModal
             shopId={shop._id}
             defaultExecutive={account?.name || ""}
+            canSeePrices={canSeeAmounts}
             onClose={() => setShowCreateModal(false)}
             onOrderCreated={showFirstPageAgain}
           />

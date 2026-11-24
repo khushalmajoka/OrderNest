@@ -9,6 +9,7 @@ const buildOrderFilters = require("../utils/orderFilters");
 const { logActivity, diffOrder, money } = require("../utils/activity");
 const dateStamp = require("../utils/dateStamp");
 const { can } = require("../utils/permissions");
+const { checkLines } = require("../utils/orderLines");
 const { reviewSettingsOf, reviewFilter, PROBABLY_DELIVERED, SNOOZE_DAYS } = require("../utils/needsReview");
 
 // Money (Total, Advance, Balance) is only for people who may see it: the admin,
@@ -23,6 +24,8 @@ const seesAmounts = (req) => can(req.account, "viewAmounts");
 const withoutAmounts = (order) => {
   const plain = typeof order.toObject === "function" ? order.toObject() : { ...order };
   AMOUNT_FIELDS.forEach((key) => delete plain[key]);
+  // prices of the products on the order are amounts too
+  if (Array.isArray(plain.lines)) plain.lines = plain.lines.map(({ unitPrice, ...line }) => line);
   return plain;
 };
 
@@ -94,6 +97,13 @@ exports.createOrder = async (req, res, next) => {
     if (status === CLOSED_OLD && req.account.role !== "admin") {
       return res.status(403).json({ message: "Only the admin can use the status Closed (old)." });
     }
+    // Products picked from the shop's list (optional)
+    let lines;
+    if (req.body.lines !== undefined) {
+      const checkedLines = await checkLines(req.body.lines, { shopId: req.shop._id, seesAmounts: seesAmounts(req) });
+      if (checkedLines.error) return res.status(400).json({ message: checkedLines.error });
+      if (checkedLines.lines.length) lines = checkedLines.lines;
+    }
 
     // Shop and user always come from the logged-in user, never from the body
     const shop = req.shop;
@@ -115,6 +125,7 @@ exports.createOrder = async (req, res, next) => {
           ...checked.values,
           status,
           orderExecutive,
+          ...(lines ? { lines } : {}),
         }).save();
       } catch (err) {
         // Lost a race for this exact ID: reserve the next number and retry
@@ -173,6 +184,18 @@ exports.updateOrder = async (req, res, next) => {
       return res.status(403).json({ message: "Only the admin can use the status Closed (old)." });
     }
 
+    // Products: not sent = stay as they are; a list (even empty) replaces them
+    let newLines;
+    if (req.body.lines !== undefined) {
+      const checkedLines = await checkLines(req.body.lines, {
+        shopId: req.shop._id,
+        seesAmounts: seesAmounts(req),
+        existing: before?.lines || [],
+      });
+      if (checkedLines.error) return res.status(400).json({ message: checkedLines.error });
+      newLines = checkedLines.lines;
+    }
+
     // An empty delivery date sent on purpose means "remove it" (a date that is
     // simply not sent stays as it is)
     const updateDoc = {
@@ -186,6 +209,7 @@ exports.updateOrder = async (req, res, next) => {
         orderExecutive,
       },
     };
+    if (newLines) updateDoc.$set.lines = newLines;
     if (checked.clearDate) {
       delete updateDoc.$set.expectedDeliveryDate;
       updateDoc.$unset = { expectedDeliveryDate: 1 };

@@ -1,5 +1,6 @@
 import React from "react";
 import { getShopLogo } from "../utils/utils";
+import { orderQuantity } from "../../features/products/utils/productOptions";
 
 // The shop comes from the dashboard (no extra request per order).
 const OrderCard = React.forwardRef(({ order, shop }, ref) => {
@@ -39,6 +40,7 @@ const OrderCard = React.forwardRef(({ order, shop }, ref) => {
           <div className="flex justify-between text-sm">
             <p>
               <b>Item:</b> {order.item}
+              {orderQuantity(order) && <> (Quantity: {orderQuantity(order)})</>}
             </p>
             {order.balance !== undefined && (
               <p>

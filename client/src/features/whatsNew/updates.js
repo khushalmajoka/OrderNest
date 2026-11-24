@@ -2,43 +2,37 @@
 //
 // To announce a new update later: change WHATS_NEW_VERSION (any new text) and
 // edit the list below. Everyone then sees the popup once more.
-export const WHATS_NEW_VERSION = "2026-11-names";
+// An item with highlight: true is shown in an orange box at the top.
+export const WHATS_NEW_VERSION = "2026-11-products";
 
 export const WHATS_NEW_ITEMS = [
   {
-    title: "Customer name is now optional",
-    text: "If you do not know the customer's name, leave it empty. No need to type \"N\" or \"NA\" any more: those are not accepted now, so names stay clean. Orders without a name show a grey \"Name missing\" tag, and a new filter (\"Customer name missing\") finds them so you can add the names later. WhatsApp messages simply say \"Hello 🙏\" when there is no name.",
+    highlight: true,
+    title: "Please start using Products: typing the item will go away soon",
+    text: "Today you can still type anything in the Item box when you create an order. This is going to be removed soon, when the Products page is no longer in BETA. From now on, please add your items on the Products page (name, size and price once), and always pick them from the list when you create or edit an order. This links every order to its product, so names and sizes stay the same everywhere and you never type them again.",
   },
   {
-    title: "The orders list updates by itself",
-    text: "If someone else (a staff member, or you on another computer) creates, edits or deletes an order, it now shows up here within about 30 seconds, and straight away when you come back to the tab. You see \"Updated just now\" above the list, and a Refresh button if you want it right now. The list is never changed while you are editing an order.",
+    title: "Several products in one order",
+    text: "One order can now have many products, each with its own quantity. Search and pick them in Create order. To change them later, double-click the order and use \"Change products\". The delivery slip and the share picture list every product.",
   },
   {
-    title: "Send a WhatsApp message to your customer",
-    text: "Every order now has a green WhatsApp button. Tap it, choose English, हिंदी or Hinglish, and WhatsApp opens with the message ready (customer name, order status and a tracking link). You only tap Send. The Share window's WhatsApp button now works too: on a phone it sends the order picture. Admin: you can change every message text in Settings (\"WhatsApp messages\").",
+    title: "The Products page",
+    text: "Add products with their sizes and prices (needs the \"Manage products\" permission for staff). Not sure where to start? Use \"Build from old orders\": it reads your old orders, suggests products with sizes and a price, and you tick what you want to add. No old order is changed.",
   },
   {
-    title: "Two separate controls for hiding money",
-    text: "The eye button on the Balance to collect box now hides or shows only that box. Total, Advance and Balance in the order list have their own switch in Settings (\"Amounts in the order list\"). Both start hidden, and each choice is remembered on your device.",
+    title: "One size, either way round",
+    text: "8 x 10 and 10 x 8 are now the same size. Sizes are always kept with the smaller number first. If you already have products made the old way, use \"Make sizes the same way\" on the Products page: it shows a preview first and changes no order.",
   },
   {
-    title: "Edit an order right in its row",
-    text: "Double-click an order to edit it where it is (on a phone, double-tap the card or tap Edit). Change what you need, then press the green tick to save. Enter also saves, and Esc or the cross cancels. The Order ID and Balance cannot be edited, so they stay grey.",
+    title: "A note on a product (Portrait or Landscape)",
+    text: "On a product in an order you can add a small note, with buttons for Portrait and Landscape. It shows in the list, in Activity, on the delivery slip and on the share picture. Admin: in Settings (\"Share picture\") you choose whether the note is printed.",
   },
   {
-    title: "Amounts are private now",
-    text: "Money starts hidden with dots, and your choices are remembered. Staff cannot see any amounts unless you switch on \"See amounts\" for them on the Staff page.",
+    title: "Simpler order statuses",
+    text: "Status names are shorter and have hints. Use \"Next step\" on an order to move it forward. You can also tick many orders and press \"Change status\" (with Undo). After Ready or Dispatched, the app asks if you want to tell the customer on WhatsApp.",
   },
   {
-    title: "Pick the order executive from a list",
-    text: "Order executive is now a list of the names already used, plus you and your staff. This keeps names the same everywhere. A new name can be added with \"+ Add a new name\" and then stays in the list.",
-  },
-  {
-    title: "Latest activity comes first",
-    text: "A new order, or any order that was just edited or had its status changed, now moves to the top of the list.",
-  },
-  {
-    title: "Choose how status colours look",
-    text: "Admin: in Settings you can switch the status colours off completely, or keep them and turn off just the colour of the whole row, or just the coloured line at the start of the row.",
+    title: "Old open orders are checked for you",
+    text: "Orders that stayed open for a long time are shown in \"Needs review\", so you can close or fix them. Admin: you can set this in Settings (\"Check old open orders\").",
   },
 ];

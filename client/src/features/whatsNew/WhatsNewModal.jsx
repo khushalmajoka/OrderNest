@@ -27,8 +27,18 @@ const WhatsNewModal = ({ onConfirm }) => {
 
         <ul className="px-6 py-2 overflow-y-auto space-y-4">
           {WHATS_NEW_ITEMS.map((item) => (
-            <li key={item.title}>
-              <p className="font-medium text-gray-800">{item.title}</p>
+            <li
+              key={item.title}
+              className={
+                item.highlight
+                  ? "rounded-lg border border-orange-300 bg-orange-50 p-3"
+                  : ""
+              }
+            >
+              <p className="font-medium text-gray-800">
+                {item.highlight && <span aria-hidden="true">⚠️ </span>}
+                {item.title}
+              </p>
               <p className="text-sm text-gray-600">{item.text}</p>
             </li>
           ))}

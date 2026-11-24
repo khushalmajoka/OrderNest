@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 const productSchema = new mongoose.Schema(
   {
     shop: { type: mongoose.Schema.Types.ObjectId, ref: "Shop", required: true },
+    // the product this size belongs to (name, category, pictures and notes live there)
+    family: { type: mongoose.Schema.Types.ObjectId, ref: "ProductFamily" },
     name: { type: String, required: true, maxlength: 100 },
     // The size can be a weight, length x breadth (x height) with a unit, or plain text
     size: {
@@ -23,7 +25,7 @@ const productSchema = new mongoose.Schema(
     price: { type: Number, min: 0 },
     priceUnit: { type: String, default: "piece" },
     notes: { type: String, maxlength: 300 },
-    // the group it belongs to (set only by the admin); empty = Uncategorized
+    // OLD place of category, notes and pictures (before products had sizes inside them); now on the family
     category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
     // pictures, in the order shown (the first is the main one); the pictures live in ProductImage
     images: [{ type: mongoose.Schema.Types.ObjectId, ref: "ProductImage" }],
@@ -37,5 +39,6 @@ const productSchema = new mongoose.Schema(
 productSchema.index({ shop: 1, nameKey: 1 }, { unique: true });
 productSchema.index({ shop: 1, active: 1, name: 1 });
 productSchema.index({ shop: 1, category: 1 });
+productSchema.index({ shop: 1, family: 1 });
 
 module.exports = mongoose.model("Product", productSchema);

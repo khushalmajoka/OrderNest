@@ -1,5 +1,5 @@
 const express = require("express");
-const { listProducts, createProduct, updateProduct, suggestFromOrders, createFromOrders, tidySizesPlan, tidySizesApply } = require("../controllers/productController");
+const { listProducts, createProduct, createFamily, updateFamily, updateProduct, suggestFromOrders, createFromOrders, tidySizesPlan, tidySizesApply } = require("../controllers/productController");
 const authenticate = require("../middlewares/authenticate");
 const loadUser = require("../middlewares/loadUser");
 const loadShop = require("../middlewares/loadShop");
@@ -18,7 +18,10 @@ router.post("/from-orders", authenticate, loadUser, loadShop, requirePermission(
 // Make sizes the same way (8 x 10 and 10 x 8 are one size): look first, then apply
 router.get("/tidy-sizes", authenticate, loadUser, loadShop, requirePermission("manageProducts"), tidySizesPlan);
 router.post("/tidy-sizes", authenticate, loadUser, loadShop, requirePermission("manageProducts"), countUse("products.tidy_sizes"), tidySizesApply);
-// Add / edit / archive: the admin and staff with "Manage products"
+// A product with its sizes: add, and edit its name / notes / category / archive all sizes
+router.post("/families", authenticate, loadUser, loadShop, requirePermission("manageProducts"), countUse("product.create"), createFamily);
+router.put("/families/:id", authenticate, loadUser, loadShop, requirePermission("manageProducts"), countUse("product.edit"), updateFamily);
+// Add / edit / archive a size: the admin and staff with "Manage products"
 router.post("/", authenticate, loadUser, loadShop, requirePermission("manageProducts"), countUse("product.create"), createProduct);
 router.put("/:id", authenticate, loadUser, loadShop, requirePermission("manageProducts"), countUse("product.edit"), updateProduct);
 

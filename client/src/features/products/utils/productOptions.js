@@ -72,3 +72,20 @@ export const linesTotal = (lines) => {
   }
   return String(Math.round(sum * 100) / 100);
 };
+
+// Sizes of one product in a natural order: no size, weights (small to big), length x breadth
+// (small to big), then written sizes. 8 x 10 comes before 12 x 18 (not like text).
+const GRAMS = { g: 1, kg: 1000 };
+const sizeKey = (s) => {
+  const size = s.size || {};
+  if (size.kind === "weight") return [1, (size.weight || 0) * (GRAMS[size.weightUnit] || 1), 0, ""];
+  if (size.kind === "dimensions") return [2, (size.length || 0) * (size.breadth || 0), size.length || 0, ""];
+  if (size.kind === "text") return [3, 0, 0, size.text || ""];
+  return [0, 0, 0, ""];
+};
+export const sortSizes = (list) =>
+  [...list].sort((a, b) => {
+    const x = sizeKey(a);
+    const y = sizeKey(b);
+    return x[0] - y[0] || x[1] - y[1] || x[2] - y[2] || x[3].localeCompare(y[3], undefined, { numeric: true });
+  });

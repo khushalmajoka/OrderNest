@@ -4,6 +4,8 @@
 // Pictures never change an order.
 const mongoose = require("mongoose");
 const Product = require("../models/Product");
+const Family = require("../models/ProductFamily");
+const { ensureFamiliesForShop } = require("../utils/productFamilies");
 const ProductImage = require("../models/ProductImage");
 const { can } = require("../utils/permissions");
 const { logActivity } = require("../utils/activity");
@@ -14,7 +16,23 @@ const MAX_FULL = 250 * 1024; // bytes after shrinking
 const MAX_THUMB = 40 * 1024;
 
 const isId = (id) => mongoose.Types.ObjectId.isValid(id);
-const label = (p) => (p.sizeLabel ? `${p.name} (${p.sizeLabel})` : p.name);
+const label = (p) => p.name;
+
+// The product a picture belongs to. The id may be the product's own, or one of its sizes
+// (then its product is used). Products made before sizes lived inside products are grouped first.
+const findFamily = async (req, id) => {
+  if (!isId(id)) return null;
+  const mine = { _id: id, shop: req.shop._id };
+  let family = await Family.findOne(mine);
+  if (family) return family;
+  let size = await Product.findOne(mine).select("family");
+  if (!size) return null;
+  if (!size.family) {
+    await ensureFamiliesForShop(req.shop._id);
+    size = await Product.findOne(mine).select("family");
+  }
+  return size?.family ? Family.findOne({ _id: size.family, shop: req.shop._id }) : null;
+};
 
 // the kind of picture, from the first bytes (the server never trusts a name or a type sent by the screen)
 const kindOf = (buf) => {
@@ -37,7 +55,7 @@ const decode = (value) => {
 exports.addImage = async (req, res, next) => {
   try {
     if (!isId(req.params.id)) return res.status(404).json({ message: "Product not found" });
-    const product = await Product.findOne({ _id: req.params.id, shop: req.shop._id }).select("name sizeLabel images");
+    const product = await findFamily(req, req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
     if (product.images.length >= MAX_PER_PRODUCT) {
       return res.status(400).json({ message: `A product can have up to ${MAX_PER_PRODUCT} pictures.` });
@@ -56,7 +74,7 @@ exports.addImage = async (req, res, next) => {
 
     const image = await ProductImage.create({ shop: req.shop._id, product: product._id, contentType: kind, full, thumb });
     // add it only if there is still room (two uploads at once cannot go over the limit)
-    const pushed = await Product.updateOne(
+    const pushed = await Family.updateOne(
       { _id: product._id, shop: req.shop._id, [`images.${MAX_PER_PRODUCT - 1}`]: { $exists: false } },
       { $push: { images: image._id } },
       { timestamps: false }
@@ -66,7 +84,7 @@ exports.addImage = async (req, res, next) => {
       return res.status(400).json({ message: `A product can have up to ${MAX_PER_PRODUCT} pictures.` });
     }
     logActivity(req, { kind: "product", action: "product.image_add", targetLabel: label(product), summary: `Added a picture to ${label(product)}` });
-    const fresh = await Product.findById(product._id).select("images").lean();
+    const fresh = await Family.findById(product._id).select("images").lean();
     res.status(201).json({ image: { _id: image._id }, images: fresh.images });
   } catch (error) {
     return next(error);
@@ -77,13 +95,20 @@ exports.addImage = async (req, res, next) => {
 exports.deleteImage = async (req, res, next) => {
   try {
     if (!isId(req.params.imageId)) return res.status(404).json({ message: "Picture not found" });
-    const image = await ProductImage.findOne({ _id: req.params.imageId, shop: req.shop._id }).select("product");
+    let image = await ProductImage.findOne({ _id: req.params.imageId, shop: req.shop._id }).select("product");
     if (!image) return res.status(404).json({ message: "Picture not found" });
-    const product = await Product.findOneAndUpdate(
+    let product = await Family.findOneAndUpdate(
       { _id: image.product, shop: req.shop._id },
       { $pull: { images: image._id } },
       { new: true, timestamps: false }
-    ).select("name sizeLabel images");
+    ).select("name images");
+    if (!product) {
+      // a picture of a product made before sizes lived inside products: group first, then try again
+      await ensureFamiliesForShop(req.shop._id);
+      image = await ProductImage.findOne({ _id: req.params.imageId, shop: req.shop._id }).select("product");
+      product = image && (await Family.findOneAndUpdate({ _id: image.product, shop: req.shop._id }, { $pull: { images: image._id } }, { new: true, timestamps: false }).select("name images"));
+    }
+    if (!image) return res.status(404).json({ message: "Picture not found" });
     await image.deleteOne();
     if (product) {
       logActivity(req, { kind: "product", action: "product.image_remove", targetLabel: label(product), summary: `Removed a picture from ${label(product)}` });
@@ -98,7 +123,7 @@ exports.deleteImage = async (req, res, next) => {
 exports.orderImages = async (req, res, next) => {
   try {
     if (!isId(req.params.id)) return res.status(404).json({ message: "Product not found" });
-    const product = await Product.findOne({ _id: req.params.id, shop: req.shop._id }).select("name sizeLabel images");
+    const product = await findFamily(req, req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
     const ids = Array.isArray(req.body?.ids) ? req.body.ids.map(String) : [];
     const current = product.images.map(String);
@@ -106,7 +131,7 @@ exports.orderImages = async (req, res, next) => {
     if (!same) return res.status(400).json({ message: "The pictures have changed. Please try again." });
     const changed = ids.some((id, i) => id !== current[i]);
     if (changed) {
-      await Product.updateOne({ _id: product._id, shop: req.shop._id }, { $set: { images: ids } }, { timestamps: false });
+      await Family.updateOne({ _id: product._id, shop: req.shop._id }, { $set: { images: ids } }, { timestamps: false });
       logActivity(req, { kind: "product", action: "product.image_order", targetLabel: label(product), summary: `Changed the main picture of ${label(product)}` });
     }
     res.status(200).json({ images: ids });

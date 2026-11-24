@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { X } from "lucide-react";
+import { ChevronDown, ChevronRight, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { getErrorMessage } from "../../../common/utils/api";
-import { productLabel, priceText } from "../utils/productOptions";
+import { productLabel, priceText, sortSizes } from "../utils/productOptions";
 import ProductThumb from "./ProductThumb";
 
 const inputClass =
@@ -22,6 +22,7 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [adding, setAdding] = useState(null); // { name, price, saving } while the "new product" form is open
+  const [expanded, setExpanded] = useState(null); // the product whose sizes are shown
 
   useEffect(() => {
     const controller = new AbortController();
@@ -37,14 +38,18 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
     return () => controller.abort();
   }, []);
 
+  // the products that match, each with its matching sizes (a product has several sizes)
   const matches = useMemo(() => {
     const words = query.toLowerCase().split(/\s+/).filter(Boolean);
-    return (products || [])
-      .filter((p) => {
-        const text = `${p.name} ${p.sizeLabel || ""}`.toLowerCase();
-        return words.every((w) => text.includes(w));
-      })
-      .slice(0, 30);
+    const groups = new Map();
+    for (const p of products || []) {
+      const text = `${p.name} ${p.sizeLabel || ""}`.toLowerCase();
+      if (!words.every((w) => text.includes(w))) continue;
+      const id = p.family || p._id;
+      if (!groups.has(id)) groups.set(id, { id, name: p.name, images: p.images || [], sizes: [] });
+      groups.get(id).sizes.push(p);
+    }
+    return [...groups.values()].slice(0, 30).map((g) => ({ ...g, sizes: sortSizes(g.sizes) }));
   }, [products, query]);
 
   if (!products || (products.length === 0 && !canCreate)) return null;
@@ -107,7 +112,7 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
         className={inputClass}
       />
       {open && (
-        <ul role="listbox" aria-label="Your products" className="mt-1 max-h-48 overflow-y-auto rounded border border-gray-200 bg-white divide-y divide-gray-100">
+        <ul role="listbox" aria-label="Your products" className="mt-1 max-h-64 overflow-y-auto rounded border border-gray-200 bg-white divide-y divide-gray-100">
           {matches.length === 0 ? (
             <li className="px-3 py-2 text-sm text-gray-500 space-y-2">
               <span className="block">{canCreate ? "No product found." : "No product found. You can type the product below."}</span>
@@ -122,25 +127,60 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
               )}
             </li>
           ) : (
-            matches.map((p) => (
-              <li key={p._id} role="option" aria-selected="false">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOpen(false);
-                    setQuery("");
-                    onPick(p);
-                  }}
-                  className="w-full text-left px-3 py-2 min-h-[44px] hover:bg-orange-50 focus:bg-orange-50 focus:outline-none flex items-center gap-3"
-                >
-                  {p.images?.length > 0 && <ProductThumb product={p} size="w-10 h-10" />}
-                  <span className="min-w-0">
-                    <span className="block text-sm text-gray-900">{productLabel(p)}</span>
-                    {showPrice && priceText(p) && <span className="block text-xs text-gray-600">{priceText(p)}</span>}
-                  </span>
-                </button>
-              </li>
-            ))
+            matches.map((g) => {
+              const pick = (p) => {
+                setOpen(false);
+                setQuery("");
+                setExpanded(null);
+                onPick(p);
+              };
+              const sizeText = (p) => (p.sizeLabel ? p.sizeLabel : "No size");
+              // one size: pick it straight away. Several: choose the size under the product.
+              if (g.sizes.length === 1) {
+                const p = g.sizes[0];
+                return (
+                  <li key={g.id} role="option" aria-selected="false">
+                    <button type="button" onClick={() => pick(p)} className="w-full text-left px-3 py-2 min-h-[44px] hover:bg-orange-50 focus:bg-orange-50 focus:outline-none flex items-center gap-3">
+                      {g.images.length > 0 && <ProductThumb product={g} size="w-10 h-10" />}
+                      <span className="min-w-0">
+                        <span className="block text-sm text-gray-900">{productLabel(p)}</span>
+                        {showPrice && priceText(p) && <span className="block text-xs text-gray-600">{priceText(p)}</span>}
+                      </span>
+                    </button>
+                  </li>
+                );
+              }
+              const open1 = expanded === g.id || matches.length === 1;
+              return (
+                <li key={g.id} role="group" aria-label={g.name}>
+                  <button
+                    type="button"
+                    onClick={() => setExpanded(expanded === g.id ? null : g.id)}
+                    aria-expanded={open1}
+                    className="w-full text-left px-3 py-2 min-h-[44px] hover:bg-orange-50 focus:bg-orange-50 focus:outline-none flex items-center gap-3"
+                  >
+                    {g.images.length > 0 && <ProductThumb product={g} size="w-10 h-10" />}
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-medium text-gray-900">{g.name}</span>
+                      <span className="block text-xs text-gray-600">{g.sizes.length} sizes: choose one</span>
+                    </span>
+                    {open1 ? <ChevronDown size={18} className="text-gray-500" /> : <ChevronRight size={18} className="text-gray-500" />}
+                  </button>
+                  {open1 && (
+                    <ul className="bg-orange-50/40 border-t border-gray-100">
+                      {g.sizes.map((p) => (
+                        <li key={p._id} role="option" aria-selected="false">
+                          <button type="button" onClick={() => pick(p)} className="w-full text-left pl-8 pr-3 py-2 min-h-[44px] hover:bg-orange-100 focus:bg-orange-100 focus:outline-none">
+                            <span className="block text-sm text-gray-900">{sizeText(p)}</span>
+                            {showPrice && priceText(p) && <span className="block text-xs text-gray-600">{priceText(p)}</span>}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            })
           )}
         </ul>
       )}

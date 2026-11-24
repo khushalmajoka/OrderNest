@@ -3,6 +3,8 @@
 const mongoose = require("mongoose");
 const Category = require("../models/Category");
 const Product = require("../models/Product");
+const Family = require("../models/ProductFamily");
+const { ensureFamiliesForShop } = require("../utils/productFamilies");
 const { logActivity } = require("../utils/activity");
 
 const MAX_CATEGORIES = 100;
@@ -68,11 +70,14 @@ exports.deleteCategory = async (req, res, next) => {
     if (!isId(req.params.id)) return res.status(404).json({ message: "Category not found" });
     const category = await Category.findOne({ _id: req.params.id, shop: req.shop._id });
     if (!category) return res.status(404).json({ message: "Category not found" });
-    const moved = await Product.updateMany(
+    await ensureFamiliesForShop(req.shop._id); // products made the old way join their product first
+    const moved = await Family.updateMany(
       { shop: req.shop._id, category: category._id },
       { $unset: { category: 1 } },
       { timestamps: false }
     );
+    // the old place of the category (before products had sizes inside them)
+    await Product.updateMany({ shop: req.shop._id, category: category._id }, { $unset: { category: 1 } }, { timestamps: false });
     await category.deleteOne();
     logActivity(req, {
       kind: "product",
@@ -99,9 +104,16 @@ exports.moveProducts = async (req, res, next) => {
       target = await Category.findOne({ _id: req.body.category, shop: req.shop._id });
       if (!target) return res.status(400).json({ message: "Please choose a category." });
     }
-    // only this shop's products are touched; "updatedAt" is left alone
-    const result = await Product.updateMany(
-      { shop: req.shop._id, _id: { $in: ids } },
+    // The ids are products (families); the id of a size also works (its product is moved).
+    // Only this shop's products are touched; "updatedAt" is left alone.
+    const sizes = await Product.find({ shop: req.shop._id, _id: { $in: ids } }).select("family").lean();
+    if (sizes.some((p) => !p.family)) await ensureFamiliesForShop(req.shop._id);
+    const sizeFamilies = sizes.some((p) => !p.family)
+      ? (await Product.find({ shop: req.shop._id, _id: { $in: ids } }).select("family").lean()).map((p) => p.family)
+      : sizes.map((p) => p.family);
+    const familyIds = [...new Set([...ids, ...sizeFamilies.filter(Boolean).map(String)])];
+    const result = await Family.updateMany(
+      { shop: req.shop._id, _id: { $in: familyIds } },
       target ? { $set: { category: target._id } } : { $unset: { category: 1 } },
       { timestamps: false }
     );

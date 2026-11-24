@@ -6,7 +6,8 @@ const mongoose = require("mongoose");
 const productImageSchema = new mongoose.Schema(
   {
     shop: { type: mongoose.Schema.Types.ObjectId, ref: "Shop", required: true },
-    product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+    // the product (family) the picture belongs to
+    product: { type: mongoose.Schema.Types.ObjectId, ref: "ProductFamily", required: true },
     contentType: { type: String, enum: ["image/jpeg", "image/png", "image/webp"], required: true },
     full: { type: Buffer, required: true },
     thumb: { type: Buffer, required: true },

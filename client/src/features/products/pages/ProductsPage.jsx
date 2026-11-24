@@ -15,6 +15,7 @@ import BuildFromOrdersDialog from "../components/BuildFromOrdersDialog";
 import TidySizesDialog from "../components/TidySizesDialog";
 import CategoriesDialog from "../components/CategoriesDialog";
 import ProductItem from "../components/ProductItem";
+import { sortSizes } from "../utils/productOptions";
 import PictureViewer from "../components/PictureViewer";
 
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
@@ -30,7 +31,7 @@ const ProductsPage = () => {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [showArchived, setShowArchived] = useState(false);
-  const [products, setProducts] = useState(null);
+  const [products, setProducts] = useState(null); // the products, each with its sizes (null = loading)
   const [loadError, setLoadError] = useState(null);
   const [editing, setEditing] = useState(null); // null | "new" | a product
   const [busyId, setBusyId] = useState(null);
@@ -79,11 +80,18 @@ const ProductsPage = () => {
         headers: headers(),
         params: { search: search || undefined, archived: showArchived ? 1 : undefined, limit: 500 },
       });
-      setProducts(res.data.products);
+      // the sizes belong to their product: one entry per product, with its sizes inside
+      const byId = new Map((res.data.families || []).map((f) => [f._id, { ...f, sizes: [] }]));
+      res.data.products.forEach((size) => byId.get(size.family)?.sizes.push(size));
+      const list = [...byId.values()]
+        .filter((f) => f.sizes.length)
+        .map((f) => ({ ...f, sizes: sortSizes(f.sizes) }))
+        .sort((a, b) => a.name.localeCompare(b.name));
+      setProducts(list);
       setCategories(res.data.categories || []);
       setIsAdmin(Boolean(res.data.canManageCategories));
       // forget ticks of products that are not in the list any more
-      setSelected((old) => new Set([...old].filter((id) => res.data.products.some((p) => p._id === id))));
+      setSelected((old) => new Set([...old].filter((id) => list.some((p) => p._id === id))));
     } catch (err) {
       setLoadError(getErrorMessage(err, "Could not load the products."));
     }
@@ -109,7 +117,7 @@ const ProductsPage = () => {
   const setActive = async (product, active) => {
     setBusyId(product._id);
     try {
-      await axios.put(`${process.env.REACT_APP_BASE_URL}/api/products/${product._id}`, { active }, { headers: headers() });
+      await axios.put(`${process.env.REACT_APP_BASE_URL}/api/products/families/${product._id}`, { active }, { headers: headers() });
       toast.success(active ? "Product restored." : "Product archived.");
       await load();
     } catch (err) {
@@ -384,7 +392,7 @@ const ProductsPage = () => {
                           selected={selected.has(p._id)}
                           onToggle={() => toggleSelect(p._id)}
                           onEdit={() => setEditing(p)}
-                          onArchive={() => setActive(p, !p.active)}
+                          onArchive={() => setActive(p, p.sizes.every((s) => s.active === false))}
                           busy={busyId === p._id}
                           onPictures={() => setViewing(p)}
                         />
@@ -455,7 +463,8 @@ const ProductsPage = () => {
 
       {editing && (
         <ProductFormModal
-          product={editing === "new" ? null : editing}
+          family={editing === "new" ? null : editing}
+          sizes={editing === "new" ? [] : editing.sizes}
           canSetPrice={canSetPrice}
           categories={categories}
           canSetCategory={isAdmin}

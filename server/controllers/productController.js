@@ -1,89 +1,286 @@
-// The shop's products: a list the Create order window picks from.
+// The shop's products. A product ("Frame") has a name, category, pictures and notes, and
+// its sizes inside it, each size with its own price. A size is a Product record; the
+// product is a ProductFamily. Orders point at the size records.
 //  - see the list: the admin and any staff who can create/edit orders or manage products
 //  - add / edit / archive: the admin, and staff with "Manage products"
+//  - category: the admin only
 // Prices follow the amounts rule: someone who may not see amounts gets no prices
 // and cannot change them. Nothing here changes an old order.
 const mongoose = require("mongoose");
 const Product = require("../models/Product");
 const Category = require("../models/Category");
+const Family = require("../models/ProductFamily");
 const { can } = require("../utils/permissions");
 const { checkProductInput } = require("../utils/productInput");
 const { logActivity } = require("../utils/activity");
 const Order = require("../models/Order");
 const { suggestProducts, keyOf, sizeLabelOf, MAX_SUGGESTIONS } = require("../utils/productSuggestions");
+const { cleanName, familyKey, ensureFamily, ensureFamiliesForShop, needsFamilies } = require("../utils/productFamilies");
 
-const MAX_PRODUCTS = 2000;
-const escapeRegex = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const MAX_PRODUCTS = 2000; // size records in a shop
+const MAX_SIZES = 50; // sizes in one product
 
 const seesAmounts = (req) => can(req.account, "viewAmounts");
 const canManage = (req) => can(req.account, "manageProducts");
+const isAdmin = (req) => req.account.role === "admin";
+const isId = (id) => mongoose.Types.ObjectId.isValid(id);
+const cleanNotes = (v) => String(v ?? "").replace(/\s+/g, " ").trim().slice(0, 300);
 
-// what the screen gets (no price for someone who may not see amounts)
-const present = (req, product) => {
+// what the screen gets for a size (no price for someone who may not see amounts).
+// The product's category, pictures and notes are shown on each of its sizes too.
+const present = (req, product, family) => {
   const p = product.toObject ? product.toObject() : { ...product };
   delete p.nameKey;
   delete p.__v;
+  if (p.family) p.family = String(p.family);
+  p.category = family?.category ? String(family.category) : undefined;
+  p.images = (family?.images || []).map(String);
+  p.notes = family ? family.notes || "" : p.notes || "";
   if (!seesAmounts(req)) {
     delete p.price;
     delete p.priceUnit;
   }
   return p;
 };
-
-// Only the admin sets a category. Returns { skip } (not sent / not allowed), { error } or { value }.
-const resolveCategory = async (req, body) => {
-  if (req.account.role !== "admin" || !("category" in (body || {}))) return { skip: true };
-  const id = body.category;
-  if (id === null || id === "" || id === undefined) return { value: null };
-  if (!mongoose.Types.ObjectId.isValid(id)) return { error: "Please choose a category." };
-  const found = await Category.findOne({ _id: id, shop: req.shop._id }).select("name").lean();
-  if (!found) return { error: "Please choose a category." };
-  return { value: found._id, name: found.name };
-};
+const presentFamily = (f) => ({
+  _id: String(f._id),
+  name: f.name,
+  notes: f.notes || "",
+  category: f.category ? String(f.category) : undefined,
+  images: (f.images || []).map(String),
+});
 
 const money = (n) => `₹${Number(n) || 0}`;
 const priceText = (p) => (p.price === undefined || p.price === null ? "no price" : `${money(p.price)} per ${p.priceUnit}`);
 const label = (p) => (p.sizeLabel ? `${p.name} (${p.sizeLabel})` : p.name);
 
+// Only the admin sets a category. Returns { skip } (not sent / not allowed), { error } or { value, name }.
+const resolveCategory = async (req, body) => {
+  if (!isAdmin(req) || !("category" in (body || {}))) return { skip: true };
+  const id = body.category;
+  if (id === null || id === "" || id === undefined) return { value: null };
+  if (!isId(id)) return { error: "Please choose a category." };
+  const found = await Category.findOne({ _id: id, shop: req.shop._id }).select("name").lean();
+  if (!found) return { error: "Please choose a category." };
+  return { value: found._id, name: found.name };
+};
+
+// Is this a good new name for the product? (nothing is changed)
+const checkRename = async (req, family, newName) => {
+  const name = cleanName(newName);
+  if (!name) return { error: "Please enter the product name." };
+  const nameKey = familyKey(name);
+  if (nameKey !== family.nameKey) {
+    const dup = await Family.findOne({ shop: req.shop._id, nameKey, _id: { $ne: family._id } }).select("_id").lean();
+    if (dup) return { error: "A product with this name already exists. Open it and add a size instead." };
+  }
+  return { name, nameKey, same: name === family.name };
+};
+
+// Rename a product: every size gets the new name (check it with checkRename first).
+const renameFamily = async (req, family, checked) => {
+  if (checked.same) return { changed: false };
+  const sizes = await Product.find({ shop: req.shop._id, family: family._id }).select("sizeLabel").lean();
+  if (sizes.length) {
+    await Product.bulkWrite(
+      sizes.map((s) => ({
+        updateOne: { filter: { _id: s._id }, update: { $set: { name: checked.name, nameKey: `${checked.nameKey}|${String(s.sizeLabel || "").toLowerCase()}` } } },
+      }))
+    );
+  }
+  const old = family.name;
+  family.name = checked.name;
+  family.nameKey = checked.nameKey;
+  await family.save();
+  return { changed: true, change: { field: "Name", from: old, to: checked.name } };
+};
+
+// notes / category of a product (category: admin only). Returns { error } or { changes }.
+const applyFamilyFields = async (req, family, body) => {
+  const changes = [];
+  if (body.notes !== undefined && cleanNotes(body.notes) !== (family.notes || "")) {
+    const to = cleanNotes(body.notes);
+    changes.push({ field: "Notes", from: family.notes || "(none)", to: to || "(none)" });
+    family.notes = to;
+  }
+  const cat = await resolveCategory(req, body);
+  if (cat.error) return { error: cat.error };
+  if (!cat.skip && String(family.category || "") !== String(cat.value || "")) {
+    const oldCat = family.category ? await Category.findById(family.category).select("name").lean() : null;
+    changes.push({ field: "Category", from: oldCat?.name || "(none)", to: cat.name || "(none)" });
+    family.category = cat.value || undefined;
+  }
+  return { changes };
+};
+
 // GET /api/products?search=&archived=1
+// -> sizes (products), the products they belong to (families) and the categories
 exports.listProducts = async (req, res, next) => {
   try {
     const allowed = canManage(req) || can(req.account, "createOrders") || can(req.account, "editOrders");
     if (!allowed) return res.status(403).json({ error: "You do not have permission to do this. Ask your admin." });
 
-    const filter = { shop: req.shop._id };
-    // archived products are only for people who manage products
+    const shopId = req.shop._id;
+    const filter = { shop: shopId };
+    // archived sizes are only for people who manage products
     const wantArchived = req.query.archived === "1" && canManage(req);
     if (!wantArchived) filter.active = true;
 
     // every word typed must be found in the name, size or notes (in any order: "10 x 8" finds "8 x 10")
     const search = String(req.query.search ?? "").trim().slice(0, 100);
     const words = search.split(/\s+/).filter(Boolean);
+    const limit = Math.min(500, Math.max(1, parseInt(req.query.limit, 10) || 200));
+
+    // one trip to the database: the sizes, the categories, the products, and whether old products need grouping
+    const load = () =>
+      Promise.all([
+        Product.find(filter).sort({ active: -1, name: 1, sizeLabel: 1 }).lean(),
+        Category.find({ shop: shopId }).select("name").sort({ nameKey: 1 }).lean(),
+        Family.find({ shop: shopId }).lean(),
+        needsFamilies(shopId),
+      ]);
+    let [products, categories, families, needs] = await load();
+    if (needs) {
+      // products made before sizes lived inside products: group them now (links only)
+      await ensureFamiliesForShop(shopId);
+      [products, categories, families] = await load();
+    }
+    const byId = new Map(families.map((f) => [String(f._id), f]));
     if (words.length) {
-      filter.$and = words.map((word) => {
-        const pattern = new RegExp(escapeRegex(word), "i");
-        return { $or: [{ name: pattern }, { sizeLabel: pattern }, { notes: pattern }] };
+      // every word must be found in the product's name, the size or the notes of its product
+      const lower = words.map((w) => w.toLowerCase());
+      products = products.filter((p) => {
+        const text = `${p.name} ${p.sizeLabel || ""} ${byId.get(String(p.family))?.notes || p.notes || ""}`.toLowerCase();
+        return lower.every((w) => text.includes(w));
       });
     }
-    const limit = Math.min(500, Math.max(1, parseInt(req.query.limit, 10) || 200));
-    // both asked at the same time (each trip to the database takes time)
-    const [products, categories] = await Promise.all([
-      Product.find(filter).sort({ active: -1, name: 1, sizeLabel: 1 }).limit(limit),
-      Category.find({ shop: req.shop._id }).select("name").sort({ nameKey: 1 }).lean(),
-    ]);
+    products = products.slice(0, limit);
+    const used = new Set(products.map((p) => String(p.family)));
     res.status(200).json({
-      products: products.map((p) => present(req, p)),
+      products: products.map((p) => present(req, p, byId.get(String(p.family)))),
+      families: families.filter((f) => used.has(String(f._id))).map(presentFamily),
       categories,
       canManage: canManage(req),
       // only the admin makes categories and moves products between them
-      canManageCategories: req.account.role === "admin",
+      canManageCategories: isAdmin(req),
     });
   } catch (error) {
     return next(error);
   }
 };
 
-// POST /api/products
+// POST /api/products/families   { name, category?, notes?, sizes: [{ size?, price?, priceUnit? }] }
+// A new product with its sizes (a product with no size has one size line without a size).
+exports.createFamily = async (req, res, next) => {
+  try {
+    const name = cleanName(req.body?.name);
+    if (!name) return res.status(400).json({ message: "Please enter the product name." });
+    const sizesIn = Array.isArray(req.body?.sizes) && req.body.sizes.length ? req.body.sizes : [{}];
+    if (sizesIn.length > MAX_SIZES) return res.status(400).json({ message: `A product can have up to ${MAX_SIZES} sizes.` });
+
+    const docs = [];
+    const seen = new Set();
+    for (const row of sizesIn) {
+      if (!row || typeof row !== "object") return res.status(400).json({ message: "Something in the sizes is not right." });
+      const input = { name, size: row.size };
+      if (seesAmounts(req)) {
+        input.price = row.price;
+        input.priceUnit = row.priceUnit;
+      }
+      const checked = checkProductInput(input);
+      if (checked.error) return res.status(400).json({ message: checked.error });
+      if (seen.has(checked.values.nameKey)) return res.status(400).json({ message: "Two sizes are the same. Each size can be added once." });
+      seen.add(checked.values.nameKey);
+      docs.push(checked.values);
+    }
+    if ((await Product.countDocuments({ shop: req.shop._id })) + docs.length > MAX_PRODUCTS) {
+      return res.status(400).json({ message: `A shop can have up to ${MAX_PRODUCTS} sizes of products.` });
+    }
+    if (await Family.exists({ shop: req.shop._id, nameKey: familyKey(name) })) {
+      return res.status(400).json({ message: "A product with this name already exists. Open it and add a size instead." });
+    }
+    const cat = await resolveCategory(req, req.body);
+    if (cat.error) return res.status(400).json({ message: cat.error });
+
+    let family;
+    try {
+      family = await Family.create({
+        shop: req.shop._id,
+        name,
+        nameKey: familyKey(name),
+        notes: cleanNotes(req.body?.notes),
+        ...(cat.value ? { category: cat.value } : {}),
+      });
+    } catch (err) {
+      if (err.code === 11000) return res.status(400).json({ message: "A product with this name already exists. Open it and add a size instead." });
+      throw err;
+    }
+    let sizes;
+    try {
+      sizes = await Product.insertMany(docs.map((d) => ({ shop: req.shop._id, family: family._id, ...d, notes: undefined })));
+    } catch (err) {
+      await Family.deleteOne({ _id: family._id }); // nothing half-made is left
+      throw err;
+    }
+    logActivity(req, {
+      kind: "product",
+      action: "product.create",
+      targetLabel: name,
+      summary: `Added product ${name} (${sizes.length} ${sizes.length === 1 ? "size" : "sizes"})`,
+    });
+    res.status(201).json({ family: presentFamily(family), sizes: sizes.map((s) => present(req, s, family)) });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// PUT /api/products/families/:id   { name?, notes?, category?, active? }
+// active: false / true archives / restores every size of the product.
+exports.updateFamily = async (req, res, next) => {
+  try {
+    if (!isId(req.params.id)) return res.status(404).json({ message: "Product not found" });
+    let family = await Family.findOne({ _id: req.params.id, shop: req.shop._id });
+    if (!family) return res.status(404).json({ message: "Product not found" });
+    const changes = [];
+    // check everything first, then change
+    const rename = req.body.name !== undefined ? await checkRename(req, family, req.body.name) : null;
+    if (rename?.error) return res.status(400).json({ message: rename.error });
+    const catCheck = await resolveCategory(req, req.body);
+    if (catCheck.error) return res.status(400).json({ message: catCheck.error });
+    if (rename) {
+      const r = await renameFamily(req, family, rename);
+      if (r.change) changes.push(r.change);
+    }
+    const f = await applyFamilyFields(req, family, req.body);
+    if (f.error) return res.status(400).json({ message: f.error });
+    changes.push(...f.changes);
+    if (f.changes.length) await family.save();
+
+    let archived = null;
+    if (typeof req.body.active === "boolean") {
+      const r = await Product.updateMany({ shop: req.shop._id, family: family._id, active: !req.body.active }, { $set: { active: req.body.active } });
+      if (r.modifiedCount) archived = !req.body.active;
+    }
+    if (changes.length) {
+      logActivity(req, { kind: "product", action: "product.update", targetLabel: family.name, summary: `Edited product ${family.name}`, changes });
+    }
+    if (archived !== null) {
+      logActivity(req, {
+        kind: "product",
+        action: archived ? "product.archive" : "product.restore",
+        targetLabel: family.name,
+        summary: `${archived ? "Archived" : "Restored"} product ${family.name} (all sizes)`,
+      });
+    }
+    res.status(200).json({ family: presentFamily(family), changed: changes.length > 0 || archived !== null });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// POST /api/products   (adds a size)
+//   { family: id, size?, price?, priceUnit? }   a size of a product that exists
+//   { name, size?, price?, ... }                the product with this name (made if it is new)
 exports.createProduct = async (req, res, next) => {
   try {
     const input = { ...req.body };
@@ -91,11 +288,17 @@ exports.createProduct = async (req, res, next) => {
       delete input.price;
       delete input.priceUnit;
     }
+    let family = null;
+    if (input.family !== undefined && input.family !== null && input.family !== "") {
+      family = isId(input.family) ? await Family.findOne({ _id: input.family, shop: req.shop._id }) : null;
+      if (!family) return res.status(400).json({ message: "Product not found." });
+      input.name = family.name;
+    }
     const checked = checkProductInput(input);
     if (checked.error) return res.status(400).json({ message: checked.error });
 
     if ((await Product.countDocuments({ shop: req.shop._id })) >= MAX_PRODUCTS) {
-      return res.status(400).json({ message: `A shop can have up to ${MAX_PRODUCTS} products.` });
+      return res.status(400).json({ message: `A shop can have up to ${MAX_PRODUCTS} sizes of products.` });
     }
     const dup = await Product.findOne({ shop: req.shop._id, nameKey: checked.values.nameKey });
     if (dup) {
@@ -105,23 +308,27 @@ exports.createProduct = async (req, res, next) => {
           : "This product exists but is archived. Restore it from the Products page.",
       });
     }
-
     const cat = await resolveCategory(req, req.body);
     if (cat.error) return res.status(400).json({ message: cat.error });
+    if (!family) family = await ensureFamily(req.shop._id, checked.values.name);
+
     let product;
     try {
-      product = await Product.create({ shop: req.shop._id, ...checked.values, ...(cat.value ? { category: cat.value } : {}) });
+      product = await Product.create({ shop: req.shop._id, family: family._id, ...checked.values, notes: undefined });
     } catch (err) {
       if (err.code === 11000) return res.status(400).json({ message: "This product (same name and size) already exists." });
       throw err;
     }
+    // notes and category belong to the product
+    const f = await applyFamilyFields(req, family, { ...(req.body.notes ? { notes: req.body.notes } : {}), ...("category" in req.body ? { category: req.body.category } : {}) });
+    if (f.changes?.length) await family.save();
     logActivity(req, {
       kind: "product",
       action: "product.create",
       targetLabel: label(product),
       summary: `Added product ${label(product)} (${priceText(product)})`,
     });
-    res.status(201).json({ product: present(req, product) });
+    res.status(201).json({ product: present(req, product, family) });
   } catch (error) {
     return next(error);
   }
@@ -132,36 +339,50 @@ const FIELDS = [
   { label: "Size", read: (p) => p.sizeLabel || "(none)" },
   { label: "Price", read: (p) => (p.price === undefined || p.price === null ? "(none)" : money(p.price)) },
   { label: "Price for", read: (p) => p.priceUnit },
-  { label: "Notes", read: (p) => p.notes || "(none)" },
 ];
 
-// PUT /api/products/:id   (any of name, size, price, priceUnit, notes, active)
+// PUT /api/products/:id   (one size: size, price, priceUnit, active)
+// The name, notes and category belong to the product: sent here, they are applied to it.
 exports.updateProduct = async (req, res, next) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) return res.status(404).json({ message: "Product not found" });
-    const product = await Product.findOne({ _id: req.params.id, shop: req.shop._id });
+    if (!isId(req.params.id)) return res.status(404).json({ message: "Product not found" });
+    let product = await Product.findOne({ _id: req.params.id, shop: req.shop._id });
     if (!product) return res.status(404).json({ message: "Product not found" });
-
+    if (!product.family) {
+      await ensureFamiliesForShop(req.shop._id);
+      product = await Product.findOne({ _id: req.params.id, shop: req.shop._id });
+    }
+    const family = await Family.findOne({ _id: product.family, shop: req.shop._id });
     const before = product.toObject();
-    const input = { ...req.body };
+
+    // check everything first, then change anything
+    const rename = req.body.name !== undefined ? await checkRename(req, family, req.body.name) : { name: family.name, nameKey: family.nameKey, same: true };
+    if (rename.error) return res.status(400).json({ message: rename.error });
+    const catCheck = await resolveCategory(req, req.body);
+    if (catCheck.error) return res.status(400).json({ message: catCheck.error });
+
+    const input = { ...req.body, name: rename.name };
     if (!seesAmounts(req)) {
       delete input.price;
       delete input.priceUnit;
     }
     const checked = checkProductInput(input, { existing: before });
     if (checked.error) return res.status(400).json({ message: checked.error });
+    // another size of the same product with this size?
+    const sameSize = await Product.findOne({ shop: req.shop._id, family: family._id, sizeLabel: checked.values.sizeLabel, _id: { $ne: product._id } }).select("_id").lean();
+    if (sameSize) return res.status(400).json({ message: "Another product has the same name and size (a size is always kept with the smaller number first, so 10 x 8 is 8 x 10)." });
 
-    if (checked.values.nameKey !== before.nameKey) {
-      const dup = await Product.findOne({ shop: req.shop._id, nameKey: checked.values.nameKey, _id: { $ne: product._id } });
-      if (dup) return res.status(400).json({ message: "Another product has the same name and size (a size is always kept with the smaller number first, so 10 x 8 is 8 x 10)." });
-    }
-
-    const cat = await resolveCategory(req, req.body);
-    if (cat.error) return res.status(400).json({ message: cat.error });
+    const familyChanges = [];
+    const renamed = await renameFamily(req, family, rename);
+    if (renamed.change) familyChanges.push(renamed.change);
+    const f = await applyFamilyFields(req, family, req.body);
+    familyChanges.push(...f.changes);
+    if (f.changes.length) await family.save();
+    product = await Product.findOne({ _id: req.params.id, shop: req.shop._id });
 
     Object.assign(product, checked.values);
+    product.notes = undefined;
     if (checked.values.price === undefined) product.price = undefined;
-    if (!cat.skip) product.category = cat.value || undefined;
     let archivedNow = null;
     if (typeof req.body.active === "boolean" && req.body.active !== before.active) {
       product.active = req.body.active;
@@ -175,15 +396,15 @@ exports.updateProduct = async (req, res, next) => {
     }
 
     const after = product.toObject();
-    const changes = FIELDS.flatMap((f) => {
-      const from = f.read(before);
-      const to = f.read(after);
-      return from === to ? [] : [{ field: f.label, from, to }];
-    });
-    if (!cat.skip && String(before.category || "") !== String(cat.value || "")) {
-      const oldCat = before.category ? await Category.findById(before.category).select("name").lean() : null;
-      changes.push({ field: "Category", from: oldCat?.name || "(none)", to: cat.name || "(none)" });
-    }
+    const changes = [
+      ...familyChanges,
+      ...FIELDS.flatMap((fld) => {
+        if (fld.label === "Name" && familyChanges.some((c) => c.field === "Name")) return [];
+        const from = fld.read(before);
+        const to = fld.read(after);
+        return from === to ? [] : [{ field: fld.label, from, to }];
+      }),
+    ];
     if (changes.length) {
       logActivity(req, {
         kind: "product",
@@ -201,7 +422,7 @@ exports.updateProduct = async (req, res, next) => {
         summary: `${archivedNow ? "Archived" : "Restored"} product ${label(product)}`,
       });
     }
-    res.status(200).json({ product: present(req, product), changed: changes.length > 0 || archivedNow !== null });
+    res.status(200).json({ product: present(req, product, family), changed: changes.length > 0 || archivedNow !== null });
   } catch (error) {
     return next(error);
   }
@@ -279,6 +500,7 @@ exports.createFromOrders = async (req, res, next) => {
       }
       skipped += fresh.length - created;
     }
+    if (created) await ensureFamiliesForShop(req.shop._id); // the new sizes join their product
     if (created) {
       logActivity(req, {
         kind: "product",

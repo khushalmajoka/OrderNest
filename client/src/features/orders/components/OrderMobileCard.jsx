@@ -7,7 +7,7 @@ import { useOrderShare } from "../hooks/useOrderShare";
 import { useFlashOnChange } from "../hooks/useFlashOnChange";
 import { MASK, NameMissing, ORDER_COLUMNS } from "../utils/orderColumns";
 import FieldEditor from "./FieldEditor";
-import { orderQuantity } from "../../products/utils/productOptions";
+import ProductText from "./ProductText";
 import WhatsAppButton from "./WhatsAppButton";
 import { deliveryCountdown } from "../../../common/utils/dateUtils";
 import { getStatusStyle } from "../../../common/utils/statusColors";
@@ -80,7 +80,7 @@ const OrderMobileCard = ({
               return (
                 <div key={key}>
                   <span className="block text-xs text-gray-600 mb-1">{column.label}</span>
-                  <FieldEditor column={column} form={edit.form} set={edit.set} shopId={shop._id} shop={shop} originalStatus={order.status} large onEnter={edit.save} canCloseOld={access.admin} />
+                  <FieldEditor column={column} form={edit.form} set={edit.set} shopId={shop._id} shop={shop} originalStatus={order.status} large onEnter={edit.save} canCloseOld={access.admin} order={order} onChangeProduct={() => onChangeProduct(order)} />
                 </div>
               );
             })}
@@ -166,7 +166,7 @@ const OrderMobileCard = ({
         <p className="font-medium text-gray-800 break-words">
           {order.customerName && order.customerName.trim() ? order.customerName : <NameMissing />}
         </p>
-        <p className="text-gray-600 break-words">{order.item || "-"}{orderQuantity(order) ? ` × ${orderQuantity(order)}` : ""}</p>
+        <p className="text-gray-600 break-words"><ProductText order={order} /></p>
         {order.phone && (
           <a
             href={`tel:${order.phone}`}
@@ -255,7 +255,7 @@ const OrderMobileCard = ({
           onClick={() => onChangeProduct(order)}
           className="w-full mt-3 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border text-gray-700"
         >
-          <Package size={16} /> Change product
+          <Package size={16} /> Change products
         </button>
       )}
 

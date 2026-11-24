@@ -54,7 +54,7 @@ const OrderList = ({
   maskAmounts,
 }) => {
   const [deleteId, setDeleteId] = useState(null);
-  const [productOrder, setProductOrder] = useState(null); // order whose product is being changed
+  const [productOrder, setProductOrder] = useState(null); // order whose products are being changed
   const [activeOrderId, setActiveOrderId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -81,6 +81,16 @@ const OrderList = ({
       if (before) moves.askAfterEdit(saved, before.status);
     },
   });
+  // "Change products" (menu, or the button inside an order being edited). Unsaved
+  // typing in the row is never thrown away: save or cancel it first.
+  const openProducts = (order) => {
+    if (inline.editing && inline.dirty) {
+      toast("Save or cancel the changes in the order you are editing first.");
+      return;
+    }
+    if (inline.editing) inline.cancel();
+    setProductOrder(order);
+  };
   // Ticked orders (only on this page; cleared when the page changes)
   const [selected, setSelected] = useState(() => new Set());
   useEffect(() => {
@@ -215,7 +225,7 @@ const OrderList = ({
                 onToggleSelect={toggleSelect}
                 nextStatus={nextStatusOf(shop, order.status)}
                 onNext={goNext}
-                onChangeProduct={setProductOrder}
+                onChangeProduct={openProducts}
               />
             ))}
           </div>
@@ -256,7 +266,7 @@ const OrderList = ({
                   onToggleSelect={toggleSelect}
                   nextStatus={nextStatusOf(shop, order.status)}
                   onNext={goNext}
-                  onChangeProduct={setProductOrder}
+                  onChangeProduct={openProducts}
                 />
               ))}
             </tbody>
@@ -285,6 +295,7 @@ const OrderList = ({
         <ChangeProductDialog
           order={orders.find((o) => o._id === productOrder._id) || productOrder}
           canSeePrices={canSeeAmounts}
+          canManageProducts={can(account, "manageProducts")}
           onClose={() => setProductOrder(null)}
           onSaved={onUpdated}
         />

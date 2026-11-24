@@ -1,7 +1,7 @@
 import React from "react";
 import { formatDay, formatDate } from "../../../common/utils/formatDate";
 import { getShopLogo } from "../../../common/utils/utils";
-import { orderQuantity } from "../../products/utils/productOptions";
+import { orderLineTexts } from "../../products/utils/productOptions";
 
 // The slip that is printed and stuck on the parcel (A6 shape, 420px wide).
 // Black and white on purpose, so it prints clearly on any printer.
@@ -15,6 +15,8 @@ const DeliverySlip = React.forwardRef(({ order, shop, fields, edits = {}, note }
   const customerPhone = pick("customerPhone", order.phone);
   const address = pick("address", order.address);
   const item = pick("item", order.item);
+  const texts = orderLineTexts(order);
+  const many = texts.length > 1;
 
   // Amount to collect: what was typed for this slip, else the order's balance
   const typedAmount = edits.amount;
@@ -90,14 +92,23 @@ const DeliverySlip = React.forwardRef(({ order, shop, fields, edits = {}, note }
 
       {(fields.item || fields.expectedDelivery || fields.orderDate || fields.executive) && (
         <div className="mt-3 text-sm space-y-1">
-          {fields.item && (
+          {fields.item && (many && edits.item === undefined ? (
+            <div>
+              <b>Items:</b>
+              <ul className="ml-4 list-disc">
+                {texts.map((t, i) => (
+                  <li key={i} className="break-words">{t.label} × {t.qty}</li>
+                ))}
+              </ul>
+            </div>
+          ) : (
             <p className="break-words">
               <b>Item:</b> {item || "-"}
             </p>
-          )}
-          {fields.item && orderQuantity(order) && (
+          ))}
+          {fields.item && texts.length === 1 && edits.item === undefined && (
             <p>
-              <b>Quantity:</b> {orderQuantity(order)}
+              <b>Quantity:</b> {texts[0].qty}
             </p>
           )}
           {fields.expectedDelivery && (

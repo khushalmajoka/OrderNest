@@ -1,4 +1,5 @@
-import { X } from "lucide-react";
+import { Package, X } from "lucide-react";
+import { orderLineTexts } from "../../products/utils/productOptions";
 import ExecutivePicker from "../../../common/components/ExecutivePicker";
 import StatusPicker from "../../../common/components/StatusPicker";
 import { offeredStatuses } from "../utils/statusInfo";
@@ -14,7 +15,7 @@ const base =
 //   onEnter: what the Enter key does (save)
 // Fields that cannot be edited (Order ID, Balance, Created, Updated) have no
 // editor: the caller shows them greyed out.
-const FieldEditor = ({ column, form, set, shopId, shop, originalStatus, large = false, onEnter, canCloseOld = false }) => {
+const FieldEditor = ({ column, form, set, shopId, shop, originalStatus, large = false, onEnter, canCloseOld = false, order, onChangeProduct }) => {
   const spec = COLUMN_EDITORS[column.key];
   if (!spec) return null;
 
@@ -27,6 +28,39 @@ const FieldEditor = ({ column, form, set, shopId, shop, originalStatus, large = 
       onEnter();
     }
   };
+
+  // The Product of an order whose products were picked from the list is not a
+  // text box: it is changed in "Change products". An order typed by hand keeps
+  // its text box, plus a button to pick a product instead.
+  if (column.key === "item" && order && onChangeProduct) {
+    const texts = orderLineTexts(order);
+    const btn = `shrink-0 inline-flex items-center gap-1 rounded border border-orange-400 text-orange-700 hover:bg-orange-50 ${large ? "min-h-[44px] px-3 text-sm" : "h-8 px-2 text-xs"}`;
+    if (texts.length) {
+      return (
+        <div className="space-y-1">
+          <div className={`rounded bg-black/5 text-gray-800 ${large ? "px-3 py-2 text-base" : "px-2 py-1 text-sm"}`} aria-label={column.label}>
+            {texts.map((t, i) => (
+              <p key={i} className="flex items-start gap-1">
+                <Package size={13} className="mt-1 shrink-0 text-orange-600" aria-hidden="true" />
+                <span className="break-words">{t.label} × {t.qty}</span>
+              </p>
+            ))}
+          </div>
+          <button type="button" onClick={onChangeProduct} className={btn}>
+            <Package size={14} /> Change products
+          </button>
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-1">
+        <input {...common} type="text" maxLength={spec.max} value={value} onChange={(e) => set(spec.field, e.target.value)} onKeyDown={enter} />
+        <button type="button" onClick={onChangeProduct} className={btn}>
+          <Package size={14} /> Pick a product
+        </button>
+      </div>
+    );
+  }
 
   switch (spec.type) {
     case "text":

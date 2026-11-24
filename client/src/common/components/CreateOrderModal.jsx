@@ -10,8 +10,8 @@ import { nameProblem } from "../utils/customerName";
 import ModalShell, { Field, inputClass } from "./ModalShell";
 import SavedLabel from "./SavedLabel";
 import ExecutivePicker from "./ExecutivePicker";
-import ProductPicker from "../../features/products/components/ProductPicker";
-import { productLabel, quantityUnit, totalFor } from "../../features/products/utils/productOptions";
+import LinesEditor from "../../features/products/components/LinesEditor";
+import { linesTotal, productLabel } from "../../features/products/utils/productOptions";
 
 const EMPTY_ORDER = {
   item: "",
@@ -27,15 +27,14 @@ const EMPTY_ORDER = {
 
 // `defaultExecutive`: the logged-in person's name, chosen in "Order executive"
 // to save a tap (it can be changed)
-const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = "", canSeePrices = true }) => {
+const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = "", canSeePrices = true, canManageProducts = false }) => {
   const [initial, setInitial] = useState(EMPTY_ORDER);
   const [formData, setFormData] = useState(EMPTY_ORDER);
   const [loading, setLoading] = useState(false);
-  // A product picked from the shop's list (optional) and how many
-  const [product, setProduct] = useState(null);
-  const [quantity, setQuantity] = useState("1");
-  // The total we filled in ourselves (price x quantity). It follows the quantity
-  // only until the person types their own total.
+  // The products picked from the shop's list (optional): [{ product, quantity }]
+  const [lines, setLines] = useState([]);
+  // The total we filled in ourselves (sum of price x quantity). It follows the
+  // products only until the person types their own total.
   const autoTotal = useRef("");
   // After a good save the button shows a tick for a moment, then the window closes
   const [done, setDone] = useState(false);
@@ -47,7 +46,7 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
   };
 
   // Anything typed yet? Then tapping outside or Escape will not close the window
-  const dirty = JSON.stringify(formData) !== JSON.stringify(initial) || Boolean(product);
+  const dirty = JSON.stringify(formData) !== JSON.stringify(initial) || lines.length > 0;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -60,35 +59,29 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
     }
   };
 
-  const refreshTotal = (picked, qty) => {
-    if (!canSeePrices || !picked || picked.price === undefined || picked.price === null) return;
-    const next = totalFor(picked.price, qty);
-    if (next === "") return;
+  const changeLines = (next) => {
+    setLines(next);
+    if (!next.length) return; // the Product text stays as it was, to be edited by hand
     setFormData((prev) => {
-      // only while the total is empty or still the one we filled in
-      if (prev.total !== "" && prev.total !== autoTotal.current) return prev;
-      autoTotal.current = next;
-      return { ...prev, total: next };
+      const item = next.map((l) => productLabel(l.product)).join(", ").slice(0, 200);
+      let total = prev.total;
+      if (canSeePrices) {
+        const sum = linesTotal(next);
+        // only while the total is empty or still the one we filled in
+        if (sum !== "" && (prev.total === "" || prev.total === autoTotal.current)) {
+          autoTotal.current = sum;
+          total = sum;
+        }
+      }
+      return { ...prev, item, total };
     });
-  };
-
-  const pickProduct = (picked) => {
-    setProduct(picked);
-    setQuantity("1");
-    setFormData((prev) => ({ ...prev, item: productLabel(picked) }));
-    refreshTotal(picked, "1");
-  };
-
-  const changeQuantity = (value) => {
-    setQuantity(value);
-    refreshTotal(product, value);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (loading || done) return;
-    if (product && !(Number(quantity) > 0)) return toast.error("Please enter the quantity (more than 0).");
+    if (lines.some((l) => !(Number(l.quantity) > 0))) return toast.error("Please enter the quantity (more than 0) for each product.");
 
     // The name may be empty, but not a placeholder like "N" or "NA"
     const badName = nameProblem(formData.customerName);
@@ -103,15 +96,13 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
         `${process.env.REACT_APP_BASE_URL}/api/orders/create`,
         {
           ...formData,
-          ...(product
+          ...(lines.length
             ? {
-                lines: [
-                  {
-                    product: product._id,
-                    quantity: Number(quantity),
-                    ...(canSeePrices && product.price !== undefined && product.price !== null ? { unitPrice: product.price } : {}),
-                  },
-                ],
+                lines: lines.map((l) => ({
+                  product: l.product._id,
+                  quantity: Number(l.quantity),
+                  ...(canSeePrices && l.product.price !== undefined && l.product.price !== null ? { unitPrice: l.product.price } : {}),
+                })),
               }
             : {}),
         },
@@ -140,47 +131,31 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
       onClose={onClose}
       onSubmit={handleSubmit}
     >
-      <ProductPicker
-        selected={product}
-        onPick={pickProduct}
-        onClear={() => setProduct(null)}
+      <LinesEditor
+        lines={lines}
+        onChange={changeLines}
         showPrice={canSeePrices}
+        canCreate={canManageProducts}
+        canSetPrice={canManageProducts && canSeePrices}
       />
 
-      <Field label="Item / Product">
-        <input
-          type="text"
-          name="item"
-          placeholder="e.g. Chocolate cake 1kg"
-          value={formData.item}
-          onChange={handleChange}
-          required
-          maxLength={200}
-          className={inputClass}
-        />
-      </Field>
-
-      {product && (
-        <Field
-          label={`Quantity${quantityUnit(product.priceUnit) ? ` (${quantityUnit(product.priceUnit)})` : ""}`}
-          hint={
-            canSeePrices && product.price !== undefined && product.price !== null
-              ? "(Total = price x quantity. You can change the total.)"
-              : ""
-          }
-        >
+      {lines.length === 0 && (
+        <Field label="Item / Product">
           <input
-            type="number"
-            inputMode="decimal"
-            name="quantity"
-            min={0}
-            step="any"
-            value={quantity}
-            onChange={(e) => changeQuantity(e.target.value)}
+            type="text"
+            name="item"
+            placeholder="e.g. Chocolate cake 1kg"
+            value={formData.item}
+            onChange={handleChange}
             required
+            maxLength={200}
             className={inputClass}
           />
         </Field>
+      )}
+
+      {lines.length > 0 && canSeePrices && (
+        <p className="text-xs text-gray-500">Total = price x quantity of each product. You can change the total.</p>
       )}
 
       <Field label="Customer name" hint="(leave empty if not known)">

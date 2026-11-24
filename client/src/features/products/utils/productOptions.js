@@ -53,3 +53,22 @@ export const orderQuantity = (order) => {
   const line = order?.lines?.[0];
   return line && Number(line.quantity) > 0 ? quantityText(line.quantity, line.unit) : "";
 };
+
+// "Chocolate Cake (1 kg)" for one line of an order (name and size copied at save time)
+export const lineLabel = (line) => (line.sizeLabel ? `${line.name} (${line.sizeLabel})` : line.name);
+
+// The products of an order as [{ label, qty }] (empty for an order typed by hand)
+export const orderLineTexts = (order) =>
+  (order?.lines || []).map((l) => ({ label: lineLabel(l), qty: quantityText(l.quantity, l.unit) }));
+
+// Total of the lines being edited: "" when any line has no price (then nothing can be worked out)
+export const linesTotal = (lines) => {
+  if (!lines.length) return "";
+  let sum = 0;
+  for (const l of lines) {
+    const t = totalFor(l.product.price, l.quantity);
+    if (t === "") return "";
+    sum += Number(t);
+  }
+  return String(Math.round(sum * 100) / 100);
+};

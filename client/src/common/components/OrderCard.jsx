@@ -1,6 +1,6 @@
 import React from "react";
 import { getShopLogo } from "../utils/utils";
-import { orderQuantity } from "../../features/products/utils/productOptions";
+import { orderLineTexts } from "../../features/products/utils/productOptions";
 
 // The shop comes from the dashboard (no extra request per order).
 const OrderCard = React.forwardRef(({ order, shop }, ref) => {
@@ -39,8 +39,11 @@ const OrderCard = React.forwardRef(({ order, shop }, ref) => {
         <div className="space-y-2 text-sm">
           <div className="flex justify-between text-sm">
             <p>
-              <b>Item:</b> {order.item}
-              {orderQuantity(order) && <> (Quantity: {orderQuantity(order)})</>}
+              <b>{orderLineTexts(order).length > 1 ? "Items" : "Item"}:</b>{" "}
+              {orderLineTexts(order).length > 1
+                ? orderLineTexts(order).map((t) => `${t.label} × ${t.qty}`).join(", ")
+                : order.item}
+              {orderLineTexts(order).length === 1 && <> (Quantity: {orderLineTexts(order)[0].qty})</>}
             </p>
             {order.balance !== undefined && (
               <p>

@@ -69,4 +69,12 @@ const checkLines = async (raw, { shopId, seesAmounts, existing = [] }) => {
   return { lines };
 };
 
-module.exports = { checkLines, MAX_LINES };
+// The Product text of an order that has products: "Chocolate Cake (1 kg), Greeting Card"
+// (at most 200 letters, like the Product box). The quantity is shown next to it
+// on screen, so it is not part of this text.
+const lineItemText = (lines) => {
+  const text = lines.map((l) => (l.sizeLabel ? `${l.name} (${l.sizeLabel})` : l.name)).join(", ");
+  return text.length > 200 ? `${text.slice(0, 197)}...` : text;
+};
+
+module.exports = { checkLines, lineItemText, MAX_LINES };

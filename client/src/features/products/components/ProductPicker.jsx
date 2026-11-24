@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { X } from "lucide-react";
+import toast from "react-hot-toast";
+import { getErrorMessage } from "../../../common/utils/api";
 import { productLabel, priceText } from "../utils/productOptions";
 
 const inputClass =
@@ -11,11 +13,14 @@ const inputClass =
 //   selected: the picked product ({ _id, name, sizeLabel, price, priceUnit }) or null
 //   onPick(product) / onClear()
 //   showPrice: false for people who may not see prices
-// If the shop has no products yet, nothing is shown (the Product box works as before).
-const ProductPicker = ({ selected, onPick, onClear, showPrice = true }) => {
+//   canCreate: the person may add products ("Manage products"): when nothing
+//     matches, "Add ... as a new product" is offered; canSetPrice: may type its price
+// If the shop has no products yet and the person cannot add one, nothing is shown.
+const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate = false, canSetPrice = false, label = "Search your products" }) => {
   const [products, setProducts] = useState(null); // null = loading
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [adding, setAdding] = useState(null); // { name, price, saving } while the "new product" form is open
 
   useEffect(() => {
     const controller = new AbortController();
@@ -41,7 +46,30 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true }) => {
       .slice(0, 30);
   }, [products, query]);
 
-  if (!products || products.length === 0) return null;
+  if (!products || (products.length === 0 && !canCreate)) return null;
+
+  const createProduct = async () => {
+    const name = adding.name.trim();
+    if (!name) return toast.error("Please type the product name.");
+    setAdding((a) => ({ ...a, saving: true }));
+    try {
+      const res = await axios.post(
+        `${process.env.REACT_APP_BASE_URL}/api/products`,
+        { name, ...(canSetPrice && String(adding.price).trim() !== "" ? { price: adding.price } : {}) },
+        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+      );
+      const created = res.data.product;
+      setProducts((list) => [...(list || []), created]);
+      setAdding(null);
+      setOpen(false);
+      setQuery("");
+      toast.success("Product added to your list.");
+      onPick(created);
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Could not add the product."));
+      setAdding((a) => (a ? { ...a, saving: false } : a));
+    }
+  };
 
   if (selected) {
     return (
@@ -68,7 +96,7 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true }) => {
       <input
         type="search"
         aria-label="Search your products"
-        placeholder="Search your products..."
+        placeholder={label === "Search your products" ? "Search your products..." : `${label}: search...`}
         value={query}
         onChange={(e) => {
           setQuery(e.target.value);
@@ -80,7 +108,18 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true }) => {
       {open && (
         <ul role="listbox" aria-label="Your products" className="mt-1 max-h-48 overflow-y-auto rounded border border-gray-200 bg-white divide-y divide-gray-100">
           {matches.length === 0 ? (
-            <li className="px-3 py-2 text-sm text-gray-500">No product found. You can type the product below.</li>
+            <li className="px-3 py-2 text-sm text-gray-500 space-y-2">
+              <span className="block">{canCreate ? "No product found." : "No product found. You can type the product below."}</span>
+              {canCreate && query.trim() && !adding && (
+                <button
+                  type="button"
+                  onClick={() => setAdding({ name: query.trim(), price: "", saving: false })}
+                  className="w-full text-left px-3 py-2 min-h-[44px] rounded border border-orange-400 text-orange-700 font-medium hover:bg-orange-50"
+                >
+                  Add "{query.trim()}" as a new product
+                </button>
+              )}
+            </li>
           ) : (
             matches.map((p) => (
               <li key={p._id} role="option" aria-selected="false">
@@ -100,6 +139,30 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true }) => {
             ))
           )}
         </ul>
+      )}
+      {adding && (
+        <div className="mt-2 rounded-lg border border-orange-200 bg-orange-50 p-3 space-y-2" role="group" aria-label="New product">
+          <p className="text-sm font-medium text-gray-800">Add a new product to your list</p>
+          <label className="block text-xs text-gray-700">
+            Name
+            <input type="text" value={adding.name} maxLength={100} onChange={(e) => setAdding((a) => ({ ...a, name: e.target.value }))} className={`${inputClass} mt-1`} />
+          </label>
+          {canSetPrice && (
+            <label className="block text-xs text-gray-700">
+              Price per piece (optional)
+              <input type="number" inputMode="decimal" min={0} value={adding.price} onChange={(e) => setAdding((a) => ({ ...a, price: e.target.value }))} className={`${inputClass} mt-1`} />
+            </label>
+          )}
+          <p className="text-xs text-gray-500">You can add the size and more details later on the Products page.</p>
+          <div className="flex gap-2">
+            <button type="button" disabled={adding.saving} onClick={createProduct} className="px-4 py-2 min-h-[44px] rounded bg-orange-500 text-white font-medium hover:bg-orange-600 disabled:opacity-60">
+              {adding.saving ? "Adding..." : "Add product"}
+            </button>
+            <button type="button" disabled={adding.saving} onClick={() => setAdding(null)} className="px-4 py-2 min-h-[44px] rounded border border-gray-300 hover:bg-white disabled:opacity-60">
+              Cancel
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

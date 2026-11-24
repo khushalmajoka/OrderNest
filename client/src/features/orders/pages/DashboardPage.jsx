@@ -443,6 +443,7 @@ const Dashboard = () => {
             shopId={shop._id}
             defaultExecutive={account?.name || ""}
             canSeePrices={canSeeAmounts}
+            canManageProducts={can(account, "manageProducts")}
             onClose={() => setShowCreateModal(false)}
             onOrderCreated={showFirstPageAgain}
           />

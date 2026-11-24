@@ -9,7 +9,7 @@ const buildOrderFilters = require("../utils/orderFilters");
 const { logActivity, diffOrder, money } = require("../utils/activity");
 const dateStamp = require("../utils/dateStamp");
 const { can } = require("../utils/permissions");
-const { checkLines } = require("../utils/orderLines");
+const { checkLines, lineItemText } = require("../utils/orderLines");
 const { reviewSettingsOf, reviewFilter, PROBABLY_DELIVERED, SNOOZE_DAYS } = require("../utils/needsReview");
 
 // Money (Total, Advance, Balance) is only for people who may see it: the admin,
@@ -118,7 +118,8 @@ exports.createOrder = async (req, res, next) => {
           orderId,
           shop: shop._id,
           userId,
-          item,
+          // with products picked, the Product text follows them
+          item: lines ? lineItemText(lines) : item,
           customerName,
           phone,
           address,
@@ -201,7 +202,8 @@ exports.updateOrder = async (req, res, next) => {
     const updateDoc = {
       $set: {
         customerName,
-        item,
+        // with products picked, the Product text follows them
+        item: newLines && newLines.length ? lineItemText(newLines) : item,
         phone,
         address,
         ...checked.values,

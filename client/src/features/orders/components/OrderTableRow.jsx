@@ -58,7 +58,7 @@ const OrderTableRow = ({
   // the actions are in the menu too (Delete last, in red)
   const menuItems = [
     access.edit && { key: "edit", label: "Edit order", icon: Pencil, onClick: () => onStartEdit(order) },
-    access.edit && { key: "product", label: "Change product", icon: Package, onClick: () => onChangeProduct(order) },
+    access.edit && { key: "product", label: "Change products", icon: Package, onClick: () => onChangeProduct(order) },
     access.share && { key: "slip", label: "Delivery slip", icon: Truck, onClick: () => setShowSlip(true) },
     access.share && { key: "share", label: "Share", icon: Share2, onClick: () => setIsShareOpen(true) },
     access.delete && {
@@ -95,7 +95,7 @@ const OrderTableRow = ({
       );
     }
     if (COLUMN_EDITORS[column.key]) {
-      return <FieldEditor column={column} form={edit.form} set={edit.set} shopId={shop._id} shop={shop} originalStatus={order.status} onEnter={edit.save} canCloseOld={access.admin} />;
+      return <FieldEditor column={column} form={edit.form} set={edit.set} shopId={shop._id} shop={shop} originalStatus={order.status} onEnter={edit.save} canCloseOld={access.admin} order={order} onChangeProduct={() => onChangeProduct(order)} />;
     }
     if (column.key === "balance") {
       // worked out live from Total and Advance

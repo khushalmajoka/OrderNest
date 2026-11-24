@@ -23,6 +23,12 @@ const shopSchema = new mongoose.Schema({
   // The statuses after which the app asks "Tell the customer on WhatsApp?"
   // Not set = the app's default (Ready and Dispatched).
   whatsappPromptStatuses: { type: [String], default: undefined },
+  // Needs review: open orders this many days after their delivery date are
+  // listed for a check. Not set = on, 5 days.
+  needsReview: {
+    enabled: { type: Boolean },
+    days: { type: Number },
+  },
   // Main switches for the colouring: all colouring, the whole-row tint, and the
   // coloured line at the start of a row. Not set = on (as it always was).
   colorMaster: { type: Boolean },

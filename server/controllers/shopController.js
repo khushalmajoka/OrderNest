@@ -6,6 +6,7 @@ const TABLE_COLUMNS = require("../models/tableColumns");
 const SLIP_FIELDS = require("../models/slipFields");
 const WHATSAPP = require("../models/whatsappMessages");
 const { checkShopProfile } = require("../utils/shopInput");
+const { reviewSettingsOf, MIN_DAYS, MAX_DAYS } = require("../utils/needsReview");
 
 // POST /api/shop/setup
 const setupShop = async (req, res, next) => {
@@ -331,7 +332,27 @@ const saveShopProfile = async (req, res, next) => {
   }
 };
 
+// PUT /api/shop/settings/needs-review   { enabled: true, days: 5 }
+// Only decides which open orders are LISTED for a check. Nothing changes by itself.
+const saveNeedsReview = async (req, res, next) => {
+  try {
+    const { enabled, days } = req.body || {};
+    if (typeof enabled !== "boolean") {
+      return res.status(400).json({ error: "Please choose on or off." });
+    }
+    if (!Number.isInteger(days) || days < MIN_DAYS || days > MAX_DAYS) {
+      return res.status(400).json({ error: `Days must be a whole number from ${MIN_DAYS} to ${MAX_DAYS}.` });
+    }
+    const shop = await Shop.findOneAndUpdate({ owner: req.user.id }, { needsReview: { enabled, days } }, { new: true });
+    if (!shop) return res.status(404).json({ error: "Shop not found" });
+    res.status(200).json({ needsReview: reviewSettingsOf(shop) });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
+  saveNeedsReview,
   saveShopProfile,
   saveWhatsappMessages,
   saveSlipSettings,

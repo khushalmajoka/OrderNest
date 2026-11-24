@@ -6,6 +6,7 @@ const {
   saveStatusColors,
   saveStatusVisibility,
   saveWhatsappPrompt,
+  saveNeedsReview,
   saveTableColumns,
   saveSlipSettings,
   saveShopProfile,
@@ -34,6 +35,15 @@ router.put(
   requireAdmin,
   countUse("settings.statuses"),
   saveStatusVisibility
+);
+
+router.put(
+  "/settings/needs-review",
+  authenticate,
+  loadUser,
+  requireAdmin,
+  countUse("settings.needs_review"),
+  saveNeedsReview
 );
 
 router.put(

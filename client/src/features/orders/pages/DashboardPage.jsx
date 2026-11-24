@@ -11,6 +11,8 @@ import { useOrderSummary } from "../hooks/useOrderSummary";
 import { useAutoRefresh } from "../hooks/useAutoRefresh";
 import UpdatedLabel from "../components/UpdatedLabel";
 import StatusGuideDialog from "../components/StatusGuideDialog";
+import NeedsReviewBanner from "../components/NeedsReviewBanner";
+import NeedsReviewDialog from "../components/NeedsReviewDialog";
 import { trackUse } from "../../../common/utils/usage";
 import { useBalanceHidden, useListAmountsHidden } from "../hooks/useAmountsHidden";
 import SummaryStrip from "../components/SummaryStrip";
@@ -121,6 +123,7 @@ const Dashboard = () => {
   });
   const [refreshing, setRefreshing] = useState(false);
   const [showStatusGuide, setShowStatusGuide] = useState(false);
+  const [showReview, setShowReview] = useState(false);
   const handleRefreshClick = async () => {
     trackUse("orders.refresh");
     setRefreshing(true);
@@ -344,6 +347,16 @@ const Dashboard = () => {
           onToggleAmounts={toggleBalanceHidden}
         />
 
+        {can(account, "editOrders") && (
+          <NeedsReviewBanner
+            review={summary?.review}
+            onOpen={() => {
+              trackUse("orders.review_open");
+              setShowReview(true);
+            }}
+          />
+        )}
+
         <FilterChips
           filters={filters}
           onChange={(next) => {
@@ -416,6 +429,13 @@ const Dashboard = () => {
           />
         )}
 
+        {showReview && (
+          <NeedsReviewDialog
+            onClose={() => setShowReview(false)}
+            onChanged={handleOrdersUpdated}
+            onSnoozed={refreshSummary}
+          />
+        )}
         {showStatusGuide && <StatusGuideDialog shop={shop} onClose={() => setShowStatusGuide(false)} />}
 
         {showCreateModal && (

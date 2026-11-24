@@ -13,6 +13,7 @@ import CleanNamesCard from "../components/CleanNamesCard";
 import CloseOldOrdersCard from "../components/CloseOldOrdersCard";
 import OrderStatusesCard from "../components/OrderStatusesCard";
 import WhatsAppPromptCard from "../components/WhatsAppPromptCard";
+import NeedsReviewCard from "../components/NeedsReviewCard";
 import { can, isAdmin } from "../../../common/utils/permissions";
 import { clearSession } from "../../whatsNew/whatsNewStorage";
 import { useShop } from "../hooks/useShop";
@@ -72,6 +73,8 @@ const Settings = () => {
                 <OrderStatusesCard shop={shop} onSaved={reload} />
 
                 <WhatsAppPromptCard shop={shop} onSaved={reload} />
+
+                <NeedsReviewCard shop={shop} onSaved={reload} />
 
                 <StatusColorsCard shop={shop} />
 

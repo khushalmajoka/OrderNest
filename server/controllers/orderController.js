@@ -9,6 +9,7 @@ const buildOrderFilters = require("../utils/orderFilters");
 const { logActivity, diffOrder, money } = require("../utils/activity");
 const dateStamp = require("../utils/dateStamp");
 const { can } = require("../utils/permissions");
+const { reviewSettingsOf, reviewFilter, PROBABLY_DELIVERED, SNOOZE_DAYS } = require("../utils/needsReview");
 
 // Money (Total, Advance, Balance) is only for people who may see it: the admin,
 // and staff the admin switched "See amounts" on for. Everyone else gets orders
@@ -627,6 +628,59 @@ exports.exportOrders = async (req, res, next) => {
   }
 };
 
+// @desc The Needs review list: open orders well past their delivery date,
+// split into "probably delivered" (Ready / Dispatched) and "late, check".
+// Oldest delivery date first. Only reads; nothing changes by itself.
+const REVIEW_LIST_MAX = 200;
+exports.getNeedsReview = async (req, res, next) => {
+  try {
+    const review = reviewSettingsOf(req.shop);
+    if (!review.enabled) {
+      return res.status(200).json({ enabled: false, days: review.days, probablyDelivered: { count: 0, orders: [] }, late: { count: 0, orders: [] } });
+    }
+    const base = reviewFilter(req.shop);
+    const group = async (statusFilter) => {
+      const filter = { ...base, status: statusFilter };
+      const [count, orders] = await Promise.all([
+        Order.countDocuments(filter),
+        Order.find(filter).sort({ expectedDeliveryDate: 1, _id: 1 }).limit(REVIEW_LIST_MAX).lean(),
+      ]);
+      return { count, orders: orders.map((o) => (seesAmounts(req) ? o : withoutAmounts(o))) };
+    };
+    const [probablyDelivered, late] = await Promise.all([
+      group({ $in: PROBABLY_DELIVERED }),
+      group({ $nin: [...FINISHED, ...PROBABLY_DELIVERED] }),
+    ]);
+    res.status(200).json({ enabled: true, days: review.days, probablyDelivered, late });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// @desc "Not yet": leave these orders out of Needs review for a few days.
+// Does not change the orders themselves (not even their "last changed" time).
+exports.snoozeReview = async (req, res, next) => {
+  try {
+    const { ids } = req.body || {};
+    if (!Array.isArray(ids) || ids.length === 0 || ids.some((i) => typeof i !== "string" || !mongoose.Types.ObjectId.isValid(i))) {
+      return res.status(400).json({ message: "Please choose the orders first." });
+    }
+    if (ids.length > MAX_BULK) {
+      return res.status(400).json({ message: `You can do up to ${MAX_BULK} orders at once.` });
+    }
+    const until = new Date(Date.now() + SNOOZE_DAYS * 24 * 60 * 60 * 1000);
+    const result = await Order.updateMany(
+      { _id: { $in: [...new Set(ids)] }, shop: req.shop._id },
+      { $set: { reviewSnoozedUntil: until } },
+      { timestamps: false }
+    );
+    if (!req.devMode) recordUse(req.shop._id, req.account.id, "orders.review_snooze");
+    res.status(200).json({ snoozed: result.modifiedCount, days: SNOOZE_DAYS });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 // @desc Numbers for the strip at the top of the dashboard, for the whole shop
 // (search and filters do not change them):
 //  open      = orders not yet Delivered, Cancelled or Closed (old)
@@ -645,10 +699,19 @@ exports.getOrderSummary = async (req, res, next) => {
     const deliveryCutoff = new Date(`${day}T00:00:00.000Z`);
 
     const finished = FINISHED;
+    const review = reviewSettingsOf(req.shop);
     const countsBalance = { $not: [{ $in: ["$status", NO_BALANCE] }] };
     const isOpen = { $not: [{ $in: ["$status", finished] }] };
 
-    const [row] = await Order.aggregate([
+    // Needs review: open orders well past their delivery date (see utils/needsReview)
+    const reviewCounts = review.enabled
+      ? Promise.all([
+          Order.countDocuments({ ...reviewFilter(req.shop), status: { $in: PROBABLY_DELIVERED } }),
+          Order.countDocuments({ ...reviewFilter(req.shop), status: { $nin: [...FINISHED, ...PROBABLY_DELIVERED] } }),
+        ])
+      : Promise.resolve([0, 0]);
+
+    const [[row], [probablyDelivered, late]] = await Promise.all([Order.aggregate([
       { $match: { shop: req.shop._id } },
       {
         $group: {
@@ -686,7 +749,7 @@ exports.getOrderSummary = async (req, res, next) => {
           today: { $sum: { $cond: [{ $gte: ["$createdAt", startOfToday] }, 1, 0] } },
         },
       },
-    ]);
+    ]), reviewCounts]);
 
     const numbers = {
       total: row?.total || 0,
@@ -695,6 +758,7 @@ exports.getOrderSummary = async (req, res, next) => {
       balance: row?.balance || 0,
       balanceOrders: row?.balanceOrders || 0,
       today: row?.today || 0,
+      review: { enabled: review.enabled, days: review.days, probablyDelivered, late },
     };
     if (!seesAmounts(req)) {
       delete numbers.balance;

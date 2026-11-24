@@ -92,3 +92,14 @@ export const nextStatusOf = (shop, status) => {
 export const DEFAULT_PROMPT_STATUSES = ["Ready to Dispatch/Pick-Up", "Dispatched"];
 export const promptStatusesOf = (shop) =>
   Array.isArray(shop?.whatsappPromptStatuses) ? shop.whatsappPromptStatuses : DEFAULT_PROMPT_STATUSES;
+
+// Needs review: open orders this many days after their delivery date get listed
+// for a check (Settings -> "Check old open orders"). Not set = on, 5 days.
+export const DEFAULT_REVIEW_DAYS = 5;
+export const reviewSettingsOf = (shop) => {
+  const saved = shop?.needsReview || {};
+  return {
+    enabled: saved.enabled !== false,
+    days: Number.isInteger(saved.days) ? saved.days : DEFAULT_REVIEW_DAYS,
+  };
+};

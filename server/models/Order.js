@@ -55,6 +55,10 @@ const orderSchema = new mongoose.Schema(
     expectedDeliveryDate: {
       type: Date,
     },
+    // "Not yet" in the Needs review list: leave this order out until this time
+    reviewSnoozedUntil: {
+      type: Date,
+    },
   },
   {
     timestamps: true,

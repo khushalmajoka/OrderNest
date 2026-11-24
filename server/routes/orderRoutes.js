@@ -10,6 +10,8 @@ const {
   bulkStatus,
   exportOrders,
   getOrderSummary,
+  getNeedsReview,
+  snoozeReview,
   getOrderChanges,
   getExecutiveNames,
 } = require("../controllers/orderController");
@@ -74,6 +76,8 @@ router.post("/shop/:shopId/close-orders", authenticate, loadUser, loadShop, requ
 // A very light "has anything changed?" check (the dashboard asks every 30 seconds)
 router.get("/shop/:shopId/changes", authenticate, loadUser, loadShop, getOrderChanges);
 
+router.get("/review", authenticate, loadUser, loadShop, requirePermission("editOrders"), getNeedsReview);
+router.post("/review-snooze", authenticate, loadUser, loadShop, requirePermission("editOrders"), snoozeReview);
 router.get("/shop/:shopId/summary", authenticate, loadUser, loadShop, getOrderSummary);
 
 // Names for the "Order executive" list

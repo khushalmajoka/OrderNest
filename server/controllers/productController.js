@@ -9,7 +9,7 @@ const { can } = require("../utils/permissions");
 const { checkProductInput } = require("../utils/productInput");
 const { logActivity } = require("../utils/activity");
 const Order = require("../models/Order");
-const { suggestProducts, MAX_SUGGESTIONS } = require("../utils/productSuggestions");
+const { suggestProducts, keyOf, MAX_SUGGESTIONS } = require("../utils/productSuggestions");
 
 const MAX_PRODUCTS = 2000;
 const escapeRegex = (t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -179,10 +179,10 @@ exports.suggestFromOrders = async (req, res, next) => {
     const min = req.query.min === "1" ? 1 : 2;
     const [orders, products] = await Promise.all([
       Order.find({ shop: req.shop._id, item: { $exists: true, $ne: "" } }).select("item total lines").limit(50000).lean(),
-      Product.find({ shop: req.shop._id }).select("nameKey").lean(),
+      Product.find({ shop: req.shop._id }).select("name sizeLabel").lean(),
     ]);
     // products already in the list (even archived): the same name + size is never suggested again
-    const existing = new Set(products.map((p) => p.nameKey));
+    const existing = new Set(products.map((p) => keyOf(p.name, p.sizeLabel)));
     const result = suggestProducts(orders, existing, { min, withPrices: seesAmounts(req) });
     res.status(200).json({ ...result, ordersRead: orders.length, canSeePrices: seesAmounts(req) });
   } catch (error) {

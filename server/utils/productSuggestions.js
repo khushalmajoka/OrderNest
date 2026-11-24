@@ -8,6 +8,8 @@ const SEP = "(?:x|×|\\*|by|-|–)";
 // 12x18, 12 by 18, 12-18, 12 X 18 x 2 (optionally followed by a unit)
 const DIMENSIONS = new RegExp(`(?<![\\p{Nd}.])(${N})\\s*${SEP}\\s*(${N})(?:\\s*${SEP}\\s*(${N}))?(?:\\s*(inches|inch|in|cm|feet|foot|ft)\\b)?(?![\\p{Nd}])`, "iu");
 const WEIGHT = new RegExp(`(?<![\\p{Nd}.])(${N})\\s*(kgs?|kilos?|grams?|gms?|g)\\b`, "iu");
+// 12 18 (two numbers with only a space: "frame 12 18" is a frame of size 12 x 18)
+const SPACE_DIMENSIONS = new RegExp(`(?<![\\p{Nd}.])(\\d{1,3}(?:\\.\\d+)?)\\s+(\\d{1,3}(?:\\.\\d+)?)(?![\\p{Nd}.])(?!\\s*(?:pcs|pc|pics|pic|pieces|piece|nos|kgs?|kilos?|grams?|gms?|g)\\b)(?:\\s*(inches|inch|in|cm|feet|foot|ft)\\b)?`, "iu");
 // "5 pcs", "5 pic", "5 pieces", "5 nos"
 const PIECES = new RegExp(`(?<![\\p{Nd}.])(\\d+)\\s*(?:pcs|pc|pics|pic|pieces|piece|nos)\\b\\.?`, "iu");
 
@@ -40,14 +42,43 @@ const titleCase = (text) =>
     )
     .join(" ");
 
+// "Frames" -> "Frame", "Boxes" -> "Box": the product is written once, and the
+// quantity says how many. Only the last word, and only when it is clearly a plural.
+const KEEP_PLURAL = new Set(["glass", "dress", "canvas", "gas", "bus", "plus", "lens", "pants", "scissors", "jeans", "clothes", "series", "news", "tennis"]);
+const singular = (word) => {
+  const w = word.toLowerCase();
+  if (w.length < 4 || KEEP_PLURAL.has(w) || !w.endsWith("s") || /(ss|us|is|ous)$/.test(w)) return word;
+  if (/(xes|ches|shes|sses|zes)$/.test(w)) return word.slice(0, -2);
+  if (/ies$/.test(w)) return word; // candies / cookies: not clear enough, left as written
+  return word.slice(0, -1);
+};
+const singularName = (name) => {
+  const words = name.split(" ");
+  words[words.length - 1] = singular(words[words.length - 1]);
+  return words.join(" ");
+};
+
 // One product written in a piece of text -> { name, size, sizeLabel, quantity } or null
 const parsePart = (text) => {
   let rest = String(text ?? "");
   let size = { kind: "none" };
   let sizeLabel = "";
 
-  const dim = rest.match(DIMENSIONS);
-  if (dim && Number(dim[1]) > 0 && Number(dim[2]) > 0) {
+  let threeQuantity = null;
+  let dim = rest.match(DIMENSIONS);
+  if (!dim || !(Number(dim[1]) > 0 && Number(dim[2]) > 0)) {
+    // only a space between the two numbers (a number in front of them, as in "5 12 18 frame", is too unclear to read)
+    // three numbers in a row ("5 12 18 frame"): the first is how many, the last two are the size
+    const three = rest.match(/(?<![\p{Nd}.])(\d{1,3})\s+(\d{1,3}(?:\.\d+)?)\s+(\d{1,3}(?:\.\d+)?)(?![\p{Nd}.])/u);
+    if (three && Number(three[2]) > 0 && Number(three[3]) > 0) {
+      threeQuantity = Number(three[1]);
+      dim = [three[0], three[2], three[3], undefined, undefined];
+    } else {
+      const spaced = rest.match(SPACE_DIMENSIONS);
+      dim = spaced && Number(spaced[1]) > 0 && Number(spaced[2]) > 0 ? [spaced[0], spaced[1], spaced[2], undefined, spaced[3]] : null;
+    }
+  }
+  if (dim) {
     const nums = [dim[1], dim[2], dim[3]].filter(Boolean).map(numberText);
     const dimUnit = unitOf(dim[4]);
     size = { kind: "dimensions", length: Number(nums[0]), breadth: Number(nums[1]), ...(nums[2] ? { height: Number(nums[2]) } : {}), dimUnit };
@@ -64,10 +95,10 @@ const parsePart = (text) => {
   }
 
   // How many (not part of the product): "5 pcs", or a number in front: "4 sachet"
-  let quantity = null;
+  let quantity = threeQuantity;
   const pieces = rest.match(PIECES);
   if (pieces) {
-    quantity = Number(pieces[1]);
+    if (quantity === null) quantity = Number(pieces[1]);
     rest = rest.replace(pieces[0], " ");
   }
   rest = rest.replace(/[()[\]{}]/g, " ").replace(/\s+/g, " ").trim();
@@ -86,7 +117,7 @@ const parsePart = (text) => {
   words = words.map((w) => w.replace(edge, "")).filter(Boolean);
   while (words.length && EDGE_WORDS.has(words[0].toLowerCase())) words.shift();
   while (words.length && EDGE_WORDS.has(words[words.length - 1].toLowerCase())) words.pop();
-  const name = titleCase(words.join(" ")).slice(0, 100).trim();
+  const name = singularName(titleCase(words.join(" "))).slice(0, 100).trim();
   if (name.length < 2 || !/\p{L}{2}/u.test(name)) return null;
 
   return { name, size, sizeLabel, quantity };
@@ -100,7 +131,9 @@ const parseItem = (item) => {
   return parts.map((p) => ({ ...p, multi: pieces.length > 1 }));
 };
 
-const keyOf = (name, sizeLabel) => `${name.toLowerCase()}|${String(sizeLabel || "").toLowerCase()}`;
+// name + size as one key. The name is compared the same way new suggestions are
+// written (capitals and a plural "s" do not matter), so "Frames" in the list and "frame" in an old order are the same product.
+const keyOf = (name, sizeLabel) => `${singularName(titleCase(String(name).replace(/\s+/g, " ").trim())).toLowerCase()}|${String(sizeLabel || "").toLowerCase()}`;
 
 const MAX_SUGGESTIONS = 300;
 
@@ -142,4 +175,4 @@ const suggestProducts = (orders, existingKeys, { min = 2, withPrices = true } = 
   return { suggestions, groups: all.length, orders: all.reduce((sum, g) => sum + g.count, 0), alreadyInList: known.size };
 };
 
-module.exports = { parseItem, parsePart, suggestProducts, MAX_SUGGESTIONS };
+module.exports = { parseItem, parsePart, suggestProducts, keyOf, MAX_SUGGESTIONS };

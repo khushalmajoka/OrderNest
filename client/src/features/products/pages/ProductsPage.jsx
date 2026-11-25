@@ -210,35 +210,36 @@ const ProductsPage = () => {
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
 
       <div className={`p-4 md:p-8 mx-auto ${view === "cards" ? "max-w-5xl" : "max-w-3xl"}`}>
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
-          <h1 className="text-2xl font-bold text-orange-700 flex items-center gap-2">
+        {/* Phone: the title and "Add product" on one line, the two other buttons together below.
+            Computer: all on one line, "Add product" last. */}
+        <div className="flex flex-wrap items-center gap-2 mb-1">
+          <h1 className="order-1 mr-auto text-2xl font-bold text-orange-700 flex items-center gap-2">
             Products
           </h1>
-          <div className="flex flex-wrap gap-2">
-            {isAdmin && (
-              <button
-                type="button"
-                onClick={() => setShowCats(true)}
-                className="flex items-center gap-1.5 px-4 py-2 min-h-[44px] rounded-lg border border-orange-400 text-orange-700 font-medium hover:bg-orange-100"
-              >
-                <FolderCog size={18} /> Categories
-              </button>
-            )}
+          <button
+            type="button"
+            onClick={() => setEditing("new")}
+            className="order-2 md:order-4 flex items-center gap-1.5 px-4 py-2 min-h-[44px] rounded-lg bg-orange-700 text-white font-medium hover:bg-orange-800"
+          >
+            <Plus size={18} /> Add product
+          </button>
+          <div className="order-2 basis-full h-0 md:hidden" aria-hidden="true" />
+          {isAdmin && (
             <button
               type="button"
-              onClick={() => setShowBuild(true)}
-              className="flex items-center gap-1.5 px-4 py-2 min-h-[44px] rounded-lg border border-orange-400 text-orange-700 font-medium hover:bg-orange-100"
+              onClick={() => setShowCats(true)}
+              className="order-3 md:flex-none justify-center flex items-center gap-1.5 px-3 md:px-4 py-2 min-h-[44px] rounded-lg border border-orange-400 text-orange-700 font-medium hover:bg-orange-100"
             >
-              <History size={18} /> Build from old orders
+              <FolderCog size={18} /> Categories
             </button>
-            <button
-              type="button"
-              onClick={() => setEditing("new")}
-              className="flex items-center gap-1.5 px-4 py-2 min-h-[44px] rounded-lg bg-orange-700 text-white font-medium hover:bg-orange-800"
-            >
-              <Plus size={18} /> Add product
-            </button>
-          </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setShowBuild(true)}
+            className="order-3 flex-1 md:flex-none justify-center flex items-center gap-1.5 px-3 md:px-4 py-2 min-h-[44px] whitespace-nowrap rounded-lg border border-orange-400 text-orange-700 font-medium hover:bg-orange-100"
+          >
+            <History size={18} /> <span><span className="md:hidden">From old orders</span><span className="hidden md:inline">Build from old orders</span></span>
+          </button>
         </div>
         {tidyPlan.length > 0 && (
           <div role="region" aria-label="Sizes to fix" className="mb-3 flex flex-col sm:flex-row sm:items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3">

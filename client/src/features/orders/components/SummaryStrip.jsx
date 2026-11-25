@@ -93,11 +93,11 @@ const SummaryStrip = ({ summary, filters, onPick, amountsHidden, onToggleAmounts
                 active ? "border-orange-500 ring-2 ring-orange-300" : "border-orange-100"
               }`}
             >
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 pr-9">
-                <span className={`inline-flex p-1.5 rounded-md ${tile.tone}`}>
+              <div className={`flex items-center gap-2 text-xs sm:text-sm text-gray-600 leading-tight ${tile.id === "balance" ? "pr-9" : ""}`}>
+                <span className={`inline-flex shrink-0 p-1.5 rounded-md ${tile.tone}`}>
                   <tile.icon size={16} />
                 </span>
-                <span className="truncate">{tile.label}</span>
+                <span>{tile.label}</span>
               </div>
               <p className={`mt-2 text-xl sm:text-2xl font-bold text-gray-800 ${tile.valueTone || ""}`}>
                 {tile.value}

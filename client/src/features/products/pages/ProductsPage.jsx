@@ -213,7 +213,6 @@ const ProductsPage = () => {
         <div className="flex flex-wrap items-center justify-between gap-3 mb-1">
           <h1 className="text-2xl font-bold text-orange-700 flex items-center gap-2">
             Products
-            <span className="text-xs font-semibold uppercase rounded-full bg-amber-200 text-amber-900 px-2 py-0.5">Beta</span>
           </h1>
           <div className="flex flex-wrap gap-2">
             {isAdmin && (
@@ -241,14 +240,6 @@ const ProductsPage = () => {
             </button>
           </div>
         </div>
-        <p
-          role="note"
-          className="text-sm rounded-md bg-amber-50 border border-amber-300 text-amber-900 px-3 py-2 mb-3"
-        >
-          <strong>Beta, still being built.</strong> Products is new and is being tested, so it may have
-          problems or change. It does not change your orders. If something looks wrong, please tell the
-          developer.
-        </p>
         {tidyPlan.length > 0 && (
           <div role="region" aria-label="Sizes to fix" className="mb-3 flex flex-col sm:flex-row sm:items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3">
             <p className="text-sm text-gray-800 flex-1">

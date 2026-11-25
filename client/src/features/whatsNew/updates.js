@@ -3,13 +3,13 @@
 // To announce a new update later: change WHATS_NEW_VERSION (any new text) and
 // edit the list below. Everyone then sees the popup once more.
 // An item with highlight: true is shown in an orange box at the top.
-export const WHATS_NEW_VERSION = "2026-11-products-2";
+export const WHATS_NEW_VERSION = "2026-11-products-3";
 
 export const WHATS_NEW_ITEMS = [
   {
     highlight: true,
-    title: "Please start using Products: typing the item will go away soon",
-    text: "Today you can still type anything in the Item box when you create an order. This is going to be removed soon, when the Products page is no longer in BETA. From now on, please add your items on the Products page (name, size and price once), and always pick them from the list when you create or edit an order. This links every order to its product, so names and sizes stay the same everywhere and you never type them again.",
+    title: "Orders now use your Products",
+    text: "Products is no longer in BETA. In Create order there is no Item box to type in any more: choose each product from your list (and its size). This keeps names and sizes the same everywhere. If a product is not in the list yet, add it on the Products page (or use \"Add as a new product\" in Create order if you are allowed). Orders made before still show their old text.",
   },
   {
     title: "One product, many sizes",

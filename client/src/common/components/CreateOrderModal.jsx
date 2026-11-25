@@ -81,11 +81,12 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
     e.preventDefault();
 
     if (loading || done) return;
-    if (lines.some((l) => !(Number(l.quantity) > 0))) return toast.error("Please enter the quantity (more than 0) for each product.");
 
     // The name may be empty, but not a placeholder like "N" or "NA"
     const badName = nameProblem(formData.customerName);
     if (badName) return toast.error(badName);
+    if (!lines.length) return toast.error("Please choose at least one product from your products.");
+    if (lines.some((l) => !(Number(l.quantity) > 0))) return toast.error("Please enter the quantity (more than 0) for each product.");
 
     setLoading(true);
 
@@ -132,6 +133,7 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
       onClose={onClose}
       onSubmit={handleSubmit}
     >
+      <p className="text-sm font-medium text-gray-800">Products <span className="font-normal text-gray-500">(choose from your products)</span></p>
       <LinesEditor
         lines={lines}
         onChange={changeLines}
@@ -139,21 +141,6 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
         canCreate={canManageProducts}
         canSetPrice={canManageProducts && canSeePrices}
       />
-
-      {lines.length === 0 && (
-        <Field label="Item / Product">
-          <input
-            type="text"
-            name="item"
-            placeholder="e.g. Chocolate cake 1kg"
-            value={formData.item}
-            onChange={handleChange}
-            required
-            maxLength={200}
-            className={inputClass}
-          />
-        </Field>
-      )}
 
       {lines.length > 0 && canSeePrices && (
         <p className="text-xs text-gray-500">Total = price x quantity of each product. You can change the total.</p>

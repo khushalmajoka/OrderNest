@@ -67,7 +67,7 @@ const ShareModal = ({ isOpen, onClose, onShare }) => {
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-1 right-1 w-11 h-11 text-gray-400 hover:text-gray-600"
+          className="absolute top-1 right-1 w-11 h-11 text-gray-500 hover:text-gray-600"
         >
           ✕
         </button>

@@ -26,7 +26,7 @@ const AmountsPrivacyCard = () => {
           aria-label="Hide Total, Advance and Balance in the order list"
           onClick={() => setHidden(!hidden)}
           className={`relative w-11 h-6 shrink-0 rounded-full transition ${
-            hidden ? "bg-orange-500" : "bg-gray-300"
+            hidden ? "bg-orange-600" : "bg-gray-300"
           }`}
         >
           <span

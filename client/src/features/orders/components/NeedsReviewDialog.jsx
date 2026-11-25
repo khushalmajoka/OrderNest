@@ -143,7 +143,7 @@ const NeedsReviewDialog = ({ onClose, onChanged, onSnoozed }) => {
           </p>
         ) : (
           <div className="mt-2 flex flex-wrap gap-2">
-            <button type="button" disabled={busy} onClick={() => choose(order, "Delivered")} className="px-3 py-2 min-h-[44px] rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:opacity-60">
+            <button type="button" disabled={busy} onClick={() => choose(order, "Delivered")} className="px-3 py-2 min-h-[44px] rounded-lg bg-green-700 text-white text-sm font-medium hover:bg-green-800 disabled:opacity-60">
               Delivered
             </button>
             <button type="button" disabled={busy} onClick={() => choose(order, "Cancelled")} className="px-3 py-2 min-h-[44px] rounded-lg border border-gray-300 text-gray-800 text-sm font-medium hover:bg-gray-50 disabled:opacity-60">
@@ -172,7 +172,7 @@ const NeedsReviewDialog = ({ onClose, onChanged, onSnoozed }) => {
             <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm space-y-2">
               <p>Mark these {waiting.length} orders as Delivered? The money on them does not change.</p>
               <div className="flex gap-2">
-                <button type="button" disabled={busy} onClick={() => markAllDelivered(waiting)} className="px-3 py-2 min-h-[44px] rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-60">
+                <button type="button" disabled={busy} onClick={() => markAllDelivered(waiting)} className="px-3 py-2 min-h-[44px] rounded-lg bg-green-700 text-white font-medium hover:bg-green-800 disabled:opacity-60">
                   Yes, mark them
                 </button>
                 <button type="button" onClick={() => setConfirmAll(false)} className="px-3 py-2 min-h-[44px] rounded-lg border border-gray-300 text-gray-800 font-medium hover:bg-gray-50">
@@ -215,7 +215,7 @@ const NeedsReviewDialog = ({ onClose, onChanged, onSnoozed }) => {
         {error && (
           <div className="space-y-2">
             <p className="text-sm text-red-600">{error}</p>
-            <button type="button" onClick={load} className="px-4 py-2 rounded-lg bg-orange-500 text-white">Try again</button>
+            <button type="button" onClick={load} className="px-4 py-2 rounded-lg bg-orange-700 text-white">Try again</button>
           </div>
         )}
         {!data && !error && <p className="text-sm text-gray-500">Loading...</p>}
@@ -235,7 +235,7 @@ const NeedsReviewDialog = ({ onClose, onChanged, onSnoozed }) => {
             })}
           </>
         )}
-        <button type="button" onClick={onClose} className="w-full px-4 py-2 min-h-[44px] rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600">
+        <button type="button" onClick={onClose} className="w-full px-4 py-2 min-h-[44px] rounded-lg bg-orange-700 text-white font-medium hover:bg-orange-800">
           Close
         </button>
       </div>

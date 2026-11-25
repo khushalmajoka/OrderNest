@@ -110,7 +110,7 @@ const CleanNamesCard = ({ shop }) => {
         <button
           type="button"
           onClick={check}
-          className="px-5 py-2 rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600"
+          className="px-5 py-2 rounded-lg bg-orange-700 text-white font-medium hover:bg-orange-800"
         >
           Check my orders
         </button>
@@ -194,7 +194,7 @@ const CleanNamesCard = ({ shop }) => {
                   disabled={chosenCount === 0}
                   onClick={() => setStage("confirming")}
                   className={`px-5 py-2 rounded-lg text-white font-medium ${
-                    chosenCount === 0 ? "bg-orange-300 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600"
+                    chosenCount === 0 ? "bg-orange-300 cursor-not-allowed" : "bg-orange-700 hover:bg-orange-800"
                   }`}
                 >
                   {chosenCount === 0

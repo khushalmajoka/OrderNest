@@ -103,7 +103,7 @@ const FilterPanel = ({ filters, onApply, onClose, showAmounts = true }) => {
                     title={statusHint(status)}
                     className={`px-3 py-1.5 rounded-full border text-sm ${
                       on
-                        ? "bg-orange-500 border-orange-500 text-white"
+                        ? "bg-orange-700 border-orange-700 text-white"
                         : "bg-white border-gray-300 text-gray-700"
                     }`}
                   >
@@ -178,7 +178,7 @@ const FilterPanel = ({ filters, onApply, onClose, showAmounts = true }) => {
           </button>
           <button
             type="submit"
-            className="px-5 py-2 rounded-md bg-orange-500 text-white hover:bg-orange-600"
+            className="px-5 py-2 rounded-md bg-orange-700 text-white hover:bg-orange-800"
           >
             Show orders
           </button>

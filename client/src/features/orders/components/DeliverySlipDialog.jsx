@@ -296,14 +296,14 @@ const DeliverySlipDialog = ({ order, shop, onClose }) => {
             <button
               onClick={handlePrint}
               disabled={!canvas || busy || rendering}
-              className="py-2 rounded-md border border-orange-500 text-orange-600 hover:bg-orange-50 disabled:opacity-50"
+              className="py-2 rounded-md border border-orange-500 text-orange-700 hover:bg-orange-50 disabled:opacity-50"
             >
               Print
             </button>
             <button
               onClick={handleDownload}
               disabled={!canvas || busy || rendering}
-              className="py-2 rounded-md bg-orange-500 text-white hover:bg-orange-600 disabled:opacity-50"
+              className="py-2 rounded-md bg-orange-700 text-white hover:bg-orange-800 disabled:opacity-50"
             >
               Download PDF
             </button>

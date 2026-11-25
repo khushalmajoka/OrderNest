@@ -11,7 +11,7 @@ const inputClass =
   "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400";
 const buttonClass = (busy) =>
   `w-full text-white font-semibold py-2 rounded-lg transition ${
-    busy ? "bg-orange-300 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600"
+    busy ? "bg-orange-300 cursor-not-allowed" : "bg-orange-700 hover:bg-orange-800"
   }`;
 
 // Admin forgot-password: 1) email  ->  2) code from the email + new password
@@ -144,7 +144,7 @@ const ForgotPasswordPage = () => {
               type="button"
               disabled={busy || wait > 0}
               onClick={sendCode}
-              className="w-full text-sm text-orange-600 disabled:text-gray-400"
+              className="w-full text-sm text-orange-700 disabled:text-gray-500"
             >
               {wait > 0 ? `Send the code again in ${wait}s` : "Send the code again"}
             </button>
@@ -152,7 +152,7 @@ const ForgotPasswordPage = () => {
         )}
 
         <p className="text-center text-sm text-gray-600 mt-5">
-          <Link to="/shop" className="text-orange-600 hover:underline">
+          <Link to="/shop" className="text-orange-700 hover:underline">
             Back to login
           </Link>
         </p>

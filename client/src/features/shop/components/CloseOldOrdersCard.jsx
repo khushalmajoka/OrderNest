@@ -274,7 +274,7 @@ const CloseOldOrdersCard = ({ shop }) => {
             onClick={check}
             disabled={!canCheck || busy}
             className={`px-5 py-2 rounded-lg text-white font-medium ${
-              !canCheck || busy ? "bg-orange-300 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600"
+              !canCheck || busy ? "bg-orange-300 cursor-not-allowed" : "bg-orange-700 hover:bg-orange-800"
             }`}
           >
             {stage === "checking" ? "Checking..." : "Show what will change"}
@@ -331,7 +331,7 @@ const CloseOldOrdersCard = ({ shop }) => {
                   <button
                     type="button"
                     onClick={() => setStage("confirming")}
-                    className="px-5 py-2 rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600"
+                    className="px-5 py-2 rounded-lg bg-orange-700 text-white font-medium hover:bg-orange-800"
                   >
                     Close {plural(preview.count, "order")} as {newStatus}
                   </button>

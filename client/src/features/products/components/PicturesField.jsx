@@ -11,9 +11,9 @@ const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}
 const Tile = ({ src, main, children }) => (
   <li className="relative w-24">
     <div className="w-24 h-24 rounded-lg overflow-hidden border border-orange-100 bg-orange-50 flex items-center justify-center">
-      {src ? <img src={src} alt="" className="w-full h-full object-cover" /> : <span className="text-xs text-gray-400">...</span>}
+      {src ? <img src={src} alt="" className="w-full h-full object-cover" /> : <span className="text-xs text-gray-500">...</span>}
     </div>
-    {main && <span className="absolute top-1 left-1 text-[10px] font-semibold rounded bg-orange-500 text-white px-1.5 py-0.5">Main</span>}
+    {main && <span className="absolute top-1 left-1 text-[10px] font-semibold rounded bg-orange-700 text-white px-1.5 py-0.5">Main</span>}
     {children}
   </li>
 );

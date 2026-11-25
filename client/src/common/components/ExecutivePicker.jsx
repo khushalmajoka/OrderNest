@@ -112,7 +112,7 @@ const ExecutivePicker = ({ shopId, value, onChange, onDefault, preferred = "", c
           type="button"
           onClick={confirmNew}
           disabled={!hasLetter(draft)}
-          className="px-3 min-h-[44px] sm:min-h-0 rounded bg-orange-500 text-white text-sm hover:bg-orange-600 disabled:bg-orange-300"
+          className="px-3 min-h-[44px] sm:min-h-0 rounded bg-orange-700 text-white text-sm hover:bg-orange-800 disabled:bg-orange-300"
         >
           Add
         </button>

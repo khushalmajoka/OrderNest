@@ -109,7 +109,7 @@ const WhatsAppMessagesCard = ({ shop }) => {
             aria-selected={language === l.key}
             onClick={() => setLanguage(l.key)}
             className={`flex-1 py-2 rounded-md text-sm font-medium ${
-              language === l.key ? "bg-white shadow text-orange-600" : "text-gray-600"
+              language === l.key ? "bg-white shadow text-orange-700" : "text-gray-600"
             }`}
           >
             {l.label}
@@ -181,7 +181,7 @@ const WhatsAppMessagesCard = ({ shop }) => {
           onClick={handleSave}
           disabled={saving}
           className={`px-5 py-2 rounded-lg text-white font-medium ${
-            saving ? "bg-orange-300" : "bg-orange-500 hover:bg-orange-600"
+            saving ? "bg-orange-300" : "bg-orange-700 hover:bg-orange-800"
           }`}
         >
           {saving ? "Saving..." : saved ? <SavedLabel /> : "Save"}

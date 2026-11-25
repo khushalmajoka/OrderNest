@@ -139,7 +139,7 @@ const BuildFromOrdersDialog = ({ onClose, onAdded }) => {
           {error && (
             <div className="space-y-2">
               <p className="text-sm text-red-600">{error}</p>
-              <button type="button" onClick={load} className="px-4 py-2 rounded-lg bg-orange-500 text-white">Try again</button>
+              <button type="button" onClick={load} className="px-4 py-2 rounded-lg bg-orange-700 text-white">Try again</button>
             </div>
           )}
           {!data && !error && <p className="text-sm text-gray-500">Reading your orders...</p>}
@@ -255,7 +255,7 @@ const BuildFromOrdersDialog = ({ onClose, onAdded }) => {
             type="button"
             onClick={add}
             disabled={!chosen.length || saving || badPrice}
-            className={`px-4 py-2 min-h-[44px] rounded text-white ${!chosen.length || saving || badPrice ? "bg-orange-300 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600"}`}
+            className={`px-4 py-2 min-h-[44px] rounded text-white ${!chosen.length || saving || badPrice ? "bg-orange-300 cursor-not-allowed" : "bg-orange-700 hover:bg-orange-800"}`}
           >
             {saving ? "Adding..." : `Add ${chosen.length} ${chosen.length === 1 ? "product" : "products"}`}
           </button>

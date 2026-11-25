@@ -30,7 +30,7 @@ const OrderTableHeader = ({
   const arrow = (field, direction) =>
     sortField === field && sortOrder === direction
       ? "text-gray-900"
-      : "text-gray-400";
+      : "text-gray-500";
 
   return (
     <thead className="bg-orange-100">

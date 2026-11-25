@@ -66,7 +66,7 @@ const WhatsAppPromptCard = ({ shop, onSaved }) => {
         onClick={save}
         disabled={!changed || saving}
         className={`mt-4 px-5 py-2 rounded-lg text-white font-medium ${
-          !changed || saving ? "bg-orange-300 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600"
+          !changed || saving ? "bg-orange-300 cursor-not-allowed" : "bg-orange-700 hover:bg-orange-800"
         }`}
       >
         {saving ? "Saving..." : "Save"}

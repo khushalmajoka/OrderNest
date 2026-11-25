@@ -105,7 +105,7 @@ const VerifyEmailPage = () => {
           type="submit"
           disabled={busy}
           className={`w-full text-white font-semibold py-2 rounded-lg transition ${
-            busy ? "bg-orange-300 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600"
+            busy ? "bg-orange-300 cursor-not-allowed" : "bg-orange-700 hover:bg-orange-800"
           }`}
         >
           {busy ? "Please wait..." : "Confirm email"}
@@ -114,19 +114,19 @@ const VerifyEmailPage = () => {
           type="button"
           disabled={busy || wait > 0 || !email}
           onClick={sendAgain}
-          className="w-full text-sm text-orange-600 disabled:text-gray-400"
+          className="w-full text-sm text-orange-700 disabled:text-gray-500"
         >
           {wait > 0 ? `Send the code again in ${wait}s` : "Send the code again"}
         </button>
         <p className="text-center text-xs text-gray-500">
           Wrong email? Go back and{" "}
-          <Link to="/shop/signup" className="text-orange-600 hover:underline">
+          <Link to="/shop/signup" className="text-orange-700 hover:underline">
             sign up again
           </Link>{" "}
           with the right one.
         </p>
         <p className="text-center text-sm">
-          <Link to="/shop" className="text-orange-600 hover:underline">
+          <Link to="/shop" className="text-orange-700 hover:underline">
             Back to login
           </Link>
         </p>

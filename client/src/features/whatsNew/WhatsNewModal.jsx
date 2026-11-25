@@ -60,7 +60,7 @@ const WhatsNewModal = ({ onConfirm }) => {
             disabled={!confirmed}
             className={`mt-4 w-full px-4 py-2 rounded text-white transition ${
               confirmed
-                ? "bg-orange-500 hover:bg-orange-600"
+                ? "bg-orange-700 hover:bg-orange-800"
                 : "bg-orange-300 cursor-not-allowed"
             }`}
           >

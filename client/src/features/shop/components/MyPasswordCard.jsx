@@ -69,7 +69,7 @@ const MyPasswordCard = ({ account, onRefresh, onPasswordChanged }) => {
           <button
             onClick={ask}
             disabled={busy}
-            className="w-full px-4 py-2 rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600 disabled:bg-orange-300"
+            className="w-full px-4 py-2 rounded-lg bg-orange-700 text-white font-medium hover:bg-orange-800 disabled:bg-orange-300"
           >
             Ask my admin to approve
           </button>
@@ -84,7 +84,7 @@ const MyPasswordCard = ({ account, onRefresh, onPasswordChanged }) => {
           </p>
           <button
             onClick={onRefresh}
-            className="w-full px-4 py-2 rounded-lg border border-orange-500 text-orange-600 hover:bg-orange-50"
+            className="w-full px-4 py-2 rounded-lg border border-orange-500 text-orange-700 hover:bg-orange-50"
           >
             Check again
           </button>
@@ -126,7 +126,7 @@ const MyPasswordCard = ({ account, onRefresh, onPasswordChanged }) => {
           <button
             type="submit"
             disabled={busy}
-            className="w-full px-4 py-2 rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600 disabled:bg-orange-300"
+            className="w-full px-4 py-2 rounded-lg bg-orange-700 text-white font-medium hover:bg-orange-800 disabled:bg-orange-300"
           >
             {busy ? "Saving..." : "Change password"}
           </button>

@@ -46,7 +46,7 @@ const SharePictureCard = ({ shop, onSaved }) => {
         type="button"
         onClick={save}
         disabled={showNote === start || saving}
-        className={`mt-4 px-5 py-2 rounded-lg text-white font-medium ${showNote === start || saving ? "bg-orange-300 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600"}`}
+        className={`mt-4 px-5 py-2 rounded-lg text-white font-medium ${showNote === start || saving ? "bg-orange-300 cursor-not-allowed" : "bg-orange-700 hover:bg-orange-800"}`}
       >
         {saving ? "Saving..." : "Save"}
       </button>

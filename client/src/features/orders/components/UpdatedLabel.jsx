@@ -21,7 +21,7 @@ const UpdatedLabel = ({ since, refreshing, onRefresh, onGuide }) => {
   return (
     <div className="flex items-center justify-between gap-2 mb-2 text-xs text-gray-500">
       {onGuide ? (
-        <button type="button" onClick={onGuide} className="underline text-gray-600 hover:text-orange-700">
+        <button type="button" onClick={onGuide} className="underline text-gray-600 hover:text-orange-800">
           What do the statuses mean?
         </button>
       ) : (

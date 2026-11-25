@@ -70,7 +70,7 @@ const OrderStatusesCard = ({ shop, onSaved }) => {
                   aria-checked={on}
                   aria-label={`Use the status ${statusLabel(status)}`}
                   onClick={() => toggle(status)}
-                  className={`relative w-11 h-6 shrink-0 rounded-full transition ${on ? "bg-orange-500" : "bg-gray-300"}`}
+                  className={`relative w-11 h-6 shrink-0 rounded-full transition ${on ? "bg-orange-600" : "bg-gray-300"}`}
                 >
                   <span
                     className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${on ? "translate-x-5" : ""}`}
@@ -90,7 +90,7 @@ const OrderStatusesCard = ({ shop, onSaved }) => {
         onClick={save}
         disabled={!changed || saving}
         className={`mt-4 px-5 py-2 rounded-lg text-white font-medium ${
-          !changed || saving ? "bg-orange-300 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600"
+          !changed || saving ? "bg-orange-300 cursor-not-allowed" : "bg-orange-700 hover:bg-orange-800"
         }`}
       >
         {saving ? "Saving..." : "Save"}

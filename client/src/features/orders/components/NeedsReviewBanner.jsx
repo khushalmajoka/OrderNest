@@ -29,7 +29,7 @@ const NeedsReviewBanner = ({ review, onOpen }) => {
       <button
         type="button"
         onClick={onOpen}
-        className="px-4 py-2 min-h-[44px] rounded-lg bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 sm:self-auto self-stretch"
+        className="px-4 py-2 min-h-[44px] rounded-lg bg-orange-700 text-white text-sm font-medium hover:bg-orange-800 sm:self-auto self-stretch"
       >
         Check them
       </button>

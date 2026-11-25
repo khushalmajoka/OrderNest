@@ -142,7 +142,7 @@ const StatusPicker = ({ value, options, onChange, onEnter, large = false, label 
                 onClick={() => choose(status)}
                 className={`px-3 py-2 cursor-pointer flex items-start gap-2 ${i === active ? "bg-orange-50" : ""}`}
               >
-                <span className="w-4 shrink-0 mt-0.5 text-orange-600">
+                <span className="w-4 shrink-0 mt-0.5 text-orange-700">
                   {value && status === value && <Check size={16} aria-hidden="true" />}
                 </span>
                 <span className="min-w-0">

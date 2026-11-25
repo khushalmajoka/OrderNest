@@ -100,10 +100,10 @@ const OrderTableRow = ({
     if (column.key === "balance") {
       // worked out live from Total and Advance
       const left = Math.max(0, (Number(edit.form.total) || 0) - (Number(edit.form.advance) || 0));
-      return <span className="text-gray-400" title="Worked out from Total and Advance">₹{left}</span>;
+      return <span className="text-gray-500" title="Worked out from Total and Advance">₹{left}</span>;
     }
     return (
-      <span className="inline-flex items-center gap-1 text-gray-400" title="This cannot be edited">
+      <span className="inline-flex items-center gap-1 text-gray-500" title="This cannot be edited">
         {column.key === "orderId" && <Lock size={12} aria-hidden="true" />}
         {column.cell(order, { statusStyle: null, mask: false })}
       </span>
@@ -183,7 +183,7 @@ const OrderTableRow = ({
                       disabled={edit.saving}
                       aria-label="Save changes"
                       title="Save changes (Enter)"
-                      className="w-8 h-8 flex items-center justify-center rounded-md bg-green-500 text-white hover:bg-green-600 disabled:bg-green-300"
+                      className="w-8 h-8 flex items-center justify-center rounded-md bg-green-700 text-white hover:bg-green-800 disabled:bg-green-300"
                     >
                       <Check size={18} strokeWidth={3} />
                     </button>

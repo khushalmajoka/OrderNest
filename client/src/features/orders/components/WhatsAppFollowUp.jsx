@@ -83,7 +83,7 @@ const WhatsAppFollowUp = ({ orders, shop, onClose }) => {
             <button
               type="button"
               onClick={onClose}
-              className="w-full px-4 py-2 rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600"
+              className="w-full px-4 py-2 rounded-lg bg-orange-700 text-white font-medium hover:bg-orange-800"
             >
               Done
             </button>

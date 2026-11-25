@@ -138,7 +138,7 @@ const ChangeProductDialog = ({ order, canSeePrices, canManageProducts = false, o
             type="button"
             onClick={save}
             disabled={!ready || saving}
-            className={`px-4 py-2 min-h-[44px] rounded text-white ${!ready || saving ? "bg-orange-300 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600"}`}
+            className={`px-4 py-2 min-h-[44px] rounded text-white ${!ready || saving ? "bg-orange-300 cursor-not-allowed" : "bg-orange-700 hover:bg-orange-800"}`}
           >
             {saving ? "Saving..." : "Save"}
           </button>

@@ -79,7 +79,7 @@ const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin, isDeveloper = false, a
                 current ? "bg-orange-200 text-orange-900 font-medium" : "hover:bg-orange-100"
               }`}
             >
-              <Icon className="text-orange-600" size={20} />
+              <Icon className="text-orange-700" size={20} />
               {label}
             </button>
           );
@@ -88,7 +88,7 @@ const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin, isDeveloper = false, a
         <div className="mt-auto">
           <button
             onClick={() => setConfirmingLogout(true)}
-            className="flex items-center gap-3 w-full px-4 py-3 rounded-md bg-orange-500 hover:bg-orange-600 text-white font-medium shadow"
+            className="flex items-center gap-3 w-full px-4 py-3 rounded-md bg-orange-700 hover:bg-orange-800 text-white font-medium shadow"
           >
             <LogOut size={20} />
             Logout

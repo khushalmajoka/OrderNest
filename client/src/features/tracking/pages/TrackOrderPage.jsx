@@ -33,10 +33,10 @@ const Progress = ({ status }) => {
               <span
                 className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs ${
                   done
-                    ? "bg-green-500 text-white"
+                    ? "bg-green-700 text-white"
                     : here
-                    ? "bg-orange-500 text-white ring-4 ring-orange-200"
-                    : "bg-gray-200 text-gray-400"
+                    ? "bg-orange-700 text-white ring-4 ring-orange-200"
+                    : "bg-gray-200 text-gray-500"
                 }`}
               >
                 {done ? <Check size={14} strokeWidth={3} /> : index + 1}
@@ -46,7 +46,7 @@ const Progress = ({ status }) => {
               )}
             </div>
             <div className="pb-3">
-              <p className={`text-sm ${here ? "font-semibold text-gray-900" : done ? "text-gray-700" : "text-gray-400"}`}>
+              <p className={`text-sm ${here ? "font-semibold text-gray-900" : done ? "text-gray-700" : "text-gray-500"}`}>
                 {step.label}
               </p>
               {here && status !== step.label && (
@@ -78,7 +78,7 @@ const OrderResult = ({ order }) => {
         {order.shopPhone && (
           <a
             href={`tel:${String(order.shopPhone).replace(/[^\d+]/g, "")}`}
-            className="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] px-3 rounded-lg border border-orange-500 text-orange-600 text-sm hover:bg-orange-50"
+            className="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] px-3 rounded-lg border border-orange-500 text-orange-700 text-sm hover:bg-orange-50"
           >
             <Phone size={16} /> Call shop
           </a>
@@ -127,7 +127,7 @@ const OrderResult = ({ order }) => {
         ) : stepOf(order.status) === -1 ? (
           <p className="text-sm">
             <span className="text-gray-500">Status: </span>
-            <span className="text-orange-600 font-medium">{order.status}</span>
+            <span className="text-orange-700 font-medium">{order.status}</span>
           </p>
         ) : (
           <Progress status={order.status} />
@@ -229,7 +229,7 @@ const TrackOrderPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2.5 min-h-[44px] bg-orange-500 text-white rounded-md hover:bg-orange-600 transition disabled:opacity-60"
+              className="px-4 py-2.5 min-h-[44px] bg-orange-700 text-white rounded-md hover:bg-orange-800 transition disabled:opacity-60"
             >
               {loading ? "Searching..." : "Track"}
             </button>

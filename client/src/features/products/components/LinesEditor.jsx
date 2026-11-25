@@ -82,7 +82,7 @@ const LinesEditor = ({ lines, onChange, showPrice = true, canCreate = false, can
                           type="button"
                           onClick={() => setNote(i, line.note === word ? "" : word)}
                           aria-pressed={line.note === word}
-                          className={`px-3 py-2 min-h-[44px] rounded-full border text-sm ${line.note === word ? "bg-orange-500 border-orange-500 text-white" : "border-gray-300 text-gray-700 bg-white hover:bg-orange-50"}`}
+                          className={`px-3 py-2 min-h-[44px] rounded-full border text-sm ${line.note === word ? "bg-orange-700 border-orange-700 text-white" : "border-gray-300 text-gray-700 bg-white hover:bg-orange-50"}`}
                         >
                           {word}
                         </button>

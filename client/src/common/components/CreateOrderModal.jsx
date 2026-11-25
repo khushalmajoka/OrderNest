@@ -270,7 +270,7 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
               ? "bg-green-500"
               : loading
               ? "bg-orange-300 cursor-not-allowed"
-              : "bg-orange-500 hover:bg-orange-600"
+              : "bg-orange-700 hover:bg-orange-800"
           }`}
         >
           {loading ? "Creating..." : done ? <SavedLabel>Created</SavedLabel> : "Create"}

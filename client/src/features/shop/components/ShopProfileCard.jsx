@@ -110,7 +110,7 @@ const ShopProfileCard = ({ shop, onSaved }) => {
           <button
             type="button"
             onClick={() => fileInput.current.click()}
-            className="px-3 py-2 rounded-md border border-orange-500 text-orange-600 text-sm hover:bg-orange-50"
+            className="px-3 py-2 rounded-md border border-orange-500 text-orange-700 text-sm hover:bg-orange-50"
           >
             {form.logo ? "Change logo" : "Add logo"}
           </button>
@@ -191,7 +191,7 @@ const ShopProfileCard = ({ shop, onSaved }) => {
           className={`px-5 py-2 min-h-[44px] sm:min-h-0 rounded-lg text-white font-medium transition-colors disabled:cursor-not-allowed ${
             showSaved
               ? "bg-green-500 disabled:bg-green-500"
-              : "bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300"
+              : "bg-orange-700 hover:bg-orange-800 disabled:bg-orange-300"
           }`}
         >
           {saving ? "Saving..." : showSaved ? <SavedLabel /> : "Save"}

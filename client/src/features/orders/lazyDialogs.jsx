@@ -31,7 +31,7 @@ const Opening = () => (
     role="status"
     className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
   >
-    <div className="bg-white px-5 py-3 rounded-md shadow-lg text-orange-600 text-sm">
+    <div className="bg-white px-5 py-3 rounded-md shadow-lg text-orange-700 text-sm">
       Opening...
     </div>
   </div>

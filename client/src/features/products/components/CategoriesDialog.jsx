@@ -54,7 +54,7 @@ const CategoryRow = ({ category, count, onChanged }) => {
         />
         <span className="text-xs text-gray-500 w-16">{count} {count === 1 ? "product" : "products"}</span>
         {changed && (
-          <button type="button" onClick={save} disabled={busy} className="px-3 py-2 min-h-[40px] rounded-lg bg-orange-500 text-white text-sm hover:bg-orange-600 disabled:opacity-60">
+          <button type="button" onClick={save} disabled={busy} className="px-3 py-2 min-h-[40px] rounded-lg bg-orange-700 text-white text-sm hover:bg-orange-800 disabled:opacity-60">
             Save
           </button>
         )}
@@ -129,7 +129,7 @@ const CategoriesDialog = ({ categories, counts, onClose, onChanged }) => {
               aria-label="New category name"
               className="flex-1 min-w-0 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
-            <button type="submit" disabled={!newName.trim() || adding} className="px-4 py-2 min-h-[40px] rounded-lg bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 disabled:bg-orange-300">
+            <button type="submit" disabled={!newName.trim() || adding} className="px-4 py-2 min-h-[40px] rounded-lg bg-orange-700 text-white text-sm font-medium hover:bg-orange-800 disabled:bg-orange-300">
               Add
             </button>
           </form>

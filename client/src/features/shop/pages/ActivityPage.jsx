@@ -33,7 +33,7 @@ const Entry = ({ item, myId }) => {
           {item.changes.map((change) => (
             <li key={change.field} className="text-gray-600 break-words">
               <span className="font-medium text-gray-700">{change.field}:</span>{" "}
-              <span className="line-through text-gray-400">{change.from}</span>
+              <span className="line-through text-gray-500">{change.from}</span>
               {"  →  "}
               <span className="text-gray-900">{change.to}</span>
             </li>
@@ -139,7 +139,7 @@ const ActivityPage = () => {
         <p className="text-gray-700">{error}</p>
         <button
           onClick={reload}
-          className="px-5 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
+          className="px-5 py-2 rounded-lg bg-orange-700 text-white hover:bg-orange-800"
         >
           Try again
         </button>
@@ -181,7 +181,7 @@ const ActivityPage = () => {
               aria-pressed={kind === tab.value}
               className={`px-4 py-1.5 rounded-full border text-sm ${
                 kind === tab.value
-                  ? "bg-orange-500 border-orange-500 text-white"
+                  ? "bg-orange-700 border-orange-700 text-white"
                   : "bg-white border-gray-300 text-gray-700"
               }`}
             >
@@ -232,7 +232,7 @@ const ActivityPage = () => {
               <button
                 onClick={() => load(page + 1)}
                 disabled={loading}
-                className="w-full py-2 rounded-md border border-orange-500 text-orange-600 hover:bg-orange-50 disabled:opacity-50"
+                className="w-full py-2 rounded-md border border-orange-500 text-orange-700 hover:bg-orange-50 disabled:opacity-50"
               >
                 {loading ? "Loading..." : "Show older"}
               </button>

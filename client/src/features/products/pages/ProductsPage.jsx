@@ -197,7 +197,7 @@ const ProductsPage = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-orange-50 font-poppins px-4 text-center">
         <p className="text-gray-700">{error}</p>
-        <button onClick={reload} className="px-5 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600">
+        <button onClick={reload} className="px-5 py-2 rounded-lg bg-orange-700 text-white hover:bg-orange-800">
           Try again
         </button>
       </div>
@@ -234,7 +234,7 @@ const ProductsPage = () => {
             <button
               type="button"
               onClick={() => setEditing("new")}
-              className="flex items-center gap-1.5 px-4 py-2 min-h-[44px] rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600"
+              className="flex items-center gap-1.5 px-4 py-2 min-h-[44px] rounded-lg bg-orange-700 text-white font-medium hover:bg-orange-800"
             >
               <Plus size={18} /> Add product
             </button>
@@ -246,7 +246,7 @@ const ProductsPage = () => {
               {tidyPlan.length} {tidyPlan.length === 1 ? "product has" : "products have"} a size written the other way round (like 18 x 12).
               8 x 10 and 10 x 8 are one size, so they should be written the same way.
             </p>
-            <button type="button" onClick={() => setShowTidy(true)} className="px-4 py-2 min-h-[44px] rounded-lg bg-orange-500 text-white text-sm font-medium hover:bg-orange-600">
+            <button type="button" onClick={() => setShowTidy(true)} className="px-4 py-2 min-h-[44px] rounded-lg bg-orange-700 text-white text-sm font-medium hover:bg-orange-800">
               Review and fix
             </button>
           </div>
@@ -276,7 +276,7 @@ const ProductsPage = () => {
                 type="button"
                 onClick={() => chooseView(v)}
                 aria-pressed={view === v}
-                className={`flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-sm ${view === v ? "bg-orange-500 text-white" : "text-gray-700 hover:bg-orange-50"}`}
+                className={`flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-sm ${view === v ? "bg-orange-700 text-white" : "text-gray-700 hover:bg-orange-50"}`}
               >
                 <Icon size={16} /> {text}
               </button>
@@ -297,7 +297,7 @@ const ProductsPage = () => {
                 onClick={() => setFilterCat(chip.id)}
                 aria-pressed={filterCat === chip.id}
                 className={`px-3 py-1.5 min-h-[36px] rounded-full text-sm border ${
-                  filterCat === chip.id ? "bg-orange-500 border-orange-500 text-white" : "bg-white border-gray-300 text-gray-700 hover:bg-orange-50"
+                  filterCat === chip.id ? "bg-orange-700 border-orange-700 text-white" : "bg-white border-gray-300 text-gray-700 hover:bg-orange-50"
                 }`}
               >
                 {chip.name} <span className={filterCat === chip.id ? "text-orange-100" : "text-gray-500"}>{chip.n}</span>
@@ -309,7 +309,7 @@ const ProductsPage = () => {
         {loadError ? (
           <div className="text-center py-8">
             <p className="text-gray-700 mb-3">{loadError}</p>
-            <button onClick={load} className="px-5 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600">
+            <button onClick={load} className="px-5 py-2 rounded-lg bg-orange-700 text-white hover:bg-orange-800">
               Try again
             </button>
           </div>
@@ -419,7 +419,7 @@ const ProductsPage = () => {
               type="button"
               onClick={moveSelected}
               disabled={!moveTo || moving}
-              className="px-4 py-2 min-h-[40px] rounded-lg bg-orange-500 text-white text-sm font-medium hover:bg-orange-600 disabled:bg-orange-300"
+              className="px-4 py-2 min-h-[40px] rounded-lg bg-orange-700 text-white text-sm font-medium hover:bg-orange-800 disabled:bg-orange-300"
             >
               {moving ? "Moving..." : "Move"}
             </button>

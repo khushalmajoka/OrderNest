@@ -35,7 +35,7 @@ const Settings = () => {
         <p className="text-gray-700">{error}</p>
         <button
           onClick={reload}
-          className="px-5 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
+          className="px-5 py-2 rounded-lg bg-orange-700 text-white hover:bg-orange-800"
         >
           Try again
         </button>

@@ -15,7 +15,7 @@ const BulkBar = ({ count, options, onNext, onPick, onClear }) => (
     <button
       type="button"
       onClick={onNext}
-      className="flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-lg bg-orange-500 text-white text-sm font-medium hover:bg-orange-600"
+      className="flex items-center gap-1.5 px-3 py-1.5 min-h-[36px] rounded-lg bg-orange-700 text-white text-sm font-medium hover:bg-orange-800"
     >
       Next step <ArrowRight size={16} aria-hidden="true" />
     </button>

@@ -26,7 +26,7 @@ const LogoutDialog = ({ onStay, onLogout }) => (
         </button>
         <button
           onClick={onLogout}
-          className="px-4 py-2 min-h-[44px] text-white rounded bg-orange-500 hover:bg-orange-600"
+          className="px-4 py-2 min-h-[44px] text-white rounded bg-orange-700 hover:bg-orange-800"
         >
           Log out
         </button>

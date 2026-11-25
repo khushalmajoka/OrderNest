@@ -14,7 +14,7 @@ const LoadingScreen = ({ message = "Just a moment" }) => (
       <Truck
         size={34}
         strokeWidth={1.75}
-        className="absolute bottom-2 text-orange-600 animate-drive motion-reduce:animate-none motion-reduce:left-1/2 motion-reduce:-translate-x-1/2"
+        className="absolute bottom-2 text-orange-700 animate-drive motion-reduce:animate-none motion-reduce:left-1/2 motion-reduce:-translate-x-1/2"
       />
       <div className="absolute inset-x-0 bottom-1.5 border-b-2 border-dashed border-orange-300" />
     </div>

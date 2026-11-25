@@ -126,7 +126,7 @@ const Login = () => {
             <div className="text-right text-xs mt-1">
               <Link
                 to="/shop/forgot-password"
-                className="text-orange-600 hover:underline"
+                className="text-orange-700 hover:underline"
               >
                 Forgot password?
               </Link>
@@ -138,7 +138,7 @@ const Login = () => {
             className={`w-full text-white font-semibold py-2 rounded-lg transition ${
               loading
                 ? "bg-orange-300 cursor-not-allowed"
-                : "bg-orange-500 hover:bg-orange-600"
+                : "bg-orange-700 hover:bg-orange-800"
             }`}
           >
             {loading ? "Logging in..." : "Login"}
@@ -147,7 +147,7 @@ const Login = () => {
 
         <p className="text-center text-sm text-gray-600 mt-4">
           Don't have an account?{" "}
-          <Link to="/shop/signup" className="text-orange-600 hover:underline">
+          <Link to="/shop/signup" className="text-orange-700 hover:underline">
             Sign up
           </Link>
         </p>

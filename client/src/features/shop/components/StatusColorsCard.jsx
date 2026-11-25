@@ -71,7 +71,7 @@ const StatusColorsCard = ({ shop }) => {
                 aria-label={label}
                 disabled={locked}
                 onClick={() => setSwitches((prev) => ({ ...prev, [key]: !prev[key] }))}
-                className={`relative w-11 h-6 shrink-0 rounded-full transition ${on ? "bg-orange-500" : "bg-gray-300"}`}
+                className={`relative w-11 h-6 shrink-0 rounded-full transition ${on ? "bg-orange-600" : "bg-gray-300"}`}
               >
                 <span
                   className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${on ? "translate-x-5" : ""}`}
@@ -91,7 +91,7 @@ const StatusColorsCard = ({ shop }) => {
               <div className="flex items-center justify-between gap-3">
                 <span
                   className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    enabled ? style.badge : "bg-gray-100 text-gray-400"
+                    enabled ? style.badge : "bg-gray-100 text-gray-500"
                   }`}
                 >
                   {statusLabel(status)}
@@ -103,7 +103,7 @@ const StatusColorsCard = ({ shop }) => {
                   aria-label={`Colour for ${status}`}
                   onClick={() => change(status, { enabled: !enabled })}
                   className={`relative w-11 h-6 shrink-0 rounded-full transition ${
-                    enabled ? "bg-orange-500" : "bg-gray-300"
+                    enabled ? "bg-orange-600" : "bg-gray-300"
                   }`}
                 >
                   <span
@@ -152,7 +152,7 @@ const StatusColorsCard = ({ shop }) => {
           onClick={handleSave}
           disabled={saving}
           className={`px-5 py-2 rounded-lg text-white font-medium ${
-            saving ? "bg-orange-300" : "bg-orange-500 hover:bg-orange-600"
+            saving ? "bg-orange-300" : "bg-orange-700 hover:bg-orange-800"
           }`}
         >
           {saving ? "Saving..." : saved ? <SavedLabel /> : "Save"}

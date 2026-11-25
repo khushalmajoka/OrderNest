@@ -64,7 +64,7 @@ const OrderMobileCard = ({
         >
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs text-gray-500 inline-flex items-center gap-1" title="This cannot be edited">
+              <p className="text-xs text-gray-600 inline-flex items-center gap-1" title="This cannot be edited">
                 <Lock size={12} aria-hidden="true" /> Order ID
               </p>
               <p className="font-semibold text-gray-500 break-all">{order.orderId || order._id.slice(-6)}</p>
@@ -87,7 +87,7 @@ const OrderMobileCard = ({
             {access.amounts && (
               <div>
                 <span className="block text-xs text-gray-600 mb-1">Balance</span>
-                <p className="text-gray-400" title="Worked out from Total and Advance">₹{left}</p>
+                <p className="text-gray-500" title="Worked out from Total and Advance">₹{left}</p>
               </div>
             )}
           </div>
@@ -99,7 +99,7 @@ const OrderMobileCard = ({
                 type="button"
                 onClick={edit.save}
                 disabled={edit.saving}
-                className="flex-1 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded bg-green-500 text-white font-medium hover:bg-green-600 disabled:bg-green-300"
+                className="flex-1 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded bg-green-700 text-white font-medium hover:bg-green-800 disabled:bg-green-300"
               >
                 <Check size={18} strokeWidth={3} /> {edit.saving ? "Saving..." : "Save"}
               </button>
@@ -147,7 +147,7 @@ const OrderMobileCard = ({
           />
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-gray-500">Order ID</p>
+          <p className="text-xs text-gray-600">Order ID</p>
           <p className="font-semibold text-gray-800 break-all">
             {order.orderId || order._id.slice(-6)}
           </p>
@@ -180,16 +180,16 @@ const OrderMobileCard = ({
       {access.amounts && (
       <div className="grid grid-cols-3 gap-2 mt-3 text-center">
         <div className={`${tile} rounded p-2`}>
-          <p className="text-xs text-gray-500">Total</p>
+          <p className="text-xs text-gray-600">Total</p>
           <p className="font-semibold">{maskAmounts ? MASK : `₹${order.total}`}</p>
         </div>
         <div className={`${tile} rounded p-2`}>
-          <p className="text-xs text-gray-500">Advance</p>
+          <p className="text-xs text-gray-600">Advance</p>
           <p className="font-semibold">{maskAmounts ? MASK : `₹${order.advance}`}</p>
         </div>
         <div className={`${tile} rounded p-2`}>
-          <p className="text-xs text-gray-500">Balance</p>
-          <p className="font-semibold text-red-500">{maskAmounts ? MASK : `₹${order.balance}`}</p>
+          <p className="text-xs text-gray-600">Balance</p>
+          <p className="font-semibold text-red-700">{maskAmounts ? MASK : `₹${order.balance}`}</p>
         </div>
       </div>
       )}
@@ -234,7 +234,7 @@ const OrderMobileCard = ({
 
       <button
         onClick={() => setShowMore((open) => !open)}
-        className="mt-1 flex items-center gap-1 min-h-[44px] px-1 text-sm text-orange-600"
+        className="mt-1 flex items-center gap-1 min-h-[44px] px-1 text-sm text-orange-700"
       >
         {showMore ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         {showMore ? "Less details" : "More details"}

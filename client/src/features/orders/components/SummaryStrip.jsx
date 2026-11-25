@@ -18,7 +18,7 @@ const tiles = (summary, hidden) => {
       value: summary.open,
       note: `of ${summary.total} in all`,
       icon: PackageOpen,
-      tone: "text-orange-600 bg-orange-100",
+      tone: "text-orange-700 bg-orange-100",
       filters: { ...EMPTY_FILTERS, status: OPEN_STATUSES },
     },
     {

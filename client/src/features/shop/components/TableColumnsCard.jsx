@@ -72,7 +72,7 @@ const TableColumnsCard = ({ shop }) => {
                 disabled={column.fixed}
                 onClick={() => toggle(column.key)}
                 className={`relative w-11 h-6 shrink-0 rounded-full transition ${
-                  on ? "bg-orange-500" : "bg-gray-300"
+                  on ? "bg-orange-600" : "bg-gray-300"
                 } ${column.fixed ? "opacity-50" : ""}`}
               >
                 <span
@@ -99,7 +99,7 @@ const TableColumnsCard = ({ shop }) => {
           onClick={handleSave}
           disabled={saving}
           className={`px-5 py-2 rounded-lg text-white font-medium ${
-            saving ? "bg-orange-300" : "bg-orange-500 hover:bg-orange-600"
+            saving ? "bg-orange-300" : "bg-orange-700 hover:bg-orange-800"
           }`}
         >
           {saving ? "Saving..." : saved ? <SavedLabel /> : "Save"}

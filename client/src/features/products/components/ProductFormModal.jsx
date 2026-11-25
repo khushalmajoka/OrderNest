@@ -242,7 +242,7 @@ const ProductFormModal = ({ family, sizes = [], canSetPrice, categories = [], ca
 
       <div role="group" aria-label="Pictures">
         <span className="block text-sm font-medium text-gray-700 mb-1">
-          Pictures<span className="font-normal text-gray-400"> (optional, of the whole product)</span>
+          Pictures<span className="font-normal text-gray-500"> (optional, of the whole product)</span>
         </span>
         <PicturesField productId={family?._id || null} images={images} onImages={setImages} pending={pending} onPending={setPending} onChanged={onPicturesChanged} />
       </div>
@@ -253,7 +253,7 @@ const ProductFormModal = ({ family, sizes = [], canSetPrice, categories = [], ca
 
       <div role="group" aria-label="Sizes">
         <span className="block text-sm font-medium text-gray-700 mb-1">
-          Sizes<span className="font-normal text-gray-400"> (each size has its own price; a product with no size, like a Mug, keeps one line with No size)</span>
+          Sizes<span className="font-normal text-gray-500"> (each size has its own price; a product with no size, like a Mug, keeps one line with No size)</span>
         </span>
         <ul className="space-y-2">
           {live.map((r) => (
@@ -282,7 +282,7 @@ const ProductFormModal = ({ family, sizes = [], canSetPrice, categories = [], ca
         <button type="button" onClick={onClose} className="flex-1 px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50">
           Cancel
         </button>
-        <button type="submit" disabled={saving} className="flex-1 px-4 py-2 rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600 disabled:opacity-60">
+        <button type="submit" disabled={saving} className="flex-1 px-4 py-2 rounded-lg bg-orange-700 text-white font-medium hover:bg-orange-800 disabled:opacity-60">
           {saving ? "Saving..." : isNew ? "Add product" : "Save"}
         </button>
       </div>

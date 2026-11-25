@@ -75,7 +75,7 @@ const ChangePasswordCard = () => {
       <button
         type="submit"
         disabled={busy}
-        className="w-full px-4 py-2 rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600 disabled:bg-orange-300"
+        className="w-full px-4 py-2 rounded-lg bg-orange-700 text-white font-medium hover:bg-orange-800 disabled:bg-orange-300"
       >
         {busy ? "Saving..." : "Change password"}
       </button>

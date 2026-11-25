@@ -279,7 +279,7 @@ const Dashboard = () => {
         <p className="text-gray-700">{shopError}</p>
         <button
           onClick={reloadShop}
-          className="px-5 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
+          className="px-5 py-2 rounded-lg bg-orange-700 text-white hover:bg-orange-800"
         >
           Try again
         </button>
@@ -318,7 +318,7 @@ const Dashboard = () => {
               >
                 <SlidersHorizontal size={18} /> Filters
                 {filterCount > 0 && (
-                  <span className="ml-1 min-w-5 h-5 px-1 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center">
+                  <span className="ml-1 min-w-5 h-5 px-1 rounded-full bg-orange-700 text-white text-xs flex items-center justify-center">
                     {filterCount}
                   </span>
                 )}
@@ -371,7 +371,7 @@ const Dashboard = () => {
             <p className="text-gray-700">{ordersError}</p>
             <button
               onClick={refetch}
-              className="px-5 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
+              className="px-5 py-2 rounded-lg bg-orange-700 text-white hover:bg-orange-800"
             >
               Try again
             </button>
@@ -471,7 +471,7 @@ const Dashboard = () => {
 
         {bulkUploading && (
           <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white px-6 py-4 rounded-md shadow-lg text-orange-600 font-semibold">
+            <div className="bg-white px-6 py-4 rounded-md shadow-lg text-orange-700 font-semibold">
               Uploading orders...
             </div>
           </div>

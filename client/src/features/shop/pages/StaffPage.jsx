@@ -122,7 +122,7 @@ const AddStaffForm = ({ onAdded }) => {
       <button
         type="submit"
         disabled={busy}
-        className="w-full sm:w-auto px-5 py-2 rounded-lg bg-orange-500 text-white font-medium hover:bg-orange-600 disabled:bg-orange-300"
+        className="w-full sm:w-auto px-5 py-2 rounded-lg bg-orange-700 text-white font-medium hover:bg-orange-800 disabled:bg-orange-300"
       >
         {busy ? "Adding..." : "Add staff"}
       </button>
@@ -202,7 +202,7 @@ const StaffCard = ({ member, onChanged }) => {
               )
             }
             className={`relative w-11 h-6 rounded-full transition ${
-              member.active ? "bg-orange-500" : "bg-gray-300"
+              member.active ? "bg-orange-600" : "bg-gray-300"
             }`}
           >
             <span
@@ -230,7 +230,7 @@ const StaffCard = ({ member, onChanged }) => {
                   "Approved. They can change it for 24 hours."
                 )
               }
-              className="flex-1 py-2 rounded-md bg-green-600 text-white text-sm hover:bg-green-700"
+              className="flex-1 py-2 rounded-md bg-green-700 text-white text-sm hover:bg-green-800"
             >
               Approve
             </button>
@@ -283,7 +283,7 @@ const StaffCard = ({ member, onChanged }) => {
                   setShowReset(false);
                 }, "New password saved. Tell it to the staff member.")
               }
-              className="flex-1 py-2 rounded-md bg-orange-500 text-white text-sm hover:bg-orange-600 disabled:bg-orange-300"
+              className="flex-1 py-2 rounded-md bg-orange-700 text-white text-sm hover:bg-orange-800 disabled:bg-orange-300"
             >
               Save password
             </button>
@@ -392,7 +392,7 @@ const StaffPage = () => {
         <p className="text-gray-700">{error}</p>
         <button
           onClick={reload}
-          className="px-5 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600"
+          className="px-5 py-2 rounded-lg bg-orange-700 text-white hover:bg-orange-800"
         >
           Try again
         </button>

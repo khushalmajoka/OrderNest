@@ -199,7 +199,7 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
           )}
           <p className="text-xs text-gray-500">You can add the size and more details later on the Products page.</p>
           <div className="flex gap-2">
-            <button type="button" disabled={adding.saving} onClick={createProduct} className="px-4 py-2 min-h-[44px] rounded bg-orange-500 text-white font-medium hover:bg-orange-600 disabled:opacity-60">
+            <button type="button" disabled={adding.saving} onClick={createProduct} className="px-4 py-2 min-h-[44px] rounded bg-orange-700 text-white font-medium hover:bg-orange-800 disabled:opacity-60">
               {adding.saving ? "Adding..." : "Add product"}
             </button>
             <button type="button" disabled={adding.saving} onClick={() => setAdding(null)} className="px-4 py-2 min-h-[44px] rounded border border-gray-300 hover:bg-white disabled:opacity-60">

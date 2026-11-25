@@ -68,7 +68,7 @@ const MappingModal = ({ headers, onConfirm, onClose }) => {
           </button>
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 min-h-[44px] bg-orange-500 text-white rounded hover:bg-orange-600"
+            className="px-4 py-2 min-h-[44px] bg-orange-700 text-white rounded hover:bg-orange-800"
           >
             Confirm
           </button>

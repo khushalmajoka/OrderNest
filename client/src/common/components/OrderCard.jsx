@@ -50,7 +50,7 @@ const OrderCard = React.forwardRef(({ order, shop }, ref) => {
             {order.balance !== undefined && (
               <p>
                 <b>Balance:</b>{" "}
-                <span className="text-red-500">₹{order.balance}</span>
+                <span className="text-red-700">₹{order.balance}</span>
               </p>
             )}
           </div>

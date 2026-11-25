@@ -93,7 +93,7 @@ const TidySizesDialog = ({ plan, canSeePrices, onClose, onDone }) => {
             type="button"
             onClick={apply}
             disabled={!on.size || saving}
-            className={`px-4 py-2 min-h-[44px] rounded text-white ${!on.size || saving ? "bg-orange-300 cursor-not-allowed" : "bg-orange-500 hover:bg-orange-600"}`}
+            className={`px-4 py-2 min-h-[44px] rounded text-white ${!on.size || saving ? "bg-orange-300 cursor-not-allowed" : "bg-orange-700 hover:bg-orange-800"}`}
           >
             {saving ? "Applying..." : `Apply to ${on.size} ${on.size === 1 ? "product" : "products"}`}
           </button>

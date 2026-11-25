@@ -94,7 +94,7 @@ const DeveloperPage = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-orange-50 font-poppins px-4 text-center">
         <p className="text-gray-700">Something went wrong. Please try again.</p>
-        <button onClick={load} className="px-5 py-2 rounded-lg bg-orange-500 text-white hover:bg-orange-600">
+        <button onClick={load} className="px-5 py-2 rounded-lg bg-orange-700 text-white hover:bg-orange-800">
           Try again
         </button>
       </div>
@@ -253,10 +253,10 @@ const DeveloperPage = () => {
                   </thead>
                   <tbody className="divide-y">
                     {usage.features.map((f) => (
-                      <tr key={f.key} className={f.count === 0 ? "text-gray-400" : "text-gray-800"}>
+                      <tr key={f.key} className={f.count === 0 ? "text-gray-500" : "text-gray-800"}>
                         <td className="py-2 pr-3">
                           {f.label}
-                          <span className="block text-xs text-gray-400">{f.group}</span>
+                          <span className="block text-xs text-gray-500">{f.group}</span>
                         </td>
                         <td className="py-2 pr-3 text-right tabular-nums">{f.count}</td>
                         <td className="py-2 pr-3">
@@ -291,7 +291,7 @@ const DeveloperPage = () => {
                   />
                 ))}
               </div>
-              <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <div className="flex justify-between text-xs text-gray-500 mt-1">
                 <span>{usage.series[0].day.slice(6)}/{usage.series[0].day.slice(4, 6)}</span>
                 <span>today</span>
               </div>

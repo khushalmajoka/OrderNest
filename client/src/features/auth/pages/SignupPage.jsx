@@ -124,7 +124,7 @@ const SignupPage = () => {
           className={`w-full py-2 rounded-md transition text-white ${
             loading
               ? "bg-orange-300 cursor-not-allowed"
-              : "bg-orange-500 hover:bg-orange-600"
+              : "bg-orange-700 hover:bg-orange-800"
           }`}
         >
           {loading ? "Creating Account..." : "Sign Up"}

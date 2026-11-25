@@ -97,7 +97,7 @@ const Onboarding = () => {
         <div className="space-y-2">
           <label className="block text-gray-700 font-medium">
             Shop Logo{" "}
-            <span className="text-gray-400 font-normal text-sm">
+            <span className="text-gray-500 font-normal text-sm">
               (optional)
             </span>
           </label>
@@ -166,7 +166,7 @@ const Onboarding = () => {
           className={`w-full text-white py-2 rounded-md ${
             loading
               ? "bg-orange-300 cursor-not-allowed"
-              : "bg-orange-500 hover:bg-orange-600"
+              : "bg-orange-700 hover:bg-orange-800"
           }`}
         >
           {loading ? "Submitting..." : "Complete Setup"}

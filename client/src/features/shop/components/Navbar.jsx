@@ -89,7 +89,7 @@ const Navbar = ({ shop, account, onLogout }) => {
                           : "text-orange-800 hover:bg-orange-100"
                     }`}
                   >
-                    <Icon size={20} className={current ? "text-orange-800" : "text-orange-600"} />
+                    <Icon size={20} className={current ? "text-orange-800" : "text-orange-700"} />
                     <span className="hidden lg:inline">{label}</span>
                   </Link>
                 </li>
@@ -104,7 +104,7 @@ const Navbar = ({ shop, account, onLogout }) => {
             title="Logout"
             className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-orange-800 hover:bg-orange-100 transition"
           >
-            <LogOut size={20} className="text-orange-600" />
+            <LogOut size={20} className="text-orange-700" />
             <span className="hidden lg:inline">Logout</span>
           </button>
         </div>

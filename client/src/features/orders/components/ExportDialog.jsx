@@ -146,7 +146,7 @@ const ExportDialog = ({ shopId, params, totalOrders, summary, onClose }) => {
           <button
             type="submit"
             disabled={busy || totalOrders === 0}
-            className="flex-1 py-2 rounded-md bg-orange-500 text-white hover:bg-orange-600 disabled:bg-orange-300"
+            className="flex-1 py-2 rounded-md bg-orange-700 text-white hover:bg-orange-800 disabled:bg-orange-300"
           >
             {busy ? "Preparing..." : `Download ${rows} order${rows === 1 ? "" : "s"}`}
           </button>

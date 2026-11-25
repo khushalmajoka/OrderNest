@@ -106,7 +106,7 @@ export const Field = ({ label, hint, children }) => (
   <label className="block">
     <span className="block text-sm font-medium text-gray-700 mb-1">
       {label}
-      {hint && <span className="font-normal text-gray-400"> {hint}</span>}
+      {hint && <span className="font-normal text-gray-500"> {hint}</span>}
     </span>
     {children}
   </label>

@@ -267,7 +267,7 @@ const CreateOrderModal = ({ shopId, onClose, onOrderCreated, defaultExecutive = 
           disabled={loading || done}
           className={`px-4 py-2 rounded text-white transition ${
             done
-              ? "bg-green-500"
+              ? "bg-green-700"
               : loading
               ? "bg-orange-300 cursor-not-allowed"
               : "bg-orange-700 hover:bg-orange-800"

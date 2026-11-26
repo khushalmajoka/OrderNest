@@ -20,7 +20,7 @@ class ErrorBoundary extends Component {
     return (
       <div
         role="alert"
-        className="flex flex-col items-center justify-center min-h-screen gap-4 bg-orange-50 font-poppins px-6 text-center"
+        className="flex flex-col items-center justify-center min-h-screen gap-4 bg-stone-50 font-poppins px-6 text-center"
       >
         <p className="text-lg font-semibold text-gray-800">Something went wrong</p>
         <p className="text-sm text-gray-600 max-w-xs">

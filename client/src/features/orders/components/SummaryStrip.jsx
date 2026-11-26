@@ -18,7 +18,7 @@ const tiles = (summary, hidden) => {
       value: summary.open,
       note: `of ${summary.total} in all`,
       icon: PackageOpen,
-      tone: "text-orange-700 bg-orange-100",
+      tone: "text-orange-700 bg-stone-100",
       filters: { ...EMPTY_FILTERS, status: OPEN_STATUSES },
     },
     {
@@ -62,7 +62,7 @@ const SummaryStrip = ({ summary, filters, onPick, amountsHidden, onToggleAmounts
       <SkeletonRegion label="Loading the summary" className="mb-5">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[0, 1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-lg border border-orange-100 shadow-sm p-3 sm:p-4 space-y-2">
+            <div key={i} className="bg-white rounded-lg border border-stone-200 shadow-sm p-3 sm:p-4 space-y-2">
               <Bar className="h-3 w-1/2" />
               <Bar className="h-6 w-2/3" />
               <Bar className="h-3 w-3/4" />
@@ -90,7 +90,7 @@ const SummaryStrip = ({ summary, filters, onPick, amountsHidden, onToggleAmounts
               aria-pressed={active}
               onClick={() => onPick(active ? EMPTY_FILTERS : tile.filters)}
               className={`w-full text-left bg-white rounded-lg border shadow-sm p-3 sm:p-4 transition hover:shadow-md ${
-                active ? "border-orange-500 ring-2 ring-orange-300" : "border-orange-100"
+                active ? "border-orange-500 ring-2 ring-orange-300" : "border-stone-200"
               }`}
             >
               <div className={`flex items-center gap-2 text-xs sm:text-sm text-gray-600 leading-tight ${tile.id === "balance" ? "pr-9" : ""}`}>

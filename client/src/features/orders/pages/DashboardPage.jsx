@@ -275,7 +275,7 @@ const Dashboard = () => {
 
   if (!shop && shopError) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-orange-50 font-poppins px-4 text-center">
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-stone-50 font-poppins px-4 text-center">
         <p className="text-gray-700">{shopError}</p>
         <button
           onClick={reloadShop}
@@ -292,7 +292,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-orange-50 font-poppins">
+    <div className="min-h-screen bg-stone-50 font-poppins">
       <TopProgressBar active={loading && loaded} />
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
       <main id="main" tabIndex={-1} className="scroll-mt-24 outline-none p-4 md:p-8">
@@ -309,7 +309,7 @@ const Dashboard = () => {
                 onClick={() => setShowFilters(true)}
                 className={`relative shrink-0 flex items-center gap-1 px-3 py-2 min-h-[44px] md:min-h-0 rounded-md border shadow-sm text-sm md:text-base ${
                   filterCount
-                    ? "bg-orange-100 border-orange-400 text-orange-800"
+                    ? "bg-stone-100 border-stone-300 text-stone-800"
                     : "bg-white border-gray-300 text-gray-700"
                 }`}
               >

@@ -11,14 +11,14 @@ const FilterChips = ({ filters, onChange, onClearAll }) => {
       {chips.map((chip) => (
         <span
           key={chip.id}
-          className="inline-flex items-center gap-1 max-w-full pl-3 pr-1 py-1 rounded-full bg-orange-100 text-orange-800 text-sm"
+          className="inline-flex items-center gap-1 max-w-full pl-3 pr-1 py-1 rounded-full bg-stone-100 text-orange-800 text-sm"
         >
           <span className="truncate">{chip.label}</span>
           <button
             type="button"
             aria-label={`Remove filter ${chip.label}`}
             onClick={() => onChange({ ...filters, ...chip.clear })}
-            className="p-1 rounded-full hover:bg-orange-200"
+            className="p-1 rounded-full hover:bg-stone-200"
           >
             <X size={14} />
           </button>

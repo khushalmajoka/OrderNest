@@ -21,7 +21,7 @@ const Meter = ({ value, tone = "bg-orange-400" }) => (
 );
 
 const Tile = ({ label, value, note }) => (
-  <div className="bg-white rounded-xl shadow-sm border border-orange-100 p-4">
+  <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-4">
     <p className="text-xs text-gray-500">{label}</p>
     <p className="text-2xl font-semibold text-gray-900">{value}</p>
     {note && <p className="text-xs text-gray-500 mt-0.5">{note}</p>}
@@ -92,7 +92,7 @@ const DeveloperPage = () => {
   if (!usage && !error) return <LoadingScreen message="Loading" />;
   if (!usage && error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-orange-50 font-poppins px-4 text-center">
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-stone-50 font-poppins px-4 text-center">
         <p className="text-gray-700">Something went wrong. Please try again.</p>
         <button onClick={load} className="px-5 py-2 rounded-lg bg-orange-700 text-white hover:bg-orange-800">
           Try again
@@ -106,7 +106,7 @@ const DeveloperPage = () => {
   const selectClass = "border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white";
 
   return (
-    <div className="min-h-screen bg-orange-50 font-poppins">
+    <div className="min-h-screen bg-stone-50 font-poppins">
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -131,7 +131,7 @@ const DeveloperPage = () => {
           </div>
         </div>
 
-        <section className="bg-white rounded-xl shadow-sm border border-orange-100 p-4">
+        <section className="bg-white rounded-xl shadow-sm border border-stone-200 p-4">
           <h2 className="text-sm font-semibold text-gray-800 mb-1">Shops</h2>
           <p className="text-xs text-gray-500 mb-3">
             Open a shop to work inside it as its admin: orders, staff, settings and tools. Changes are real.
@@ -191,7 +191,7 @@ const DeveloperPage = () => {
           </label>
         </div>
 
-        <details className="text-sm text-gray-600 bg-white rounded-xl border border-orange-100 px-4 py-2">
+        <details className="text-sm text-gray-600 bg-white rounded-xl border border-stone-200 px-4 py-2">
           <summary className="cursor-pointer text-gray-800 font-medium">What do these choices mean?</summary>
           <ul className="list-disc pl-5 mt-2 space-y-1">
             <li><strong>Shop:</strong> "All shops together" adds up every shop. Pick one shop to see only its numbers.</li>
@@ -219,7 +219,7 @@ const DeveloperPage = () => {
               Only use by the shop's own admin and staff is counted, not what you do inside a shop as developer.
             </p>
 
-            <section className="bg-white rounded-xl shadow-sm border border-orange-100 p-4">
+            <section className="bg-white rounded-xl shadow-sm border border-stone-200 p-4">
               <h2 className="text-sm font-semibold text-gray-800 mb-1">Not used at all in this period</h2>
               {unused.length === 0 ? (
                 <p className="text-sm text-gray-600">Every feature was used at least once.</p>
@@ -237,7 +237,7 @@ const DeveloperPage = () => {
               )}
             </section>
 
-            <section className="bg-white rounded-xl shadow-sm border border-orange-100 p-4">
+            <section className="bg-white rounded-xl shadow-sm border border-stone-200 p-4">
               <h2 className="text-sm font-semibold text-gray-800 mb-3">Share of all use, by feature</h2>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm min-w-[620px]" aria-label="Feature usage">
@@ -279,7 +279,7 @@ const DeveloperPage = () => {
               </p>
             </section>
 
-            <section className="bg-white rounded-xl shadow-sm border border-orange-100 p-4">
+            <section className="bg-white rounded-xl shadow-sm border border-stone-200 p-4">
               <h2 className="text-sm font-semibold text-gray-800 mb-3">Uses per day</h2>
               <div className="flex items-end gap-0.5 h-24" role="img" aria-label="Uses per day">
                 {usage.series.map((s) => (
@@ -300,7 +300,7 @@ const DeveloperPage = () => {
         )}
 
         {complete && (
-          <section className="bg-white rounded-xl shadow-sm border border-orange-100 p-4">
+          <section className="bg-white rounded-xl shadow-sm border border-stone-200 p-4">
             <h2 className="text-sm font-semibold text-gray-800 mb-1">Data completeness</h2>
             <p className="text-xs text-gray-500 mb-3">Out of {complete.total} orders, how many have this filled in. A name like "N", "NA" or "123" does not count as a name.</p>
             <ul className="space-y-2.5" aria-label="Data completeness">

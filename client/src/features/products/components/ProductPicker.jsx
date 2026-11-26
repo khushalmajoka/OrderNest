@@ -113,7 +113,7 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
 
   if (selected) {
     return (
-      <div className="flex items-center justify-between gap-2 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2">
+      <div className="flex items-center justify-between gap-2 rounded-lg border border-stone-200 bg-stone-50 px-3 py-2">
         <div className="min-w-0">
           <p className="text-sm font-medium text-gray-900 break-words">{productLabel(selected)}</p>
           {showPrice && priceText(selected) && <p className="text-xs text-gray-600">{priceText(selected)}</p>}
@@ -154,7 +154,7 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
                 <button
                   type="button"
                   onClick={() => setAdding({ name: query.trim(), price: "", saving: false })}
-                  className="w-full text-left px-3 py-2 min-h-[44px] rounded border border-orange-400 text-orange-700 font-medium hover:bg-orange-50"
+                  className="w-full text-left px-3 py-2 min-h-[44px] rounded border border-stone-300 text-stone-800 font-medium hover:bg-stone-100"
                 >
                   Add "{query.trim()}" as a new product
                 </button>
@@ -174,7 +174,7 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
                 const p = g.sizes[0];
                 return (
                   <li key={g.id} role="option" aria-selected="false">
-                    <button type="button" onClick={() => pick(p)} className="w-full text-left px-3 py-2 min-h-[44px] hover:bg-orange-50 focus:bg-orange-50 focus:outline-none flex items-center gap-3">
+                    <button type="button" onClick={() => pick(p)} className="w-full text-left px-3 py-2 min-h-[44px] hover:bg-stone-100 focus:bg-stone-100 focus:outline-none flex items-center gap-3">
                       {g.images.length > 0 && <ProductThumb product={g} size="w-10 h-10" />}
                       <span className="min-w-0">
                         <span className="block text-sm text-gray-900">{productLabel(p)}</span>
@@ -191,7 +191,7 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
                     type="button"
                     onClick={() => setExpanded(expanded === g.id ? null : g.id)}
                     aria-expanded={open1}
-                    className="w-full text-left px-3 py-2 min-h-[44px] hover:bg-orange-50 focus:bg-orange-50 focus:outline-none flex items-center gap-3"
+                    className="w-full text-left px-3 py-2 min-h-[44px] hover:bg-stone-100 focus:bg-stone-100 focus:outline-none flex items-center gap-3"
                   >
                     {g.images.length > 0 && <ProductThumb product={g} size="w-10 h-10" />}
                     <span className="min-w-0 flex-1">
@@ -201,10 +201,10 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
                     {open1 ? <ChevronDown size={18} className="text-gray-500" /> : <ChevronRight size={18} className="text-gray-500" />}
                   </button>
                   {open1 && (
-                    <ul className="bg-orange-50/40 border-t border-gray-100">
+                    <ul className="bg-stone-50 border-t border-gray-100">
                       {g.sizes.map((p) => (
                         <li key={p._id} role="option" aria-selected="false">
-                          <button type="button" onClick={() => pick(p)} className="w-full text-left pl-8 pr-3 py-2 min-h-[44px] hover:bg-orange-100 focus:bg-orange-100 focus:outline-none">
+                          <button type="button" onClick={() => pick(p)} className="w-full text-left pl-8 pr-3 py-2 min-h-[44px] hover:bg-stone-100 focus:bg-stone-100 focus:outline-none">
                             <span className="block text-sm text-gray-900">{sizeText(p)}</span>
                             {showPrice && priceText(p) && <span className="block text-xs text-gray-600">{priceText(p)}</span>}
                           </button>
@@ -219,7 +219,7 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
         </ul>
       )}
       {adding && (
-        <div className="mt-2 rounded-lg border border-orange-200 bg-orange-50 p-3 space-y-2" role="group" aria-label="New product">
+        <div className="mt-2 rounded-lg border border-stone-200 bg-stone-50 p-3 space-y-2" role="group" aria-label="New product">
           <p className="text-sm font-medium text-gray-800">Add a new product to your list</p>
           <label className="block text-xs text-gray-700">
             Name

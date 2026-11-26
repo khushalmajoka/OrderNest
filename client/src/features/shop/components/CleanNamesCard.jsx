@@ -165,7 +165,7 @@ const CleanNamesCard = ({ shop }) => {
                   const more = group.count - Math.min(3, group.orders.length);
                   return (
                     <li key={group.key}>
-                      <label className="flex items-start gap-3 px-3 py-2.5 cursor-pointer hover:bg-orange-50">
+                      <label className="flex items-start gap-3 px-3 py-2.5 cursor-pointer hover:bg-stone-100">
                         <input
                           type="checkbox"
                           checked={picked.has(group.key)}
@@ -207,7 +207,7 @@ const CleanNamesCard = ({ shop }) => {
                 <div
                   role="alertdialog"
                   aria-label="Confirm clearing names"
-                  className="rounded-lg border border-orange-300 bg-orange-50 p-4 space-y-3"
+                  className="rounded-lg border border-stone-300 bg-stone-50 p-4 space-y-3"
                 >
                   <p className="text-sm text-gray-800">
                     This empties the customer name of <strong>{chosenCount}</strong> order
@@ -220,7 +220,7 @@ const CleanNamesCard = ({ shop }) => {
                       type="button"
                       onClick={backup}
                       disabled={stage === "clearing"}
-                      className="px-4 py-2 rounded-lg border border-orange-400 bg-white text-orange-700 font-medium hover:bg-orange-100"
+                      className="px-4 py-2 rounded-lg border border-stone-300 bg-white text-stone-800 font-medium hover:bg-stone-100"
                     >
                       Download the old names (Excel)
                     </button>

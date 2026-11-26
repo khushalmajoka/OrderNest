@@ -25,7 +25,7 @@ const Entry = ({ item, myId }) => {
   const mine = !byDeveloper && String(item.actor?.id) === String(myId);
   const who = mine ? "You" : item.actor?.name || "Someone";
   return (
-    <li className="bg-white rounded-lg shadow-sm border border-orange-100 p-3 sm:p-4">
+    <li className="bg-white rounded-lg shadow-sm border border-stone-200 p-3 sm:p-4">
       <p className="text-sm text-gray-800 break-words">{item.summary}</p>
 
       {item.changes?.length > 0 && (
@@ -63,7 +63,7 @@ const ActivitySkeleton = () => (
         {[0, 1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="bg-white rounded-lg shadow-sm border border-orange-100 p-3 sm:p-4 space-y-2"
+            className="bg-white rounded-lg shadow-sm border border-stone-200 p-3 sm:p-4 space-y-2"
           >
             <Bar className={`h-4 ${i % 2 ? "w-3/5" : "w-4/5"}`} />
             <Bar className="h-3 w-1/3" />
@@ -135,7 +135,7 @@ const ActivityPage = () => {
 
   if (!shop && error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-orange-50 font-poppins px-4 text-center">
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-stone-50 font-poppins px-4 text-center">
         <p className="text-gray-700">{error}</p>
         <button
           onClick={reload}
@@ -160,13 +160,13 @@ const ActivityPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-orange-50 font-poppins">
+    <div className="min-h-screen bg-stone-50 font-poppins">
       <TopProgressBar active={loading && items !== null} />
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
 
       <main id="main" tabIndex={-1} className="scroll-mt-24 outline-none p-4 md:p-8 space-y-4 max-w-2xl mx-auto">
         <div>
-          <h1 className="text-2xl font-bold text-orange-700">Activity</h1>
+          <h1 className="text-2xl font-bold text-stone-900">Activity</h1>
           <p className="text-sm text-gray-600 mt-1">
             Who created, edited or deleted orders, and changes to staff and products. Kept
             for 6 months.
@@ -232,7 +232,7 @@ const ActivityPage = () => {
               <button
                 onClick={() => load(page + 1)}
                 disabled={loading}
-                className="w-full py-2 rounded-md border border-orange-500 text-orange-700 hover:bg-orange-50 disabled:opacity-50"
+                className="w-full py-2 rounded-md border border-stone-300 text-stone-800 hover:bg-stone-100 disabled:opacity-50"
               >
                 {loading ? "Loading..." : "Show older"}
               </button>

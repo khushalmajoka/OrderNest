@@ -129,7 +129,7 @@ const BuildFromOrdersDialog = ({ onClose, onAdded }) => {
             <strong>Nothing is saved until you press Add, and your orders are not changed.</strong>
           </p>
           {data && data.canSeePrices && (
-            <p className="text-xs text-gray-600 bg-orange-50 border border-orange-100 rounded p-2">
+            <p className="text-xs text-gray-600 bg-stone-50 border border-stone-200 rounded p-2">
               <strong>About the price:</strong> the price box is the default price of <em>one piece</em> of that size. It is filled in
               only when most of those orders had the same price (when an order said "5 pcs", its total is divided by 5). Change it, or
               empty it if you are not sure. <strong>No order changes, and no old total changes.</strong> Later, when you create a new order
@@ -197,7 +197,7 @@ const BuildFromOrdersDialog = ({ onClose, onAdded }) => {
                         </div>
                         <ul aria-label={`Sizes of ${g.name}`} className="mt-2 ml-8 space-y-2">
                           {g.items.map((item) => (
-                            <li key={item.index} className="flex flex-wrap items-start gap-x-3 gap-y-1 rounded-lg bg-orange-50/60 border border-orange-100 p-2">
+                            <li key={item.index} className="flex flex-wrap items-start gap-x-3 gap-y-1 rounded-lg bg-stone-50 border border-stone-200 p-2">
                               <input
                                 type="checkbox"
                                 checked={item.on}

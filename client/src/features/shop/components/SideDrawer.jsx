@@ -54,13 +54,13 @@ const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin, isDeveloper = false, a
         }`}
       >
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold text-orange-700">Menu</h2>
+          <h2 className="text-xl font-bold text-stone-900">Menu</h2>
           <button
             onClick={onClose}
             aria-label="Close menu"
-            className="p-2.5 rounded-md hover:bg-orange-100 transition"
+            className="p-2.5 rounded-md hover:bg-stone-100 transition"
           >
-            <X className="text-orange-700" size={22} />
+            <X className="text-stone-700" size={22} />
           </button>
         </div>
 
@@ -76,10 +76,10 @@ const SideDrawer = ({ isOpen, onClose, onLogout, isAdmin, isDeveloper = false, a
               }}
               aria-current={current ? "page" : undefined}
               className={`flex items-center gap-3 px-4 py-3 rounded-md transition ${
-                current ? "bg-orange-200 text-orange-900 font-medium" : "hover:bg-orange-100"
+                current ? "bg-orange-100 text-orange-900 font-medium" : "text-stone-800 hover:bg-stone-100"
               }`}
             >
-              <Icon className="text-orange-700" size={20} />
+              <Icon className={current ? "text-orange-800" : "text-stone-500"} size={20} />
               {label}
             </button>
           );

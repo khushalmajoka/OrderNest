@@ -42,7 +42,7 @@ const ProductItem = ({ p, view, isAdmin, selected, onToggle, onEdit, onArchive, 
   );
   const buttons = (
     <>
-      <button type="button" onClick={onEdit} aria-label={`Edit ${p.name}`} className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-orange-50">
+      <button type="button" onClick={onEdit} aria-label={`Edit ${p.name}`} className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-stone-100">
         Edit
       </button>
       <button
@@ -50,7 +50,7 @@ const ProductItem = ({ p, view, isAdmin, selected, onToggle, onEdit, onArchive, 
         disabled={busy}
         onClick={onArchive}
         aria-label={`${archived ? "Restore" : "Archive"} ${p.name}`}
-        className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-orange-50 disabled:opacity-60"
+        className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm text-gray-700 hover:bg-stone-100 disabled:opacity-60"
       >
         {archived ? "Restore" : "Archive"}
       </button>
@@ -59,7 +59,7 @@ const ProductItem = ({ p, view, isAdmin, selected, onToggle, onEdit, onArchive, 
 
   if (view === "cards") {
     return (
-      <li className={`bg-white rounded-lg border border-orange-100 overflow-hidden flex flex-col ${archived ? "opacity-70" : ""}`}>
+      <li className={`bg-white rounded-lg border border-stone-200 overflow-hidden flex flex-col ${archived ? "opacity-70" : ""}`}>
         <div className="relative">
           <ProductThumb product={p} size="w-full aspect-square" className="!rounded-none !border-0" onClick={onPictures} />
           {p.images?.length > 1 && (
@@ -75,7 +75,7 @@ const ProductItem = ({ p, view, isAdmin, selected, onToggle, onEdit, onArchive, 
     );
   }
   return (
-    <li className={`bg-white rounded-lg border border-orange-100 p-3 sm:p-4 flex flex-wrap items-start justify-between gap-3 ${archived ? "opacity-70" : ""}`}>
+    <li className={`bg-white rounded-lg border border-stone-200 p-3 sm:p-4 flex flex-wrap items-start justify-between gap-3 ${archived ? "opacity-70" : ""}`}>
       <div className="min-w-0 flex items-start gap-3">
         {tick}
         <ProductThumb product={p} onClick={onPictures} />

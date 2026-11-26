@@ -8,7 +8,7 @@ const LoadingScreen = ({ message = "Just a moment" }) => (
   <div
     role="status"
     aria-live="polite"
-    className="flex flex-col items-center justify-center gap-3 min-h-screen bg-orange-50 font-poppins px-6"
+    className="flex flex-col items-center justify-center gap-3 min-h-screen bg-stone-50 font-poppins px-6"
   >
     <div className="relative w-full max-w-xs h-12 overflow-hidden" aria-hidden="true">
       <Truck
@@ -16,7 +16,7 @@ const LoadingScreen = ({ message = "Just a moment" }) => (
         strokeWidth={1.75}
         className="absolute bottom-2 text-orange-700 animate-drive motion-reduce:animate-none motion-reduce:left-1/2 motion-reduce:-translate-x-1/2"
       />
-      <div className="absolute inset-x-0 bottom-1.5 border-b-2 border-dashed border-orange-300" />
+      <div className="absolute inset-x-0 bottom-1.5 border-b-2 border-dashed border-stone-300" />
     </div>
     <p className="text-sm text-orange-800">{message}</p>
   </div>

@@ -34,7 +34,7 @@ const FieldEditor = ({ column, form, set, shopId, shop, originalStatus, large = 
   // its text box, plus a button to pick a product instead.
   if (column.key === "item" && order && onChangeProduct) {
     const texts = orderLineTexts(order);
-    const btn = `shrink-0 inline-flex items-center gap-1 rounded border border-orange-400 text-orange-700 hover:bg-orange-50 ${large ? "min-h-[44px] px-3 text-sm" : "h-8 px-2 text-xs"}`;
+    const btn = `shrink-0 inline-flex items-center gap-1 rounded border border-stone-300 text-stone-800 hover:bg-stone-100 ${large ? "min-h-[44px] px-3 text-sm" : "h-8 px-2 text-xs"}`;
     if (texts.length) {
       return (
         <div className="space-y-1">

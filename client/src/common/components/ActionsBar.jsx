@@ -26,7 +26,7 @@ const ActionsBar = ({ onCreateClick, onFileChange, onExportClick }) => (
     {onExportClick && (
       <button
         onClick={onExportClick}
-        className="flex flex-1 md:flex-none items-center justify-center gap-1 px-2.5 md:px-4 py-2 min-h-[44px] md:min-h-0 text-sm md:text-base whitespace-nowrap bg-white text-orange-700 border border-orange-500 rounded-md shadow-sm hover:bg-orange-50 transition"
+        className="flex flex-1 md:flex-none items-center justify-center gap-1 px-2.5 md:px-4 py-2 min-h-[44px] md:min-h-0 text-sm md:text-base whitespace-nowrap bg-white text-stone-800 border border-stone-300 rounded-md shadow-sm hover:bg-stone-100 transition"
       >
         <Download size={20} /> Export
       </button>

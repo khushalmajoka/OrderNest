@@ -71,7 +71,7 @@ const SizeRow = ({ row, index, canSetPrice, canRemove, onChange, onRemove }) => 
   const set = (field) => (e) => onChange({ ...row, [field]: e.target.value });
   const n = index + 1;
   return (
-    <li className="rounded-lg border border-orange-100 bg-orange-50/40 p-3 space-y-2" aria-label={`Size ${n}`}>
+    <li className="rounded-lg border border-stone-200 bg-stone-50 p-3 space-y-2" aria-label={`Size ${n}`}>
       <div className="flex items-center justify-between gap-2">
         <span className="text-sm font-medium text-gray-700">Size {n}</span>
         {canRemove && (
@@ -272,7 +272,7 @@ const ProductFormModal = ({ family, sizes = [], canSetPrice, categories = [], ca
         <button
           type="button"
           onClick={() => setRows((list) => [...list, newRow()])}
-          className="mt-2 flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg border border-orange-400 text-orange-700 text-sm font-medium hover:bg-orange-50"
+          className="mt-2 flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg border border-stone-300 text-stone-800 text-sm font-medium hover:bg-stone-100"
         >
           <Plus size={18} /> Add another size
         </button>

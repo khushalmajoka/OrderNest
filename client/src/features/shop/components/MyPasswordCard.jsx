@@ -84,7 +84,7 @@ const MyPasswordCard = ({ account, onRefresh, onPasswordChanged }) => {
           </p>
           <button
             onClick={onRefresh}
-            className="w-full px-4 py-2 rounded-lg border border-orange-500 text-orange-700 hover:bg-orange-50"
+            className="w-full px-4 py-2 rounded-lg border border-stone-300 text-stone-800 hover:bg-stone-100"
           >
             Check again
           </button>

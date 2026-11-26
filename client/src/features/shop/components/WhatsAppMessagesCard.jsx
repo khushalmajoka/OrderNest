@@ -160,7 +160,7 @@ const WhatsAppMessagesCard = ({ shop }) => {
                     type="button"
                     onClick={() => addTag(status, tag.key)}
                     title={`Put ${tag.label} in the message`}
-                    className="px-2 py-1 rounded-full bg-orange-50 border border-orange-200 text-xs text-orange-700 hover:bg-orange-100"
+                    className="px-2 py-1 rounded-full bg-stone-50 border border-stone-200 text-xs text-orange-700 hover:bg-stone-100"
                   >
                     {`{${tag.key}}`}
                   </button>

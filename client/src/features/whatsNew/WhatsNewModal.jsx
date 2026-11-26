@@ -31,7 +31,7 @@ const WhatsNewModal = ({ onConfirm }) => {
               key={item.title}
               className={
                 item.highlight
-                  ? "rounded-lg border border-orange-300 bg-orange-50 p-3"
+                  ? "rounded-lg border border-stone-300 bg-stone-50 p-3"
                   : ""
               }
             >

@@ -11,7 +11,7 @@ const ProductThumb = ({ product, size = "w-14 h-14", className = "", onClick }) 
   ) : (
     <ImageIcon size={18} className={first ? "text-orange-200 animate-pulse" : "text-gray-300"} aria-hidden="true" />
   );
-  const box = `${size} shrink-0 rounded-lg bg-orange-50 border border-orange-100 overflow-hidden flex items-center justify-center ${className}`;
+  const box = `${size} shrink-0 rounded-lg bg-stone-50 border border-stone-200 overflow-hidden flex items-center justify-center ${className}`;
   if (onClick && first) {
     return (
       <button

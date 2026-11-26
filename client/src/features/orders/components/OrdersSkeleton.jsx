@@ -10,7 +10,7 @@ const OrdersSkeleton = ({ rows = 6 }) => {
     return (
       <SkeletonRegion label="Loading your orders" className="space-y-3">
         {Array.from({ length: 3 }, (_, i) => (
-          <div key={i} className="bg-white rounded-lg shadow border border-orange-100 p-4 mb-3">
+          <div key={i} className="bg-white rounded-lg shadow border border-stone-200 p-4 mb-3">
             <div className="flex justify-between gap-3">
               <div className="space-y-2 w-1/2">
                 <Bar className="h-3 w-1/3" />
@@ -38,7 +38,7 @@ const OrdersSkeleton = ({ rows = 6 }) => {
   return (
     <SkeletonRegion label="Loading your orders">
       <div className="border rounded shadow bg-white overflow-hidden">
-        <div className="flex items-center gap-6 px-4 py-4 bg-orange-100">
+        <div className="flex items-center gap-6 px-4 py-4 bg-stone-100">
           {widths.map((w, i) => (
             <Bar key={i} className={`h-3 ${w} bg-orange-300/70`} />
           ))}

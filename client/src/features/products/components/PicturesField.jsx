@@ -10,7 +10,7 @@ const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}
 
 const Tile = ({ src, main, children }) => (
   <li className="relative w-24">
-    <div className="w-24 h-24 rounded-lg overflow-hidden border border-orange-100 bg-orange-50 flex items-center justify-center">
+    <div className="w-24 h-24 rounded-lg overflow-hidden border border-stone-200 bg-stone-50 flex items-center justify-center">
       {src ? <img src={src} alt="" className="w-full h-full object-cover" /> : <span className="text-xs text-gray-500">...</span>}
     </div>
     {main && <span className="absolute top-1 left-1 text-[10px] font-semibold rounded bg-orange-700 text-white px-1.5 py-0.5">Main</span>}
@@ -26,7 +26,7 @@ const SavedTile = ({ id, index, count, busy, asking, onAsk, onRemove, onMakeMain
         <X size={16} />
       </button>
       {index > 0 && (
-        <button type="button" onClick={() => onMakeMain(id)} disabled={busy} className="mt-1 w-full text-xs rounded border border-gray-300 py-1 hover:bg-orange-50 disabled:opacity-60">
+        <button type="button" onClick={() => onMakeMain(id)} disabled={busy} className="mt-1 w-full text-xs rounded border border-gray-300 py-1 hover:bg-stone-100 disabled:opacity-60">
           Make main
         </button>
       )}
@@ -133,7 +133,7 @@ const PicturesField = ({ productId, images, onImages, pending, onPending, onChan
         type="button"
         onClick={() => input.current?.click()}
         disabled={busy || room <= 0}
-        className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg border border-orange-400 text-orange-700 text-sm font-medium hover:bg-orange-50 disabled:opacity-60"
+        className="flex items-center gap-1.5 px-3 py-2 min-h-[44px] rounded-lg border border-stone-300 text-stone-800 text-sm font-medium hover:bg-stone-100 disabled:opacity-60"
       >
         <Camera size={18} /> {busy ? "Getting the pictures ready..." : total === 0 ? "Add pictures" : "Add more pictures"}
       </button>

@@ -104,13 +104,13 @@ const ShopProfileCard = ({ shop, onSaved }) => {
         <img
           src={getShopLogo({ logo: form.logo })}
           alt="Shop logo"
-          className="w-20 h-20 shrink-0 rounded-full border border-orange-300 object-cover"
+          className="w-20 h-20 shrink-0 rounded-full border border-stone-300 object-cover"
         />
         <div className="flex flex-col items-start gap-2">
           <button
             type="button"
             onClick={() => fileInput.current.click()}
-            className="px-3 py-2 rounded-md border border-orange-500 text-orange-700 text-sm hover:bg-orange-50"
+            className="px-3 py-2 rounded-md border border-stone-300 text-stone-800 text-sm hover:bg-stone-100"
           >
             {form.logo ? "Change logo" : "Add logo"}
           </button>
@@ -190,7 +190,7 @@ const ShopProfileCard = ({ shop, onSaved }) => {
           disabled={saving || !changed}
           className={`px-5 py-2 min-h-[44px] sm:min-h-0 rounded-lg text-white font-medium transition-colors disabled:cursor-not-allowed ${
             showSaved
-              ? "bg-green-500 disabled:bg-green-500"
+              ? "bg-green-700 disabled:bg-green-700"
               : "bg-orange-700 hover:bg-orange-800 disabled:bg-orange-300"
           }`}
         >

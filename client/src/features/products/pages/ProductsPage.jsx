@@ -195,7 +195,7 @@ const ProductsPage = () => {
 
   if (!shop && error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-orange-50 font-poppins px-4 text-center">
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-stone-50 font-poppins px-4 text-center">
         <p className="text-gray-700">{error}</p>
         <button onClick={reload} className="px-5 py-2 rounded-lg bg-orange-700 text-white hover:bg-orange-800">
           Try again
@@ -206,14 +206,14 @@ const ProductsPage = () => {
   if (!shop || !allowed) return <LoadingScreen message="Opening your products" />;
 
   return (
-    <div className="min-h-screen bg-orange-50 font-poppins">
+    <div className="min-h-screen bg-stone-50 font-poppins">
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
 
       <main id="main" tabIndex={-1} className={`scroll-mt-24 outline-none p-4 md:p-8 mx-auto ${view === "cards" ? "max-w-5xl" : "max-w-3xl"}`}>
         {/* Phone: the title and "Add product" on one line, the two other buttons together below.
             Computer: all on one line, "Add product" last. */}
         <div className="flex flex-wrap items-center gap-2 mb-1">
-          <h1 className="order-1 mr-auto text-2xl font-bold text-orange-700 flex items-center gap-2">
+          <h1 className="order-1 mr-auto text-2xl font-bold text-stone-900 flex items-center gap-2">
             Products
           </h1>
           <button
@@ -228,7 +228,7 @@ const ProductsPage = () => {
             <button
               type="button"
               onClick={() => setShowCats(true)}
-              className="order-3 md:flex-none justify-center flex items-center gap-1.5 px-3 md:px-4 py-2 min-h-[44px] rounded-lg border border-orange-400 text-orange-700 font-medium hover:bg-orange-100"
+              className="order-3 md:flex-none justify-center flex items-center gap-1.5 px-3 md:px-4 py-2 min-h-[44px] rounded-lg border border-stone-300 text-stone-800 font-medium hover:bg-stone-100"
             >
               <FolderCog size={18} /> Categories
             </button>
@@ -236,7 +236,7 @@ const ProductsPage = () => {
           <button
             type="button"
             onClick={() => setShowBuild(true)}
-            className="order-3 flex-1 md:flex-none justify-center flex items-center gap-1.5 px-3 md:px-4 py-2 min-h-[44px] whitespace-nowrap rounded-lg border border-orange-400 text-orange-700 font-medium hover:bg-orange-100"
+            className="order-3 flex-1 md:flex-none justify-center flex items-center gap-1.5 px-3 md:px-4 py-2 min-h-[44px] whitespace-nowrap rounded-lg border border-stone-300 text-stone-800 font-medium hover:bg-stone-100"
           >
             <History size={18} /> <span><span className="md:hidden">From old orders</span><span className="hidden md:inline">Build from old orders</span></span>
           </button>
@@ -277,7 +277,7 @@ const ProductsPage = () => {
                 type="button"
                 onClick={() => chooseView(v)}
                 aria-pressed={view === v}
-                className={`flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-sm ${view === v ? "bg-orange-700 text-white" : "text-gray-700 hover:bg-orange-50"}`}
+                className={`flex items-center gap-1.5 px-3 py-2 min-h-[40px] text-sm ${view === v ? "bg-orange-700 text-white" : "text-gray-700 hover:bg-stone-100"}`}
               >
                 <Icon size={16} /> {text}
               </button>
@@ -298,7 +298,7 @@ const ProductsPage = () => {
                 onClick={() => setFilterCat(chip.id)}
                 aria-pressed={filterCat === chip.id}
                 className={`px-3 py-1.5 min-h-[36px] rounded-full text-sm border ${
-                  filterCat === chip.id ? "bg-orange-700 border-orange-700 text-white" : "bg-white border-gray-300 text-gray-700 hover:bg-orange-50"
+                  filterCat === chip.id ? "bg-orange-700 border-orange-700 text-white" : "bg-white border-gray-300 text-gray-700 hover:bg-stone-100"
                 }`}
               >
                 {chip.name} <span className={filterCat === chip.id ? "text-orange-100" : "text-gray-500"}>{chip.n}</span>
@@ -317,14 +317,14 @@ const ProductsPage = () => {
         ) : !products ? (
           <SkeletonRegion label="Loading the products" className="space-y-2">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="bg-white rounded-lg border border-orange-100 p-4 space-y-2">
+              <div key={i} className="bg-white rounded-lg border border-stone-200 p-4 space-y-2">
                 <Bar className="h-4 w-1/2" />
                 <Bar className="h-3 w-1/3" />
               </div>
             ))}
           </SkeletonRegion>
         ) : products.length === 0 ? (
-          <div className="bg-white rounded-lg border border-orange-100 p-6 text-center text-sm text-gray-600">
+          <div className="bg-white rounded-lg border border-stone-200 p-6 text-center text-sm text-gray-600">
             {search
               ? "No product matches your search."
               : "No products yet. Press \"Add product\" to add the first one."}
@@ -332,7 +332,7 @@ const ProductsPage = () => {
         ) : (
           <div className="space-y-5">
             {isAdmin && categories.length === 0 && (
-              <p className="text-sm rounded-lg bg-white border border-orange-100 px-3 py-2 text-gray-700">
+              <p className="text-sm rounded-lg bg-white border border-stone-200 px-3 py-2 text-gray-700">
                 Tip: press <strong>Categories</strong> to make your own groups (like Frames or Albums). Then tick products and move them into a group.
               </p>
             )}
@@ -366,7 +366,7 @@ const ProductsPage = () => {
                     </div>
                   )}
                   {open && g.items.length === 0 && (
-                    <p className="text-sm text-gray-500 bg-white rounded-lg border border-dashed border-orange-200 p-3">
+                    <p className="text-sm text-gray-500 bg-white rounded-lg border border-dashed border-stone-200 p-3">
                       No products here yet. Tick products below and use "Move to".
                     </p>
                   )}
@@ -399,7 +399,7 @@ const ProductsPage = () => {
       </main>
 
       {isAdmin && selected.size > 0 && (
-        <div role="region" aria-label="Move the ticked products" className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-orange-200 shadow-lg p-3">
+        <div role="region" aria-label="Move the ticked products" className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-stone-200 shadow-lg p-3">
           <div className="max-w-3xl mx-auto flex flex-wrap items-center gap-2">
             <span className="text-sm font-medium text-gray-800 mr-auto">
               {selected.size} {selected.size === 1 ? "product" : "products"} ticked

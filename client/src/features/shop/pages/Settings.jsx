@@ -32,7 +32,7 @@ const Settings = () => {
 
   if (!shop && error) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-orange-50 font-poppins px-4 text-center">
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-stone-50 font-poppins px-4 text-center">
         <p className="text-gray-700">{error}</p>
         <button
           onClick={reload}
@@ -49,11 +49,11 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-orange-50 font-poppins">
+    <div className="min-h-screen bg-stone-50 font-poppins">
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
 
       <main id="main" tabIndex={-1} className="scroll-mt-24 outline-none p-4 md:p-8 max-w-5xl mx-auto">
-        <h1 className="text-2xl font-bold text-orange-700 mb-6">Settings</h1>
+        <h1 className="text-2xl font-bold text-stone-900 mb-6">Settings</h1>
 
         {isAdmin(account) ? (
           <SettingsSections

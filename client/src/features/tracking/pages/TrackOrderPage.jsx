@@ -69,7 +69,7 @@ const OrderResult = ({ order }) => {
   const soon = countdown.text !== "-" && !countdown.late ? ` (${countdown.text === "Today" ? "today" : "in " + countdown.text})` : "";
 
   return (
-    <div className="bg-white p-4 sm:p-5 rounded-xl shadow border border-orange-100 animate-fade-up motion-reduce:animate-none">
+    <div className="bg-white p-4 sm:p-5 rounded-xl shadow border border-stone-200 animate-fade-up motion-reduce:animate-none">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs text-gray-500">Shop</p>
@@ -78,7 +78,7 @@ const OrderResult = ({ order }) => {
         {order.shopPhone && (
           <a
             href={`tel:${String(order.shopPhone).replace(/[^\d+]/g, "")}`}
-            className="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] px-3 rounded-lg border border-orange-500 text-orange-700 text-sm hover:bg-orange-50"
+            className="shrink-0 inline-flex items-center gap-1.5 min-h-[44px] px-3 rounded-lg border border-stone-300 text-stone-800 text-sm hover:bg-stone-100"
           >
             <Phone size={16} /> Call shop
           </a>
@@ -241,7 +241,7 @@ const TrackOrderPage = () => {
         <div className="w-full max-w-lg space-y-4" aria-live="polite">
           {loading && (
             <SkeletonRegion label="Looking for your order">
-              <div className="bg-white p-4 rounded-xl shadow border border-orange-100 space-y-3">
+              <div className="bg-white p-4 rounded-xl shadow border border-stone-200 space-y-3">
                 <Bar className="h-4 w-1/2" />
                 <Bar className="h-4 w-3/5" />
                 <Bar className="h-4 w-2/3" />

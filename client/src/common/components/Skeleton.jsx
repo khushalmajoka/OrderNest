@@ -4,7 +4,7 @@
 // One pulsing shape. Give it a size, for example <Bar className="h-4 w-1/2" />
 export const Bar = ({ className = "" }) => (
   <div
-    className={`rounded bg-orange-200/70 animate-pulse motion-reduce:animate-none ${className}`}
+    className={`rounded bg-stone-200/70 animate-pulse motion-reduce:animate-none ${className}`}
   />
 );
 

@@ -59,14 +59,14 @@ const Navbar = ({ shop, account, onLogout }) => {
         </div>
       )}
       {account?.devMode && <DevBanner shop={shop} />}
-      <nav className="bg-orange-50 border-b border-orange-200 shadow-md px-4 md:px-6 py-3 flex justify-between items-center gap-3">
+      <nav className="bg-white border-b border-stone-200 shadow-sm px-4 md:px-6 py-3 flex justify-between items-center gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <img
             src={getShopLogo(shop)}
             alt="Shop Logo"
-            className="w-10 h-10 shrink-0 rounded-full border border-orange-400 object-cover"
+            className="w-10 h-10 shrink-0 rounded-full border border-stone-300 object-cover"
           />
-          <span className="text-lg md:text-xl font-semibold text-orange-800 truncate">
+          <span className="text-lg md:text-xl font-semibold text-stone-900 truncate">
             {shop.name || "Your Shop"}
           </span>
         </div>
@@ -90,28 +90,28 @@ const Navbar = ({ shop, account, onLogout }) => {
                     title={label}
                     className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition ${
                       current
-                        ? "bg-orange-200 text-orange-900"
+                        ? "bg-orange-100 text-orange-900"
                         : opening === path
-                          ? "bg-orange-100 text-orange-800 animate-pulse motion-reduce:animate-none"
-                          : "text-orange-800 hover:bg-orange-100"
+                          ? "bg-stone-100 text-stone-900 animate-pulse motion-reduce:animate-none"
+                          : "text-stone-700 hover:bg-stone-100"
                     }`}
                   >
-                    <Icon size={20} className={current ? "text-orange-800" : "text-orange-700"} />
+                    <Icon size={20} className={current ? "text-orange-800" : "text-stone-500"} />
                     <span className="hidden lg:inline">{label}</span>
                   </Link>
                 </li>
               );
             })}
           </ul>
-          <span className="mx-1 h-6 w-px bg-orange-200" aria-hidden="true" />
+          <span className="mx-1 h-6 w-px bg-stone-200" aria-hidden="true" />
           <button
             type="button"
             onClick={() => setConfirmingLogout(true)}
             aria-label="Logout"
             title="Logout"
-            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-orange-800 hover:bg-orange-100 transition"
+            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-stone-700 hover:bg-stone-100 transition"
           >
-            <LogOut size={20} className="text-orange-700" />
+            <LogOut size={20} className="text-stone-500" />
             <span className="hidden lg:inline">Logout</span>
           </button>
         </div>
@@ -121,9 +121,9 @@ const Navbar = ({ shop, account, onLogout }) => {
           onClick={() => setIsOpen(true)}
           aria-label="Open menu"
           aria-haspopup="dialog"
-          className="md:hidden p-2.5 rounded-md hover:bg-orange-100 transition"
+          className="md:hidden p-2.5 rounded-md hover:bg-stone-100 transition"
         >
-          <Menu size={24} className="text-orange-700" />
+          <Menu size={24} className="text-stone-700" />
         </button>
       </nav>
       </div>

@@ -21,7 +21,7 @@ const TopProgressBar = ({ active, delay = 200 }) => {
     <div
       role="progressbar"
       aria-label="Loading"
-      className="fixed top-0 inset-x-0 h-1 z-50 overflow-hidden bg-orange-200/60"
+      className="fixed top-0 inset-x-0 h-1 z-50 overflow-hidden bg-stone-200/60"
     >
       <div className="h-full w-1/3 bg-orange-500 animate-slide motion-reduce:animate-none" />
     </div>

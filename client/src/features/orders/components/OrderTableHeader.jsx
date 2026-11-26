@@ -33,7 +33,7 @@ const OrderTableHeader = ({
       : "text-gray-500";
 
   return (
-    <thead className="bg-orange-100">
+    <thead className="bg-stone-100">
       <tr className="text-left text-gray-700">
         {selectable && (
           <th className="pl-3 pr-1 py-3 w-8">

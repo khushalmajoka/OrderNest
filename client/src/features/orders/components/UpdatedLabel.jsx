@@ -35,7 +35,7 @@ const UpdatedLabel = ({ since, refreshing, onRefresh, onGuide }) => {
         disabled={refreshing}
         aria-label="Refresh the orders"
         title="Refresh the orders"
-        className="flex items-center gap-1 px-2 py-1 min-h-[32px] rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-orange-50 disabled:opacity-60"
+        className="flex items-center gap-1 px-2 py-1 min-h-[32px] rounded-md border border-gray-300 bg-white text-gray-700 hover:bg-stone-100 disabled:opacity-60"
       >
         <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} /> Refresh
       </button>

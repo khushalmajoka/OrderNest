@@ -76,7 +76,7 @@ const OrderTableRow = ({
   const statusStyle = getStatusStyle(shop, order.status);
   // One colour for the row and its opened details
   // (the same while editing: the row keeps its status colour; only an outline shows it is being edited)
-  const rowTint = statusStyle ? statusStyle.row : "bg-orange-50";
+  const rowTint = statusStyle ? statusStyle.row : "bg-stone-50";
 
   // What a column shows: a box when editing and it can be edited, otherwise
   // the value (greyed out while editing, so it is clear it cannot be changed)
@@ -125,8 +125,8 @@ const OrderTableRow = ({
           statusStyle
             ? `${statusStyle.row} ${editing ? "" : "hover:brightness-95"}`
             : isExpanded || editing
-            ? "bg-orange-50"
-            : "hover:bg-orange-50"
+            ? "bg-stone-50"
+            : "hover:bg-stone-100"
         } ${editing ? "ring-2 ring-inset ring-orange-300" : ""}`}
         onClick={(e) => {
           if (editing || !hasDetails || e.target.closest(INTERACTIVE)) return; // avoid conflicts

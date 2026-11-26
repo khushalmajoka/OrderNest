@@ -202,7 +202,7 @@ const CloseOldOrdersCard = ({ shop }) => {
                 type="button"
                 onClick={() => change(setBefore)(monthsAgo(months))}
                 disabled={busy || stage === "confirming"}
-                className="px-2.5 py-1 rounded-full border border-gray-300 text-gray-700 hover:bg-orange-50"
+                className="px-2.5 py-1 rounded-full border border-gray-300 text-gray-700 hover:bg-stone-100"
               >
                 {label}
               </button>
@@ -341,7 +341,7 @@ const CloseOldOrdersCard = ({ shop }) => {
                   <div
                     role="alertdialog"
                     aria-label="Confirm closing old orders"
-                    className="rounded-lg border border-orange-300 bg-orange-50 p-4 space-y-3"
+                    className="rounded-lg border border-stone-300 bg-stone-50 p-4 space-y-3"
                   >
                     <p className="text-sm text-gray-800">
                       This changes the status of <strong>{plural(preview.count, "order")}</strong> to{" "}
@@ -354,7 +354,7 @@ const CloseOldOrdersCard = ({ shop }) => {
                         type="button"
                         onClick={backup}
                         disabled={stage === "closing"}
-                        className="px-4 py-2 rounded-lg border border-orange-400 bg-white text-orange-700 font-medium hover:bg-orange-100"
+                        className="px-4 py-2 rounded-lg border border-stone-300 bg-white text-stone-800 font-medium hover:bg-stone-100"
                       >
                         Download the old statuses (Excel)
                       </button>

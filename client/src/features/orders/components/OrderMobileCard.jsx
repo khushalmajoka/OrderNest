@@ -39,7 +39,7 @@ const OrderMobileCard = ({
   const countdown = deliveryCountdown(order.expectedDeliveryDate, order.status);
   const statusStyle = getStatusStyle(shop, order.status);
   // Blocks inside the card are a slightly darker shade of the card's own colour
-  const tile = statusStyle ? "bg-black/5" : "bg-orange-50";
+  const tile = statusStyle ? "bg-black/5" : "bg-stone-50";
 
   // ----- Being edited: the card turns into a form (Double-tap or the Edit button)
   if (edit) {
@@ -58,7 +58,7 @@ const OrderMobileCard = ({
       >
         {/* keeps the card's status colour; only the outline shows it is being edited */}
         <div
-          className={`rounded-lg shadow border-2 border-orange-300 p-4 text-sm ${
+          className={`rounded-lg shadow border-2 border-stone-300 p-4 text-sm ${
             statusStyle ? statusStyle.row : "bg-white"
           }`}
         >
@@ -69,7 +69,7 @@ const OrderMobileCard = ({
               </p>
               <p className="font-semibold text-gray-500 break-all">{order.orderId || order._id.slice(-6)}</p>
             </div>
-            <span className="shrink-0 px-2 py-1 rounded-full text-xs font-medium bg-orange-200 text-orange-900">
+            <span className="shrink-0 px-2 py-1 rounded-full text-xs font-medium bg-stone-200 text-orange-900">
               Editing
             </span>
           </div>
@@ -130,7 +130,7 @@ const OrderMobileCard = ({
       }}
     >
     <div
-      className={`rounded-lg shadow border border-orange-100 border-l-4 p-4 text-sm ${
+      className={`rounded-lg shadow border border-stone-200 border-l-4 p-4 text-sm ${
         statusStyle
           ? `${statusStyle.row} ${statusStyle.strip}`
           : "bg-white border-l-orange-100"
@@ -155,7 +155,7 @@ const OrderMobileCard = ({
         <span
           title={statusHint(order.status)}
           className={`shrink-0 px-2 py-1 rounded-full text-xs font-medium text-center ${
-            statusStyle ? statusStyle.badge : "bg-orange-100 text-orange-700"
+            statusStyle ? statusStyle.badge : "bg-stone-100 text-orange-700"
           }`}
         >
           {statusLabel(order.status)}
@@ -244,7 +244,7 @@ const OrderMobileCard = ({
         <button
           onClick={() => onNext(order)}
           aria-label={`Move to ${statusLabel(nextStatus)}`}
-          className="w-full mt-3 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border border-orange-400 text-orange-700 font-medium"
+          className="w-full mt-3 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border border-stone-300 text-stone-800 font-medium"
         >
           <ArrowRight size={16} /> Next step: {statusLabel(nextStatus)}
         </button>
@@ -282,7 +282,7 @@ const OrderMobileCard = ({
           {access.share && (
             <button
               onClick={() => setIsShareOpen(true)}
-              className="flex-1 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border text-green-600"
+              className="flex-1 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border text-green-700"
             >
               <Share2 size={16} /> Share
             </button>
@@ -293,7 +293,7 @@ const OrderMobileCard = ({
                 setDeleteId(order._id);
                 setShowDeleteModal(true);
               }}
-              className="flex-1 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border text-red-600"
+              className="flex-1 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border text-red-700"
             >
               <Trash2 size={16} /> Delete
             </button>

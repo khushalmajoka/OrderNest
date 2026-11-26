@@ -65,7 +65,7 @@ const ExportDialog = ({ shopId, params, totalOrders, summary, onClose }) => {
           </button>
         </div>
 
-        <div className="rounded-md bg-orange-50 p-3 text-sm text-gray-700 space-y-1">
+        <div className="rounded-md bg-stone-50 p-3 text-sm text-gray-700 space-y-1">
           <p>
             Orders matching your screen now: <b>{totalOrders}</b>
           </p>

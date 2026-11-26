@@ -10,19 +10,22 @@ const inputClass =
   "w-full border border-gray-300 rounded px-3 py-2 text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-orange-400";
 
 // "Choose from your products": search the shop's product list and pick one.
-// Picking is optional: an order can still be typed by hand.
+// Every new order takes its products from here.
 //   selected: the picked product ({ _id, name, sizeLabel, price, priceUnit }) or null
 //   onPick(product) / onClear()
 //   showPrice: false for people who may not see prices
 //   canCreate: the person may add products ("Manage products"): when nothing
 //     matches, "Add ... as a new product" is offered; canSetPrice: may type its price
-// If the shop has no products yet and the person cannot add one, nothing is shown.
+// While the list is loading, if it cannot be loaded, or if the shop has no
+// products and the person cannot add one, a line says so (never an empty space).
 const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate = false, canSetPrice = false, label = "Search your products" }) => {
   const [products, setProducts] = useState(null); // null = loading
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [adding, setAdding] = useState(null); // { name, price, saving } while the "new product" form is open
   const [expanded, setExpanded] = useState(null); // the product whose sizes are shown
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0); // "Try again" asks once more
 
   useEffect(() => {
     const controller = new AbortController();
@@ -33,10 +36,10 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
       })
       .then((res) => setProducts(res.data.products || []))
       .catch((err) => {
-        if (!axios.isCancel(err)) setProducts([]);
+        if (!axios.isCancel(err)) setFailed(true);
       });
     return () => controller.abort();
-  }, []);
+  }, [attempt]);
 
   // the products that match, each with its matching sizes (a product has several sizes)
   const matches = useMemo(() => {
@@ -52,7 +55,6 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
     return [...groups.values()].slice(0, 30).map((g) => ({ ...g, sizes: sortSizes(g.sizes) }));
   }, [products, query]);
 
-  if (!products || (products.length === 0 && !canCreate)) return null;
 
   const createProduct = async () => {
     const name = adding.name.trim();
@@ -76,6 +78,38 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
       setAdding((a) => (a ? { ...a, saving: false } : a));
     }
   };
+
+  if (!selected && failed) {
+    return (
+      <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 space-y-2">
+        <p>Your products could not be loaded. Check the internet and try again.</p>
+        <button
+          type="button"
+          onClick={() => {
+            setFailed(false);
+            setAttempt((n) => n + 1);
+          }}
+          className="px-4 py-2 min-h-[44px] rounded border border-red-300 bg-white font-medium"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
+  if (!selected && !products) {
+    return (
+      <p role="status" className="rounded border border-gray-200 bg-white px-3 py-2 text-sm text-gray-600">
+        Loading your products...
+      </p>
+    );
+  }
+  if (!selected && products.length === 0 && !canCreate) {
+    return (
+      <p className="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+        Your shop has no products yet. Ask the admin to add them on the Products page.
+      </p>
+    );
+  }
 
   if (selected) {
     return (
@@ -115,7 +149,7 @@ const ProductPicker = ({ selected, onPick, onClear, showPrice = true, canCreate 
         <ul role="listbox" aria-label="Your products" className="mt-1 max-h-64 overflow-y-auto rounded border border-gray-200 bg-white divide-y divide-gray-100">
           {matches.length === 0 ? (
             <li className="px-3 py-2 text-sm text-gray-500 space-y-2">
-              <span className="block">{canCreate ? "No product found." : "No product found. You can type the product below."}</span>
+              <span className="block">{canCreate ? "No product found." : "No product found. Ask the admin to add it on the Products page."}</span>
               {canCreate && query.trim() && !adding && (
                 <button
                   type="button"

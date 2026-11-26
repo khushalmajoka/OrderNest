@@ -309,7 +309,7 @@ const Dashboard = () => {
                 onClick={() => setShowFilters(true)}
                 className={`relative shrink-0 flex items-center gap-1 px-3 py-2 min-h-[44px] md:min-h-0 rounded-md border shadow-sm text-sm md:text-base ${
                   filterCount
-                    ? "bg-stone-100 border-stone-300 text-stone-800"
+                    ? "bg-orange-50 border-orange-400 text-orange-800"
                     : "bg-white border-gray-300 text-gray-700"
                 }`}
               >

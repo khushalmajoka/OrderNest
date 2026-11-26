@@ -85,7 +85,7 @@ const ChangeProductDialog = ({ order, canSeePrices, canManageProducts = false, o
   };
 
   const radio = (value, title, detail) => (
-    <label className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer ${updateMoney === value ? "border-stone-300 bg-stone-50" : "border-gray-200"}`}>
+    <label className={`flex items-start gap-3 rounded-lg border p-3 cursor-pointer ${updateMoney === value ? "border-orange-500 bg-orange-50" : "border-gray-200"}`}>
       <input type="radio" name="update-money" checked={updateMoney === value} onChange={() => setUpdateMoney(value)} className="mt-1 w-4 h-4 accent-orange-500" />
       <span className="text-sm">
         <span className="block font-medium text-gray-900">{title}</span>

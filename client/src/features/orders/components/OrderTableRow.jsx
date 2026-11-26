@@ -125,7 +125,7 @@ const OrderTableRow = ({
           statusStyle
             ? `${statusStyle.row} ${editing ? "" : "hover:brightness-95"}`
             : isExpanded || editing
-            ? "bg-stone-50"
+            ? "bg-stone-100"
             : "hover:bg-stone-100"
         } ${editing ? "ring-2 ring-inset ring-orange-300" : ""}`}
         onClick={(e) => {

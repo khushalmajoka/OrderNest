@@ -182,7 +182,7 @@ const TrackOrderPage = () => {
           <img
             src={OrderNestLogo}
             alt="OrderNest Logo"
-            className="w-48 h-auto mx-auto"
+            className="logo-plate w-48 h-auto mx-auto"
           />
         </div>
         <form

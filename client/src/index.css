@@ -4,9 +4,9 @@
 
 /* The app's page colour on the whole page, so the area that shows when you
    pull the page down (or the notch area on a phone) is the same colour as the
-   screen, not grey. Same value as Tailwind's stone-50. */
+   screen. The colours come from the theme (tailwind.theme.js). */
 html {
-  background-color: #fafaf9;
+  background-color: rgb(var(--bg-stone-50));
   color-scheme: light;
 }
 
@@ -18,8 +18,42 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #fafaf9;
+  background-color: rgb(var(--bg-stone-50));
   color: #333; /* Default text color */
+}
+
+/* Classic orange: the top bar is orange too, as it was before */
+html[data-theme="classic"] .app-bar {
+  background-color: rgb(var(--bg-orange-50));
+  border-color: rgb(var(--bd-orange-200));
+}
+
+/* Dark mode: boxes you type in, and the browser's own controls, go dark too */
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+/* lines that name no colour (row dividers) */
+:where(html[data-theme="dark"]) *,
+:where(html[data-theme="dark"]) *::before,
+:where(html[data-theme="dark"]) *::after {
+  border-color: #3d3936;
+}
+html[data-theme="dark"] body {
+  color: #e7e5e4;
+}
+html[data-theme="dark"] :where(input:not([type="checkbox"]):not([type="radio"]):not([type="color"]), textarea, select) {
+  background-color: rgb(var(--bg-white));
+  color: #e7e5e4;
+}
+/* The OrderNest logo has black letters: give it a light plate to sit on */
+html[data-theme="dark"] .logo-plate {
+  background-color: #fafaf9;
+  border-radius: 1.5rem;
+  max-width: 14rem;
+}
+:where(html[data-theme] .theme-light) {
+  color-scheme: light;
+  color: #333;
 }
 
 /* Hide arrows in number input fields (Chrome, Safari, Edge) */

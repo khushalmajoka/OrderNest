@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import AppearanceCard from "../components/AppearanceCard";
 import SettingsSections from "../components/SettingsSections";
 import StatusColorsCard from "../components/StatusColorsCard";
 import MyPasswordCard from "../components/MyPasswordCard";
@@ -119,6 +120,15 @@ const Settings = () => {
                     },
                   ]),
               {
+                id: "look",
+                label: "Appearance",
+                content: (
+                  <div className="max-w-xl">
+                    <AppearanceCard />
+                  </div>
+                ),
+              },
+              {
                 id: "cleanup",
                 label: "Clean up",
                 content: (
@@ -140,6 +150,8 @@ const Settings = () => {
 
             {/* Only staff who may see amounts have anything to hide */}
             {can(account, "viewAmounts") && <AmountsPrivacyCard />}
+
+            <AppearanceCard />
           </div>
         )}
       </main>

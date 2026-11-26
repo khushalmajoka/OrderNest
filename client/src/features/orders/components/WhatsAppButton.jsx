@@ -314,7 +314,7 @@ const WhatsAppButton = ({ order, shop, variant = "icon" }) => {
           aria-label={label}
           title={label}
           className={`flex-1 flex items-center justify-center gap-1 py-2.5 min-h-[44px] rounded border ${
-            usable ? "text-green-600" : "text-gray-300 cursor-not-allowed"
+            usable ? "text-green-700" : "text-gray-300 cursor-not-allowed"
           }`}
         >
           <WhatsAppIcon size={16} /> WhatsApp

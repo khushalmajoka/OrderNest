@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef } from "react";
 import { ArrowLeft } from "lucide-react";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
@@ -12,6 +13,12 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 //    been typed or changed (`dirty` is false).
 // It also locks the page behind it from scrolling, moves the keyboard focus into
 // the window, and keeps Tab inside it.
+// The date box and its calendar come from a library with its own colours:
+// tell it when the app is in dark mode
+const darkDates = createTheme({ palette: { mode: "dark", primary: { main: "#fb923c" }, background: { paper: "#1f1d1b" } } });
+const DateColours = ({ children }) =>
+  document.documentElement.dataset.theme === "dark" ? <ThemeProvider theme={darkDates}>{children}</ThemeProvider> : children;
+
 const ModalShell = ({ title, dirty, onClose, onSubmit, children }) => {
   const formRef = useRef(null);
   const titleId = useId();
@@ -96,7 +103,9 @@ const ModalShell = ({ title, dirty, onClose, onSubmit, children }) => {
         </div>
         {/* Needed by the date box inside; only these windows use dates, so it
             lives here and not at the top of the whole app */}
-        <LocalizationProvider dateAdapter={AdapterDateFns}>{children}</LocalizationProvider>
+        <DateColours>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>{children}</LocalizationProvider>
+        </DateColours>
       </form>
     </div>
   );

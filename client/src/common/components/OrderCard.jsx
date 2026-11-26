@@ -9,7 +9,7 @@ const OrderCard = React.forwardRef(({ order, shop }, ref) => {
   return (
     <div
       ref={ref}
-      className="w-96 bg-white shadow-xl overflow-hidden border border-gray-200"
+      className="theme-light w-96 bg-white shadow-xl overflow-hidden border border-gray-200"
     >
       {/* Header */}
       <div className="bg-gradient-to-r from-orange-400 to-pink-500 text-white text-center py-4">

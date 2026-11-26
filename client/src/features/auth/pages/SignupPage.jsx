@@ -74,7 +74,7 @@ const SignupPage = () => {
       <img
         src={OrderNestLogo}
         alt="OrderNest Logo"
-        className="w-40 md:w-auto max-w-full h-auto"
+        className="logo-plate w-40 md:w-auto max-w-full h-auto"
       />
       <form
         onSubmit={handleSubmit}

@@ -4,6 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#ffffff" />
+    <script>
+      // Apply the chosen look before anything is drawn (see src/common/utils/theme.js)
+      try {
+        var t = localStorage.getItem("theme");
+        if (t === "classic" || t === "dark") {
+          document.documentElement.setAttribute("data-theme", t);
+          document.querySelector('meta[name="theme-color"]').setAttribute("content", t === "dark" ? "#1f1d1b" : "#fff7ed");
+        }
+      } catch (e) {}
+    </script>
     <meta name="color-scheme" content="light" />
     <meta
       name="description"

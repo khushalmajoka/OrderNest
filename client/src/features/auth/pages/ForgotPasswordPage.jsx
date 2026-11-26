@@ -75,7 +75,7 @@ const ForgotPasswordPage = () => {
       <img
         src={OrderNestLogo}
         alt="OrderNest Logo"
-        className="w-40 md:w-auto max-w-full h-auto"
+        className="logo-plate w-40 md:w-auto max-w-full h-auto"
       />
       <div className="max-w-md w-full bg-white p-5 sm:p-8 rounded-2xl shadow-md">
         <h1 className="text-2xl font-bold text-gray-800 mb-2 text-center">

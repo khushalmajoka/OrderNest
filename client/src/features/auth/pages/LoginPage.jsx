@@ -82,7 +82,7 @@ const Login = () => {
       <img
         src={OrderNestLogo}
         alt="OrderNest Logo"
-        className="w-40 md:w-auto max-w-full h-auto"
+        className="logo-plate w-40 md:w-auto max-w-full h-auto"
       />
       <div className="max-w-md w-full bg-white p-5 sm:p-8 rounded-2xl shadow-md">
         <div className="flex flex-col items-center mb-6">

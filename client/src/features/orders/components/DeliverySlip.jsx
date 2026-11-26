@@ -34,7 +34,7 @@ const DeliverySlip = React.forwardRef(({ order, shop, fields, edits = {}, note }
   return (
     <div
       ref={ref}
-      className="w-[420px] bg-white text-black p-5 border-2 border-black font-poppins"
+      className="theme-light w-[420px] bg-white text-black p-5 border-2 border-black font-poppins"
       style={{ minHeight: 592 }}
     >
       {showShop && (

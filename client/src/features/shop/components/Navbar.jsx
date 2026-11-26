@@ -59,7 +59,7 @@ const Navbar = ({ shop, account, onLogout }) => {
         </div>
       )}
       {account?.devMode && <DevBanner shop={shop} />}
-      <nav className="bg-white border-b border-stone-200 shadow-sm px-4 md:px-6 py-3 flex justify-between items-center gap-3">
+      <nav className="app-bar bg-white border-b border-stone-200 shadow-sm px-4 md:px-6 py-3 flex justify-between items-center gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <img
             src={getShopLogo(shop)}

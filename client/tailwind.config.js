@@ -1,3 +1,5 @@
+const theme = require("./tailwind.theme");
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -5,6 +7,8 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // theme colours (calm, classic orange, dark): see tailwind.theme.js
+      ...theme.extend,
       fontFamily: {
         poppins: ["Poppins", "sans-serif"],
       },
@@ -54,5 +58,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require('tailwind-scrollbar-hide')],
+  plugins: [require('tailwind-scrollbar-hide'), theme.plugin],
 }

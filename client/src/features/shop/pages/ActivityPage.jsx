@@ -164,7 +164,7 @@ const ActivityPage = () => {
       <TopProgressBar active={loading && items !== null} />
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
 
-      <div className="p-4 md:p-8 space-y-4 max-w-2xl mx-auto">
+      <main id="main" tabIndex={-1} className="scroll-mt-24 outline-none p-4 md:p-8 space-y-4 max-w-2xl mx-auto">
         <div>
           <h1 className="text-2xl font-bold text-orange-700">Activity</h1>
           <p className="text-sm text-gray-600 mt-1">
@@ -239,7 +239,7 @@ const ActivityPage = () => {
             )}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from "react";
+import { ArrowLeft } from "lucide-react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
@@ -6,7 +7,7 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 // title with a back arrow.
 //
 // Closing rules, so typed text is never lost by accident:
-//  - the "←" and Cancel buttons always close it (the caller does that);
+//  - the back-arrow and Cancel buttons always close it (the caller does that);
 //  - tapping the dark area or pressing Escape closes it ONLY while nothing has
 //    been typed or changed (`dirty` is false).
 // It also locks the page behind it from scrolling, moves the keyboard focus into
@@ -81,17 +82,18 @@ const ModalShell = ({ title, dirty, onClose, onSubmit, children }) => {
         onKeyDown={keepFocusInside}
         className="bg-white rounded-lg shadow-lg p-4 sm:p-6 w-full max-w-md max-h-[90vh] overflow-y-auto space-y-4 relative outline-none animate-fade-up motion-reduce:animate-none"
       >
-        <h2 id={titleId} className="text-xl font-bold text-center text-gray-800">
+        {/* The Close button sits beside the heading, not inside it, so the heading reads as just the title */}
+        <div className="relative">
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="absolute left-3 sm:left-7 text-gray-600 hover:text-black px-2"
+            className="absolute -left-1 sm:left-1 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-md text-gray-600 hover:text-black hover:bg-gray-100"
           >
-            ←
+            <ArrowLeft size={20} aria-hidden="true" />
           </button>
-          {title}
-        </h2>
+          <h2 id={titleId} className="text-xl font-bold text-center text-gray-800 px-10">{title}</h2>
+        </div>
         {/* Needed by the date box inside; only these windows use dates, so it
             lives here and not at the top of the whole app */}
         <LocalizationProvider dateAdapter={AdapterDateFns}>{children}</LocalizationProvider>

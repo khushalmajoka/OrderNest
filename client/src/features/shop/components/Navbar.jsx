@@ -44,6 +44,13 @@ const Navbar = ({ shop, account, onLogout }) => {
 
   return (
     <>
+      {/* For the keyboard and screen readers: jump over the bar. Seen only when it has focus */}
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-white focus:px-4 focus:py-3 focus:font-medium focus:text-orange-800 focus:shadow-lg focus:ring-2 focus:ring-orange-500"
+      >
+        Skip to content
+      </a>
       {/* One sticky block: the developer banner (if any) and the bar stay together */}
       <div className="sticky top-0 z-10">
       {openingItem && (

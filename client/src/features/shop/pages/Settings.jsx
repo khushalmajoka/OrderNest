@@ -51,7 +51,7 @@ const Settings = () => {
     <div className="min-h-screen bg-orange-50 font-poppins">
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
 
-      <div className="p-4 md:p-8 max-w-5xl mx-auto">
+      <main id="main" tabIndex={-1} className="scroll-mt-24 outline-none p-4 md:p-8 max-w-5xl mx-auto">
         <h1 className="text-2xl font-bold text-orange-700 mb-6">Settings</h1>
 
         {isAdmin(account) ? (
@@ -105,7 +105,7 @@ const Settings = () => {
             {can(account, "viewAmounts") && <AmountsPrivacyCard />}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };

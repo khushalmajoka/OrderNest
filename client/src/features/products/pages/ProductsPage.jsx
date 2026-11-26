@@ -209,7 +209,7 @@ const ProductsPage = () => {
     <div className="min-h-screen bg-orange-50 font-poppins">
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
 
-      <div className={`p-4 md:p-8 mx-auto ${view === "cards" ? "max-w-5xl" : "max-w-3xl"}`}>
+      <main id="main" tabIndex={-1} className={`scroll-mt-24 outline-none p-4 md:p-8 mx-auto ${view === "cards" ? "max-w-5xl" : "max-w-3xl"}`}>
         {/* Phone: the title and "Add product" on one line, the two other buttons together below.
             Computer: all on one line, "Add product" last. */}
         <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -396,7 +396,7 @@ const ProductsPage = () => {
             })}
           </div>
         )}
-      </div>
+      </main>
 
       {isAdmin && selected.size > 0 && (
         <div role="region" aria-label="Move the ticked products" className="fixed bottom-0 inset-x-0 z-40 bg-white border-t border-orange-200 shadow-lg p-3">

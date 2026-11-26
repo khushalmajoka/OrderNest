@@ -295,12 +295,9 @@ const Dashboard = () => {
     <div className="min-h-screen bg-orange-50 font-poppins">
       <TopProgressBar active={loading && loaded} />
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
-      <div className="p-4 md:p-8">
+      <main id="main" tabIndex={-1} className="scroll-mt-24 outline-none p-4 md:p-8">
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-2 text-xl md:text-2xl font-bold text-gray-800">
-            <span className="text-orange-500 text-2xl md:text-3xl">📦</span> Orders
-            Dashboard
-          </div>
+          <h1 className="text-xl md:text-2xl font-bold text-gray-800">Orders Dashboard</h1>
 
           <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
             <div className="flex items-center gap-2 w-full md:w-auto">
@@ -476,7 +473,7 @@ const Dashboard = () => {
             </div>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 };

@@ -8,6 +8,7 @@ import {
 import { Toaster } from "react-hot-toast";
 import LoadingScreen from "./common/components/LoadingScreen";
 import ErrorBoundary from "./common/components/ErrorBoundary";
+import PageTitle from "./common/components/PageTitle";
 import { pages } from "./common/utils/pages";
 
 const {
@@ -18,6 +19,7 @@ const {
 function App() {
   return (
     <Router>
+      <PageTitle />
       <Toaster position="bottom-right" />
       <ErrorBoundary>
         <Suspense fallback={<LoadingScreen message="Just a moment" />}>

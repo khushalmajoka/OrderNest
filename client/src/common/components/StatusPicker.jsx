@@ -45,7 +45,12 @@ const StatusPicker = ({ value, options, onChange, onEnter, large = false, label 
     const outside = (e) => {
       if (!list.current?.contains(e.target) && !button.current?.contains(e.target)) setOpen(false);
     };
-    const away = () => setOpen(false);
+    // The page moving or resizing closes the list (it would be in the wrong
+    // place). Scrolling inside the list itself must not close it.
+    const away = (e) => {
+      if (e?.target instanceof Node && list.current?.contains(e.target)) return;
+      setOpen(false);
+    };
     document.addEventListener("mousedown", outside);
     window.addEventListener("resize", away);
     window.addEventListener("scroll", away, true);

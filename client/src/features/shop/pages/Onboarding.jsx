@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -6,6 +6,7 @@ import { SHOP_CATEGORIES } from "../constants";
 import { getShopLogo } from "../../../common/utils/utils";
 import { getErrorMessage } from "../../../common/utils/api";
 import { shrinkLogo } from "../utils/shrinkLogo";
+import { clearSession } from "../../whatsNew/whatsNewStorage";
 
 const Onboarding = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +20,22 @@ const Onboarding = () => {
   const [loading, setLoading] = useState(false); // 🔁 loading state
   const navigate = useNavigate();
   const userId = localStorage.getItem("userId");
+  const [email, setEmail] = useState("");
+
+  // show which account this is, so a wrong one is noticed
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    axios
+      .get(`${process.env.REACT_APP_BASE_URL}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => setEmail(res.data.email || ""))
+      .catch(() => {}); // the button below works without it
+  }, []);
+
+  const logOut = () => {
+    clearSession();
+    navigate("/shop");
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -72,7 +89,23 @@ const Onboarding = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-stone-50 font-poppins px-4 py-6">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-stone-50 font-poppins px-4 py-6">
+      <div className="w-full max-w-md flex flex-wrap items-center justify-between gap-2">
+        <p className="min-w-0 text-sm text-gray-700">
+          {email && (
+            <>
+              Logged in as <b className="break-all">{email}</b>
+            </>
+          )}
+        </p>
+        <button
+          type="button"
+          onClick={logOut}
+          className="ml-auto min-h-[44px] px-3 py-2 rounded-lg border border-stone-300 bg-white text-sm font-medium text-stone-800 hover:bg-stone-100"
+        >
+          Log out / use another account
+        </button>
+      </div>
       <form
         onSubmit={handleSubmit}
         className="bg-white shadow-xl rounded-xl p-5 sm:p-8 w-full max-w-md space-y-5"

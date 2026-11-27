@@ -26,6 +26,8 @@ const router = express.Router();
 router.post('/register', registerLimiter, register);
 router.post('/login', loginLimiter, loginAccountLimiter, login);
 router.post('/change-password', authenticate, loadUser, requireAdmin, changePasswordLimiter, changePassword);
+// Who is logged in (the "Set up shop" page shows it, as there is no shop yet)
+router.get('/me', authenticate, loadUser, (req, res) => res.json({ email: req.account.email }));
 router.post('/verify-email', resetLimiter, verifyEmail);
 router.post('/resend-verification', forgotLimiter, resendVerification);
 router.post('/forgot-password', forgotLimiter, forgotPassword);

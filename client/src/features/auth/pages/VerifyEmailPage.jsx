@@ -10,11 +10,13 @@ const inputClass =
   "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400";
 
 // After sign-up (or a login before confirming): type the code from the email.
+// Only says "we sent a code" when one was really asked for.
 const VerifyEmailPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const startEmail = location.state?.email || "";
-  const justSentCode = Boolean(location.state?.fresh); // sign-up just emailed it
+  const justSentCode = Boolean(location.state?.fresh); // sign-up or login just asked for it
+  const unconfirmed = Boolean(location.state?.unconfirmed); // came from the login page
 
   const [email, setEmail] = useState(startEmail);
   const [code, setCode] = useState("");
@@ -71,13 +73,18 @@ const VerifyEmailPage = () => {
           Confirm your email
         </h1>
         <p className="text-sm text-gray-500 text-center">
-          {startEmail ? (
+          {unconfirmed && "This account was never confirmed. "}
+          {!startEmail ? (
+            "Type your email and the 6-digit code we sent you."
+          ) : justSentCode ? (
             <>
               We sent a 6-digit code to <b className="break-all">{startEmail}</b>
-              . It works for 10 minutes.
+              . It works for 10 minutes. Check Spam too.
             </>
           ) : (
-            "Type your email and the 6-digit code we sent you."
+            <>
+              Press "Send the code again" to get a 6-digit code at <b className="break-all">{startEmail}</b>.
+            </>
           )}
         </p>
 

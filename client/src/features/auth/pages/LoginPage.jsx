@@ -61,11 +61,25 @@ const Login = () => {
           navigate("/shop/dashboard");
         }
       } else if (data.code === "EMAIL_NOT_VERIFIED") {
-        // Signed up but never typed the emailed code
+        // Signed up but never typed the emailed code: send a code now
+        const email = form.identifier.trim();
+        let sent = false;
+        try {
+          const again = await fetch(`${process.env.REACT_APP_BASE_URL}/api/auth/resend-verification`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+          });
+          sent = again.ok;
+          if (!sent) {
+            const problem = await again.json().catch(() => ({}));
+            toast.error(problem.error || "Could not send the code.");
+          }
+        } catch {
+          toast.error("Could not send the code. Try \"Send the code again\".");
+        }
         toast("Please confirm your email first.");
-        navigate("/shop/verify-email", {
-          state: { email: form.identifier.trim() },
-        });
+        navigate("/shop/verify-email", { state: { email, unconfirmed: true, fresh: sent } });
       } else {
         toast.error(data.error || data.message || "Login failed");
       }

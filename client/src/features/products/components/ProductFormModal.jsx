@@ -145,17 +145,18 @@ const ProductFormModal = ({ family, sizes = [], canSetPrice, categories = [], ca
     name: family?.name || "",
     category: family?.category || "",
     notes: family?.notes || "",
+    inCatalog: Boolean(family?.inCatalog),
     rows: isNew ? [newRow()] : sizes.filter((s) => s.active !== false).map(rowFromSize),
   });
   const [initial] = useState(start);
-  const [form, setForm] = useState({ name: initial.name, category: initial.category, notes: initial.notes });
+  const [form, setForm] = useState({ name: initial.name, category: initial.category, notes: initial.notes, inCatalog: initial.inCatalog });
   const [rows, setRows] = useState(initial.rows.length ? initial.rows : [newRow()]);
   const [images, setImages] = useState(family?.images || []);
   const [pending, setPending] = useState([]); // pictures of a NEW product, saved with it
   const [saving, setSaving] = useState(false);
 
   const dirty =
-    form.name !== initial.name || form.category !== initial.category || form.notes !== initial.notes || pending.length > 0 ||
+    form.name !== initial.name || form.category !== initial.category || form.notes !== initial.notes || form.inCatalog !== initial.inCatalog || pending.length > 0 ||
     rows.length !== initial.rows.length || rows.some((r) => r.removed || !r.id || snap(r) !== r.orig);
   const set = (field) => (e) => setForm((f) => ({ ...f, [field]: e.target.value }));
   const live = rows.filter((r) => !r.removed);
@@ -173,7 +174,7 @@ const ProductFormModal = ({ family, sizes = [], canSetPrice, categories = [], ca
       if (isNew) {
         const res = await axios.post(
           `${API}/api/products/families`,
-          { name: form.name, notes: form.notes, ...(canSetCategory ? { category: form.category || null } : {}), sizes: live.map((r) => sizeBody(r, canSetPrice)) },
+          { name: form.name, notes: form.notes, inCatalog: form.inCatalog, ...(canSetCategory ? { category: form.category || null } : {}), sizes: live.map((r) => sizeBody(r, canSetPrice)) },
           { headers: headers() }
         );
         let lost = 0;
@@ -192,7 +193,12 @@ const ProductFormModal = ({ family, sizes = [], canSetPrice, categories = [], ca
       // the name, notes and category of the product first, then each size line
       await axios.put(
         `${API}/api/products/families/${family._id}`,
-        { name: form.name, notes: form.notes, ...(canSetCategory ? { category: form.category || null } : {}) },
+        {
+          name: form.name,
+          notes: form.notes,
+          ...(form.inCatalog !== initial.inCatalog ? { inCatalog: form.inCatalog } : {}),
+          ...(canSetCategory ? { category: form.category || null } : {}),
+        },
         { headers: headers() }
       );
       for (const r of work) {
@@ -250,6 +256,19 @@ const ProductFormModal = ({ family, sizes = [], canSetPrice, categories = [], ca
       <Field label="Notes" hint="(optional, e.g. price changes with the design)">
         <textarea value={form.notes} onChange={set("notes")} rows={3} maxLength={300} className={inputClass} />
       </Field>
+
+      <label className="flex items-start gap-3 min-h-[44px]">
+        <input
+          type="checkbox"
+          checked={form.inCatalog}
+          onChange={(e) => setForm((f) => ({ ...f, inCatalog: e.target.checked }))}
+          className="w-5 h-5 mt-0.5 accent-orange-500 shrink-0"
+        />
+        <span className="text-sm text-gray-800">
+          <span className="font-medium">Show in catalog</span>
+          <span className="block text-gray-600">Customers with your catalog link see this product, its pictures, sizes and notes.</span>
+        </span>
+      </label>
 
       <div role="group" aria-label="Sizes">
         <span className="block text-sm font-medium text-gray-700 mb-1">

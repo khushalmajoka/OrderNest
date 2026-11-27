@@ -13,7 +13,7 @@ import { pages } from "./common/utils/pages";
 
 const {
   TrackOrderPage, LoginPage, SignupPage, ForgotPasswordPage, VerifyEmailPage, DashboardPage,
-  Onboarding, Settings, StaffPage, ActivityPage, ProductsPage, DeveloperPage,
+  Onboarding, Settings, StaffPage, ActivityPage, ProductsPage, DeveloperPage, CatalogPage,
 } = pages;
 
 function App() {
@@ -26,6 +26,8 @@ function App() {
           <Routes>
             {/* Customer Route */}
             <Route path="/" element={<TrackOrderPage />} />
+            {/* Customer catalog: opened with the secret link the shop shares */}
+            <Route path="/c/:token" element={<CatalogPage />} />
 
             {/* Shop Routes */}
             <Route path="/shop" element={<LoginPage />} />

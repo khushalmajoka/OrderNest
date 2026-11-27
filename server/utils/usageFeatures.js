@@ -27,6 +27,8 @@ module.exports = [
   { key: "slip.open", label: "Delivery slip window", group: "Sharing", where: "client" },
   // Customers
   { key: "tracking.view", label: "Customer tracked an order", group: "Customers", where: "server" },
+  { key: "catalog.view", label: "Customer opened the catalog", group: "Customers", where: "server" },
+  { key: "catalog.manage", label: "Catalog switched, changed or products shown/hidden", group: "Products", where: "server" },
   // Admin
   { key: "activity.view", label: "Activity history opened", group: "Admin", where: "server" },
   { key: "staff.manage", label: "Staff changes", group: "Admin", where: "server" },

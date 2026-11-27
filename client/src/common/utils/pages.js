@@ -17,6 +17,7 @@ const loaders = {
   ActivityPage: () => import("../../features/shop/pages/ActivityPage"),
   ProductsPage: () => import("../../features/products/pages/ProductsPage"),
   DeveloperPage: () => import("../../features/developer/pages/DeveloperPage"),
+  CatalogPage: () => import("../../features/catalog/pages/CatalogPage"),
 };
 
 export const pages = Object.fromEntries(Object.entries(loaders).map(([name, load]) => [name, lazyWithRetry(load)]));

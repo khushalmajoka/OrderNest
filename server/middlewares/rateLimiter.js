@@ -102,7 +102,26 @@ const exportLimiter = rateLimit({
   message: { message: "Too many exports. Please wait a few minutes." },
 });
 
+// The public customer catalog. Generous on purpose: many customers can share one
+// mobile network address, and one page shows many pictures.
+const catalogLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 200,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { message: "Too many visits. Please try again in a few minutes." },
+});
+const catalogImageLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 3000,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  message: { message: "Too many pictures. Please try again in a few minutes." },
+});
+
 module.exports = {
+  catalogLimiter,
+  catalogImageLimiter,
   exportLimiter,
   changePasswordLimiter,
   forgotLimiter,

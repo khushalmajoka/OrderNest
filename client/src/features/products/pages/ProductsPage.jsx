@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { ChevronDown, ChevronRight, FolderCog, History, LayoutGrid, List, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderCog, History, LayoutGrid, List, Plus, Share2 } from "lucide-react";
 import Navbar from "../../shop/components/Navbar";
 import LoadingScreen from "../../../common/components/LoadingScreen";
 import { Bar, SkeletonRegion } from "../../../common/components/Skeleton";
@@ -17,6 +17,7 @@ import CategoriesDialog from "../components/CategoriesDialog";
 import ProductItem from "../components/ProductItem";
 import { sortSizes } from "../utils/productOptions";
 import PictureViewer from "../components/PictureViewer";
+import ShareCatalogDialog from "../components/ShareCatalogDialog";
 
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem("token")}` });
 
@@ -48,6 +49,7 @@ const ProductsPage = () => {
   const [moving, setMoving] = useState(false);
   const [showCats, setShowCats] = useState(false);
   const [viewing, setViewing] = useState(null); // the product whose pictures are shown big
+  const [showShare, setShowShare] = useState(false); // the "Share catalog" window
   const [view, setView] = useState(() => {
     try {
       return localStorage.getItem("productsView") === "cards" ? "cards" : "list";
@@ -188,6 +190,26 @@ const ProductsPage = () => {
     }
   };
 
+  const showSelected = async (show) => {
+    if (!selected.size || moving) return;
+    setMoving(true);
+    try {
+      const res = await axios.post(
+        `${process.env.REACT_APP_BASE_URL}/api/catalog-settings/products`,
+        { ids: [...selected], show },
+        { headers: headers() }
+      );
+      const n = res.data.changed;
+      toast.success(n ? `${n} ${n === 1 ? "product" : "products"} ${show ? "added to" : "removed from"} the catalog.` : "Nothing to change.");
+      setSelected(new Set());
+      await load();
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Could not change the catalog."));
+    } finally {
+      setMoving(false);
+    }
+  };
+
   const handleLogout = () => {
     clearSession();
     navigate("/shop");
@@ -210,8 +232,7 @@ const ProductsPage = () => {
       <Navbar shop={shop} account={account} onLogout={handleLogout} />
 
       <main id="main" tabIndex={-1} className={`scroll-mt-24 outline-none p-4 md:p-8 mx-auto ${view === "cards" ? "max-w-5xl" : "max-w-3xl"}`}>
-        {/* Phone: the title and "Add product" on one line, the two other buttons together below.
-            Computer: all on one line, "Add product" last. */}
+        {/* The title and "Add product" on one line, the other buttons together below. */}
         <div className="flex flex-wrap items-center gap-2 mb-1">
           <h1 className="order-1 mr-auto text-2xl font-bold text-stone-900 flex items-center gap-2">
             Products
@@ -219,11 +240,11 @@ const ProductsPage = () => {
           <button
             type="button"
             onClick={() => setEditing("new")}
-            className="order-2 md:order-4 flex items-center gap-1.5 px-4 py-2 min-h-[44px] rounded-lg bg-orange-700 text-white font-medium hover:bg-orange-800"
+            className="order-2 flex items-center gap-1.5 px-4 py-2 min-h-[44px] rounded-lg bg-orange-700 text-white font-medium hover:bg-orange-800"
           >
             <Plus size={18} /> Add product
           </button>
-          <div className="order-2 basis-full h-0 md:hidden" aria-hidden="true" />
+          <div className="order-2 basis-full h-0" aria-hidden="true" />
           {isAdmin && (
             <button
               type="button"
@@ -239,6 +260,13 @@ const ProductsPage = () => {
             className="order-3 flex-1 md:flex-none justify-center flex items-center gap-1.5 px-3 md:px-4 py-2 min-h-[44px] whitespace-nowrap rounded-lg border border-stone-300 text-stone-800 font-medium hover:bg-stone-100"
           >
             <History size={18} /> <span><span className="md:hidden">From old orders</span><span className="hidden md:inline">Build from old orders</span></span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowShare(true)}
+            className="order-3 flex-1 md:flex-none justify-center flex items-center gap-1.5 px-3 md:px-4 py-2 min-h-[44px] whitespace-nowrap rounded-lg border border-stone-300 text-stone-800 font-medium hover:bg-stone-100"
+          >
+            <Share2 size={18} /> Share catalog
           </button>
         </div>
         {tidyPlan.length > 0 && (
@@ -424,13 +452,20 @@ const ProductsPage = () => {
             >
               {moving ? "Moving..." : "Move"}
             </button>
+            <button type="button" onClick={() => showSelected(true)} disabled={moving} className="px-3 py-2 min-h-[40px] rounded-lg border border-gray-300 text-sm hover:bg-gray-100">
+              Show in catalog
+            </button>
+            <button type="button" onClick={() => showSelected(false)} disabled={moving} className="px-3 py-2 min-h-[40px] rounded-lg border border-gray-300 text-sm hover:bg-gray-100">
+              Hide from catalog
+            </button>
             <button type="button" onClick={() => setSelected(new Set())} className="px-3 py-2 min-h-[40px] rounded-lg border border-gray-300 text-sm hover:bg-gray-100">
               Clear
             </button>
           </div>
         </div>
       )}
-      {selected.size > 0 && <div className="h-20" aria-hidden="true" />}
+      {selected.size > 0 && <div className="h-40 md:h-20" aria-hidden="true" />}
+      {showShare && <ShareCatalogDialog shopName={shop.name} onClose={() => setShowShare(false)} />}
       {showCats && (
         <CategoriesDialog
           categories={categories}

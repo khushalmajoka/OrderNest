@@ -13,6 +13,8 @@ const familySchema = new mongoose.Schema(
     category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
     // pictures in the order shown (the first is the main one); they live in ProductImage
     images: [{ type: mongoose.Schema.Types.ObjectId, ref: "ProductImage" }],
+    // shown to customers on the catalog link (not set = hidden)
+    inCatalog: { type: Boolean },
   },
   { timestamps: true }
 );

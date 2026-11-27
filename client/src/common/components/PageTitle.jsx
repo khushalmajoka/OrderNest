@@ -20,7 +20,8 @@ const TITLES = {
 const PageTitle = () => {
   const { pathname } = useLocation();
   useEffect(() => {
-    const name = TITLES[pathname.replace(/\/+$/, "") || "/"];
+    // the catalog page puts the shop's name in once it has it
+    const name = pathname.startsWith("/c/") ? "Catalog" : TITLES[pathname.replace(/\/+$/, "") || "/"];
     document.title = name ? `${name} - OrderNest` : "OrderNest";
   }, [pathname]);
   return null;

@@ -25,6 +25,7 @@ const ProductItem = ({ p, view, isAdmin, selected, onToggle, onEdit, onArchive, 
           <span className="text-gray-500 font-normal text-sm"> · {p.sizes.length} {p.sizes.length === 1 ? "size" : "sizes"}</span>
         )}
         {archived && <span className="ml-2 text-xs rounded-full bg-gray-200 text-gray-700 px-2 py-0.5">Archived</span>}
+        {p.inCatalog && !archived && <span className="ml-2 text-xs rounded-full bg-green-100 text-green-800 px-2 py-0.5 whitespace-nowrap">In catalog</span>}
       </p>
       {!onlyNoSize && (
         <ul className="mt-1 space-y-0.5" aria-label={`Sizes of ${p.name}`}>

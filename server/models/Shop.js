@@ -50,6 +50,23 @@ const shopSchema = new mongoose.Schema({
   // { en: { "Pending": "text..." }, hi: {...}, hinglish: {...} }
   // Anything missing uses the app's own text.
   whatsappMessages: { type: mongoose.Schema.Types.Mixed },
+
+  // The customer catalog: a public page opened with a long secret link.
+  // Never sent with the shop (select: false): only the catalog routes read it.
+  catalog: {
+    type: new mongoose.Schema(
+      {
+        enabled: { type: Boolean },
+        token: { type: String },
+        showPrices: { type: Boolean }, // not set = prices are NOT shown
+        phone: { type: String }, // contact number on the catalog; empty = the shop phone
+      },
+      { _id: false }
+    ),
+    select: false,
+  },
 });
+
+shopSchema.index({ "catalog.token": 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model("Shop", shopSchema);

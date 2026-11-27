@@ -48,6 +48,7 @@ const presentFamily = (f) => ({
   notes: f.notes || "",
   category: f.category ? String(f.category) : undefined,
   images: (f.images || []).map(String),
+  inCatalog: Boolean(f.inCatalog),
 });
 
 const money = (n) => `₹${Number(n) || 0}`;
@@ -109,6 +110,10 @@ const applyFamilyFields = async (req, family, body) => {
     const oldCat = family.category ? await Category.findById(family.category).select("name").lean() : null;
     changes.push({ field: "Category", from: oldCat?.name || "(none)", to: cat.name || "(none)" });
     family.category = cat.value || undefined;
+  }
+  if (typeof body.inCatalog === "boolean" && body.inCatalog !== Boolean(family.inCatalog)) {
+    changes.push({ field: "In catalog", from: family.inCatalog ? "Yes" : "No", to: body.inCatalog ? "Yes" : "No" });
+    family.inCatalog = body.inCatalog;
   }
   return { changes };
 };
@@ -210,6 +215,7 @@ exports.createFamily = async (req, res, next) => {
         nameKey: familyKey(name),
         notes: cleanNotes(req.body?.notes),
         ...(cat.value ? { category: cat.value } : {}),
+        ...(req.body?.inCatalog === true ? { inCatalog: true } : {}),
       });
     } catch (err) {
       if (err.code === 11000) return res.status(400).json({ message: "A product with this name already exists. Open it and add a size instead." });

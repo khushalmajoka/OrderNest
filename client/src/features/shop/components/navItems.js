@@ -1,4 +1,4 @@
-import { Code2, History, LayoutDashboard, Package, Settings, Users } from "lucide-react";
+import { CircleHelp, Code2, History, LayoutDashboard, Package, Settings, Users } from "lucide-react";
 
 // The pages of the shop area, in the order they appear in the top bar and in
 // the phone menu. adminOnly = the owner only (staff do not see it).
@@ -9,6 +9,7 @@ export const NAV_ITEMS = [
   { path: "/shop/staff", label: "Staff", icon: Users, adminOnly: true },
   { path: "/shop/activity", label: "Activity", icon: History, adminOnly: true },
   { path: "/shop/settings", label: "Settings", icon: Settings },
+  { path: "/shop/help", label: "Help", icon: CircleHelp },
   // only the developer sees this one
   { path: "/developer", label: "Developer", icon: Code2, developerOnly: true },
 ];

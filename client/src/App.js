@@ -13,7 +13,7 @@ import { pages } from "./common/utils/pages";
 
 const {
   TrackOrderPage, LoginPage, SignupPage, ForgotPasswordPage, VerifyEmailPage, DashboardPage,
-  Onboarding, Settings, StaffPage, ActivityPage, ProductsPage, DeveloperPage, CatalogPage,
+  Onboarding, Settings, StaffPage, ActivityPage, ProductsPage, DeveloperPage, CatalogPage, HelpPage,
 } = pages;
 
 function App() {
@@ -40,6 +40,7 @@ function App() {
             <Route path="/shop/staff" element={<StaffPage />} />
             <Route path="/shop/activity" element={<ActivityPage />} />
             <Route path="/shop/products" element={<ProductsPage />} />
+            <Route path="/shop/help" element={<HelpPage />} />
 
             {/* Developer only: no link anywhere; the server decides who gets any data */}
             <Route path="/developer" element={<DeveloperPage />} />

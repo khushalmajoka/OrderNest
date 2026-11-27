@@ -15,6 +15,7 @@ const TITLES = {
   "/shop/staff": "Staff",
   "/shop/activity": "Activity",
   "/shop/products": "Products",
+  "/shop/help": "Help",
 };
 
 const PageTitle = () => {

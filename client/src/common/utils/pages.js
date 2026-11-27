@@ -18,6 +18,7 @@ const loaders = {
   ProductsPage: () => import("../../features/products/pages/ProductsPage"),
   DeveloperPage: () => import("../../features/developer/pages/DeveloperPage"),
   CatalogPage: () => import("../../features/catalog/pages/CatalogPage"),
+  HelpPage: () => import("../../features/help/pages/HelpPage"),
 };
 
 export const pages = Object.fromEntries(Object.entries(loaders).map(([name, load]) => [name, lazyWithRetry(load)]));
@@ -29,6 +30,7 @@ const byPath = {
   "/shop/staff": loaders.StaffPage,
   "/shop/activity": loaders.ActivityPage,
   "/shop/settings": loaders.Settings,
+  "/shop/help": loaders.HelpPage,
   "/developer": loaders.DeveloperPage,
 };
 

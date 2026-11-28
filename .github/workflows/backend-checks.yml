@@ -61,4 +61,6 @@ jobs:
       - run: ./mvnw -B -ntp -q package -DskipTests
         working-directory: server-java
       # Node against Java: only the parts that are written in Java so far
-      - run: node compare-tests/run.js --b java --only foundation --only seeded
+      - run: node compare-tests/run.js --b java --only foundation --only seeded --only "basics and security" --only "sign-up and email"
+      # both servers on ONE database, as during the move: logins and codes work across
+      - run: node compare-tests/cross.js

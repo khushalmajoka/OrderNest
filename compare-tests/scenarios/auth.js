@@ -23,10 +23,11 @@ const basics = {
     req("browser pre-check from another site", "OPTIONS", "/api/auth/login", {
       headers: { origin: "http://evil.example.test", "access-control-request-method": "POST" },
       status: 200, // not allowed: no CORS headers, so the browser blocks it
+      loose: ["body", "type"],
     }),
     get("another site", "/", { headers: { origin: "http://evil.example.test" } }),
     get("web app", "/", { headers: { origin: WEB_APP } }),
-    post("body that is not JSON", "/api/auth/login", undefined, { rawBody: '{"identifier":', status: 400 }),
+    post("body that is not JSON", "/api/auth/login", undefined, { rawBody: '{"identifier":', status: 400, loose: ["body.message"] }), // each language words it its own way
     post("empty body", "/api/auth/login", undefined, { status: 400 }),
   ],
 };

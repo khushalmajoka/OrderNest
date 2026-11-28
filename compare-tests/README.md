@@ -16,6 +16,7 @@ node compare-tests/run.js                 # Node against Node (must show 0)
 node compare-tests/run.js --b java --only foundation --only seeded
                                            # Node against Java, the parts written so far
 node compare-tests/run.js --sabotage      # must report differences
+node compare-tests/cross.js               # both servers on one database
 ```
 
 The exit code is 0 only when there are no differences, every request got the

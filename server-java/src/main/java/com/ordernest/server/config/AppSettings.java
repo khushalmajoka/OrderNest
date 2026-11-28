@@ -72,6 +72,11 @@ public class AppSettings {
         return get("SMTP_PASS");
     }
 
+    /** New sign-ups must confirm their email. "false" is meant for local testing only. */
+    public boolean emailConfirmationRequired() {
+        return !"false".equals(get("REQUIRE_EMAIL_VERIFICATION"));
+    }
+
     /** The shop's time zone, for "which day is it". India unless set. */
     public String timeZone() {
         String zone = get("APP_TIMEZONE");

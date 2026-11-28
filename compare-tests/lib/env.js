@@ -83,8 +83,8 @@ const LAUNCHERS = {
   java: () => ({ cmd: "java", args: ["-jar", path.join(ROOT, "server-java", "target", "app.jar")] }),
 };
 
-const startServer = async (side, kind) => {
-  const port = side === "a" ? 5101 : 5102;
+// `port` lets two servers share one database and its mail box (see cross.js)
+const startServer = async (side, kind, port = side === "a" ? 5101 : 5102) => {
   // "node:/some/folder" runs another copy of the Node server
   const { cmd, args } = kind.startsWith("node:") ? { cmd: process.execPath, args: [path.join(kind.slice(5), "index.js")] } : LAUNCHERS[kind]();
   // an empty folder as the working directory, so no .env file is ever read

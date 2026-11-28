@@ -28,6 +28,7 @@ const send = async (side, step) => {
   const who = step.as;
   if (who) headers.authorization = `Bearer ${ctx.tokens[who] ?? who}`;
   Object.assign(headers, value(step.headers, ctx) || {});
+  for (const k of Object.keys(headers)) if (headers[k] === undefined) delete headers[k];
   let body;
   if (step.rawBody !== undefined) body = step.rawBody;
   else if (step.body !== undefined) body = JSON.stringify(value(step.body, ctx));
@@ -116,6 +117,14 @@ const runStep = async (step, sides, report) => {
   const expected = step.status ?? 200;
   if (a.status !== expected) {
     report.wrong.push(`${step.name}: expected ${expected}, server A answered ${a.status} ${JSON.stringify(a.body).slice(0, 200)}`);
+  }
+  // `loose` names parts that may differ between the languages, with the reason in the scenario
+  for (const part of step.loose || []) {
+    const keys = part.split(".");
+    for (const out of [a, b]) {
+      const holder = keys.slice(0, -1).reduce((o, k) => o?.[k], out);
+      if (holder && typeof holder === "object") delete holder[keys.at(-1)];
+    }
   }
   const diff = differences(a, b);
   if (diff.length) report.diffs.push({ step: step.name, diff });

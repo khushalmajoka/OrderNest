@@ -1,4 +1,5 @@
 module.exports = [
+  ...require("./foundation"),
   ...require("./auth"),
   ...require("./shopStaff"),
   ...require("./orders"),

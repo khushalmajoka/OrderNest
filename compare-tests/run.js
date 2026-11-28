@@ -4,6 +4,7 @@
 // on this computer, and lists every difference.
 //   --a node|java   first server  (default node)
 //   --b node|java   second server (default node)
+//   --only name     run only the scenarios whose name contains this (repeatable)
 //   --sabotage      changes the second database on purpose: the run MUST then
 //                   report differences (proves the tool can see them)
 const fs = require("fs");
@@ -72,7 +73,10 @@ const main = async () => {
     }
     console.log(`A = ${kinds.a}, B = ${kinds.b}`);
 
-    for (const scenario of scenarios) {
+    const only = process.argv.flatMap((a, i) => (a === "--only" ? [process.argv[i + 1]] : []));
+    const chosen = only.length ? scenarios.filter((s) => only.some((o) => s.name.includes(o))) : scenarios;
+    if (!chosen.length) throw new Error("No scenario has that name");
+    for (const scenario of chosen) {
       const before = { d: report.diffs.length, w: report.wrong.length, s: report.steps };
       // each scenario starts from empty databases
       for (const s of sides) {
@@ -108,10 +112,12 @@ const main = async () => {
 
   const routes = allRoutes();
   const reached = routes.filter((r) => report.hits.some((h) => h.status < 400 && matches(r, h)));
-  const missed = routes.filter((r) => !reached.includes(r));
+  // with --only, not every endpoint is meant to be reached
+  const partial = process.argv.includes("--only");
+  const missed = partial ? [] : routes.filter((r) => !reached.includes(r));
 
   console.log(`\nRequests compared: ${report.steps}`);
-  console.log(`Endpoints with a successful request: ${reached.length} of ${routes.length}`);
+  console.log(`Endpoints with a successful request: ${reached.length} of ${routes.length}${partial ? " (partial run)" : ""}`);
   missed.forEach((r) => console.log(`  not reached: ${r.method} ${r.path}`));
   if (report.wrong.length) {
     console.log(`\nScenario problems (${report.wrong.length}):`);

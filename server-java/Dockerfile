@@ -13,7 +13,7 @@ RUN ./mvnw -B -q package -DskipTests \
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=build /app ./
-RUN java -XX:ArchiveClassesAtExit=app.jsa -Dspring.context.exit=onRefresh -jar app.jar > /dev/null
+RUN JWT_SECRET=only-for-the-build java -XX:ArchiveClassesAtExit=app.jsa -Dspring.context.exit=onRefresh -jar app.jar > /dev/null
 RUN useradd --system app
 USER app
 EXPOSE 8080

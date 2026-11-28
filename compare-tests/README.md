@@ -8,11 +8,12 @@ and no real email service is ever used.
 
 ## Run
 
-Needs Docker running, and `npm install` done once in `server/`.
+Needs Docker running, and `npm install` done once in `server/`. For Java, build it first:
+`cd server-java && ./mvnw package`.
 
 ```bash
 node compare-tests/run.js                 # Node against Node (must show 0)
-node compare-tests/run.js --b java        # Node against Java
+node compare-tests/run.js --b java --only foundation   # Node against Java, the parts written so far
 node compare-tests/run.js --sabotage      # must report differences
 ```
 

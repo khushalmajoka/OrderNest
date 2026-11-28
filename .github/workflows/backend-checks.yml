@@ -51,5 +51,14 @@ jobs:
           cache-dependency-path: server/package-lock.json
       - run: npm ci
         working-directory: server
-      # Node against Node for now. Java is compared here once it has features.
+      # Node against Node: all endpoints, proves the tool and the tests are sound
       - run: node compare-tests/run.js
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+      - run: ./mvnw -B -ntp -q package -DskipTests
+        working-directory: server-java
+      # Node against Java: only the parts that are written in Java so far
+      - run: node compare-tests/run.js --b java --only foundation

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import OrderNestLogo from "../../../assets/OrderNestLogoWithoutBg.png";
 import toast from "react-hot-toast";
 import PasswordInput from "../../../common/components/PasswordInput";
+import { backendUrl } from "../../../common/utils/javaBackend";
 
 const Login = () => {
   const [form, setForm] = useState({
@@ -29,7 +30,7 @@ const Login = () => {
 
     try {
       const res = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/api/auth/login`,
+        backendUrl(`${process.env.REACT_APP_BASE_URL}/api/auth/login`),
         {
           method: "POST",
           headers: {
@@ -65,7 +66,7 @@ const Login = () => {
         const email = form.identifier.trim();
         let sent = false;
         try {
-          const again = await fetch(`${process.env.REACT_APP_BASE_URL}/api/auth/resend-verification`, {
+          const again = await fetch(backendUrl(`${process.env.REACT_APP_BASE_URL}/api/auth/resend-verification`), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email }),

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import OrderNestLogo from "../../../assets/OrderNestLogoWithoutBg.png";
 import toast from "react-hot-toast";
 import PasswordInput from "../../../common/components/PasswordInput";
+import { backendUrl } from "../../../common/utils/javaBackend";
 
 const SignupPage = () => {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ const SignupPage = () => {
 
     try {
       const res = await fetch(
-        `${process.env.REACT_APP_BASE_URL}/api/auth/register`,
+        backendUrl(`${process.env.REACT_APP_BASE_URL}/api/auth/register`),
         {
           method: "POST",
           headers: {

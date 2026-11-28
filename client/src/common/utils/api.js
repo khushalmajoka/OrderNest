@@ -2,6 +2,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { clearSession } from "../../features/whatsNew/whatsNewStorage";
 import { clearDevShop, getDevShop } from "./devShop";
+import { routeMovedParts } from "./javaBackend";
 
 // The text to show the user when a request fails. Uses the server's own
 // message when there is one ("Wrong email or password.") and says clearly
@@ -28,6 +29,10 @@ let installed = false;
 export const setupAuthInterceptor = () => {
   if (installed) return;
   installed = true;
+
+  // Registered first, so it runs last: the address is changed only after the
+  // steps below have looked at it
+  routeMovedParts();
 
   // The developer working inside a shop: tell the server which one (only to our
   // own server; the server ignores it for everybody except the developer)

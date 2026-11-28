@@ -1,0 +1,588 @@
+openapi: 3.0.3
+info:
+  title: OrderNest API
+  version: "1"
+  description: |
+    The contract both backends (Node and Java) must keep. The exact behaviour
+    is checked by the comparison tests in compare-tests/.
+
+    Errors are JSON with either `error` or `message` (kept as the app expects):
+    login and permission checks use `error`; most other checks use `message`;
+    unexpected errors answer `{ success: false, message }`.
+
+    Developer mode: the developer account may send the header `X-Dev-Shop` with a
+    shop id; the request is then treated as that shop owner's. Everyone else's
+    header is ignored.
+
+tags:
+  - { name: auth }
+  - { name: shop }
+  - { name: orders }
+  - { name: staff }
+  - { name: products }
+  - { name: catalog }
+  - { name: activity }
+  - { name: developer }
+
+# Everything needs a login unless it says `security: []`.
+security:
+  - bearer: []
+
+components:
+  securitySchemes:
+    bearer: { type: http, scheme: bearer, bearerFormat: JWT, description: "HS256, claim userId, lives 7 days. A password change ends older logins." }
+  parameters:
+    id: { name: id, in: path, required: true, schema: { type: string } }
+    shopId: { name: shopId, in: path, required: true, schema: { type: string }, description: Must be the caller's own shop (else 403) }
+    imageId: { name: imageId, in: path, required: true, schema: { type: string } }
+    token: { name: token, in: path, required: true, schema: { type: string }, description: The catalog's 24 character secret link }
+    size: { name: size, in: query, schema: { type: string, enum: [thumb, full] } }
+  schemas:
+    Error: { type: object, properties: { error: { type: string }, message: { type: string }, success: { type: boolean }, code: { type: string } } }
+    Status:
+      type: string
+      enum: [Order Received, Pending, In Progress, Completed, Ready to Dispatch/Pick-Up, Dispatched, Delivered, Cancelled, Closed (old)]
+    Permissions:
+      type: object
+      properties:
+        createOrders: { type: boolean }
+        editOrders: { type: boolean }
+        deleteOrders: { type: boolean }
+        shareSlip: { type: boolean }
+        viewAmounts: { type: boolean }
+        manageProducts: { type: boolean }
+    Line:
+      type: object
+      required: [product, quantity]
+      properties:
+        product: { type: string, description: Id of a product size }
+        quantity: { type: number }
+        unitPrice: { type: number, description: Ignored for people who may not see amounts }
+        note: { type: string, maxLength: 40 }
+    OrderInput:
+      type: object
+      properties:
+        customerName: { type: string, maxLength: 100 }
+        phone: { type: string, description: 10 to 13 digits; a number is accepted too }
+        address: { type: string, maxLength: 500 }
+        item: { type: string, maxLength: 200 }
+        total: { type: number, description: Text such as "1,500" or "₹ 500" is accepted too }
+        advance: { type: number }
+        status: { $ref: "#/components/schemas/Status" }
+        orderExecutive: { type: string, maxLength: 100 }
+        expectedDeliveryDate: { type: string, description: "A date; empty removes it" }
+        lines: { type: array, maxItems: 20, items: { $ref: "#/components/schemas/Line" } }
+    Size:
+      type: object
+      properties:
+        kind: { type: string, enum: [none, weight, dimensions, text] }
+        weight: { type: number }
+        weightUnit: { type: string, enum: [kg, g] }
+        length: { type: number }
+        breadth: { type: number }
+        height: { type: number }
+        dimUnit: { type: string, enum: [cm, inch, ft] }
+        text: { type: string, maxLength: 60 }
+    ProductSize:
+      type: object
+      properties:
+        size: { $ref: "#/components/schemas/Size" }
+        price: { type: number }
+        priceUnit: { type: string }
+    ShopProfile:
+      type: object
+      required: [name, phone, category]
+      properties:
+        name: { type: string, maxLength: 100 }
+        phone: { type: string, description: 6 to 15 digits }
+        category: { type: string, maxLength: 60 }
+        address: { type: string, maxLength: 300 }
+        logo: { type: string, description: "data:image/... text, or empty to remove" }
+  responses:
+    ok: { description: OK }
+    created: { description: Created }
+    empty: { description: "Done, no body" }
+    bad: { description: Wrong input, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    unauth: { description: Not logged in or the login ended }
+    forbidden: { description: Not allowed for this person }
+    notFound: { description: Not found }
+    conflict: { description: The data changed since it was checked }
+    tooMany: { description: Too many requests (rate limit) }
+
+paths:
+  # ---------- auth ----------
+  /api/auth/register:
+    post:
+      tags: [auth]
+      summary: Sign up a shop owner; emails a 6-digit code
+      security: []
+      requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string }, email: { type: string }, password: { type: string, minLength: 8, maxLength: 72 } } } } } }
+      responses: { "201": { $ref: "#/components/responses/created" }, "400": { $ref: "#/components/responses/bad" }, "429": { $ref: "#/components/responses/tooMany" }, "503": { description: Email is not set up } }
+  /api/auth/login:
+    post:
+      tags: [auth]
+      summary: Log in with email (owner) or username (staff)
+      security: []
+      requestBody: { content: { application/json: { schema: { type: object, properties: { identifier: { type: string }, email: { type: string, description: Old name of identifier }, password: { type: string } } } } } }
+      responses: { "200": { description: "user, token, isDeveloper" }, "400": { $ref: "#/components/responses/bad" }, "401": { $ref: "#/components/responses/unauth" }, "403": { description: "Turned off, or code EMAIL_NOT_VERIFIED" }, "429": { $ref: "#/components/responses/tooMany" } }
+  /api/auth/me:
+    get:
+      tags: [auth]
+      summary: Email of the logged-in account
+      responses: { "200": { $ref: "#/components/responses/ok" }, "401": { $ref: "#/components/responses/unauth" } }
+  /api/auth/change-password:
+    post:
+      tags: [auth]
+      summary: Owner changes password; returns a fresh token
+      requestBody: { content: { application/json: { schema: { type: object, properties: { currentPassword: { type: string }, newPassword: { type: string } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" }, "403": { $ref: "#/components/responses/forbidden" } }
+  /api/auth/verify-email:
+    post:
+      tags: [auth]
+      summary: Confirm a new account with its code (5 tries, 10 minutes)
+      security: []
+      requestBody: { content: { application/json: { schema: { type: object, properties: { email: { type: string }, code: { type: string } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/auth/resend-verification:
+    post:
+      tags: [auth]
+      summary: Send the sign-up code again (same answer for unknown emails)
+      security: []
+      requestBody: { content: { application/json: { schema: { type: object, properties: { email: { type: string } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" }, "429": { $ref: "#/components/responses/tooMany" } }
+  /api/auth/forgot-password:
+    post:
+      tags: [auth]
+      summary: Email a password code (same answer for unknown emails)
+      security: []
+      requestBody: { content: { application/json: { schema: { type: object, properties: { email: { type: string } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" }, "429": { $ref: "#/components/responses/tooMany" } }
+  /api/auth/reset-password:
+    post:
+      tags: [auth]
+      summary: Set a new password with the emailed code
+      security: []
+      requestBody: { content: { application/json: { schema: { type: object, properties: { email: { type: string }, code: { type: string }, newPassword: { type: string } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/auth/change-email/request:
+    post:
+      tags: [auth]
+      summary: Owner asks for a code at a new email address
+      requestBody: { content: { application/json: { schema: { type: object, properties: { newEmail: { type: string }, password: { type: string } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/auth/change-email/confirm:
+    post:
+      tags: [auth]
+      summary: Confirm the new email with its code
+      requestBody: { content: { application/json: { schema: { type: object, properties: { code: { type: string } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+
+  # ---------- shop ----------
+  /api/shop/setup:
+    post:
+      tags: [shop]
+      summary: Create the owner's shop (once)
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/ShopProfile" } } } }
+      responses: { "201": { $ref: "#/components/responses/created" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/shop/{userId}:
+    get:
+      tags: [shop]
+      summary: The shop and what this person may do
+      parameters: [{ name: userId, in: path, required: true, schema: { type: string } }]
+      responses: { "200": { description: "shop, account" }, "403": { $ref: "#/components/responses/forbidden" }, "404": { $ref: "#/components/responses/notFound" } }
+  /api/shop/settings/status-colors:
+    put:
+      tags: [shop]
+      summary: Row colours per status (owner)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { statusColors: { type: object }, master: { type: boolean }, row: { type: boolean }, strip: { type: boolean } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/shop/settings/statuses:
+    put:
+      tags: [shop]
+      summary: Statuses not offered when changing a status (owner)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { hiddenStatuses: { type: array, items: { type: string } } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/shop/settings/share-picture:
+    put:
+      tags: [shop]
+      summary: Print product notes on the share picture (owner)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { productNote: { type: boolean } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/shop/settings/needs-review:
+    put:
+      tags: [shop]
+      summary: Needs review on/off and after how many days (owner)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { enabled: { type: boolean }, days: { type: integer, minimum: 1, maximum: 60 } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/shop/settings/whatsapp-prompt:
+    put:
+      tags: [shop]
+      summary: Statuses that ask "Tell the customer?" (owner)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { statuses: { type: array, items: { type: string } } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/shop/settings/table-columns:
+    put:
+      tags: [shop]
+      summary: Columns of the order table (owner)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { columns: { type: array, items: { type: string } } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/shop/settings/slip:
+    put:
+      tags: [shop]
+      summary: Delivery slip parts and note (owner)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { fields: { type: object }, note: { type: string, maxLength: 200 } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/shop/settings/whatsapp-messages:
+    put:
+      tags: [shop]
+      summary: Own WhatsApp texts per language and status (owner)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { messages: { type: object } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/shop/settings/profile:
+    put:
+      tags: [shop]
+      summary: Shop details (owner)
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/ShopProfile" } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+
+  # ---------- orders ----------
+  /api/orders/track:
+    post:
+      tags: [orders]
+      summary: Customer looks up an order with ID and phone
+      security: []
+      requestBody: { content: { application/json: { schema: { type: object, properties: { orderId: { type: string }, phone: { type: string } } } } } }
+      responses: { "200": { description: "orders (empty for a wrong phone or unknown ID)" }, "400": { $ref: "#/components/responses/bad" }, "429": { $ref: "#/components/responses/tooMany" } }
+  /api/orders/create:
+    post:
+      tags: [orders]
+      summary: New order (createOrders)
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/OrderInput" } } } }
+      responses: { "201": { $ref: "#/components/responses/created" }, "400": { $ref: "#/components/responses/bad" }, "403": { $ref: "#/components/responses/forbidden" } }
+  /api/orders/bulk-upload:
+    post:
+      tags: [orders]
+      summary: Excel upload, at most 2000 rows, all or nothing (owner)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { orders: { type: array, maxItems: 2000, items: { $ref: "#/components/schemas/OrderInput" } } } } } } }
+      responses: { "201": { description: "insertedOrders, namesCleared" }, "400": { description: "message, errors (first 20), totalErrors" } }
+  /api/orders/bulk-status:
+    post:
+      tags: [orders]
+      summary: Change the status of up to 200 orders (editOrders)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { ids: { type: array, items: { type: string } }, status: { $ref: "#/components/schemas/Status" } } } } } }
+      responses: { "200": { description: "changed, orders (with previousStatus)" }, "400": { $ref: "#/components/responses/bad" }, "403": { $ref: "#/components/responses/forbidden" } }
+  /api/orders/shop/{shopId}:
+    get:
+      tags: [orders]
+      summary: One page of orders (amounts only for people who may see them)
+      parameters:
+        - { $ref: "#/components/parameters/shopId" }
+        - { name: page, in: query, schema: { type: integer } }
+        - { name: limit, in: query, schema: { type: integer, maximum: 200 } }
+        - { name: search, in: query, schema: { type: string } }
+        - { name: sortBy, in: query, schema: { type: string } }
+        - { name: sortDir, in: query, schema: { type: string, enum: [asc, desc] } }
+        - { name: filters, in: query, style: form, explode: true, description: "status, totalMin/Max, advanceMin/Max, balanceMin/Max, deliveryFrom/To, createdFrom/To, nameMissing, customer, item, phone, executive, orderId, orderNoFrom/To, overdue, hasBalance, noPhone", schema: { type: object, additionalProperties: { type: string } } }
+      responses: { "200": { description: "orders, changeToken, totalOrders, totalPages, currentPage, limit" }, "400": { $ref: "#/components/responses/bad" }, "403": { $ref: "#/components/responses/forbidden" } }
+  /api/orders/shop/{shopId}/changes:
+    get:
+      tags: [orders]
+      summary: Short token that changes when any order changes
+      parameters: [{ $ref: "#/components/parameters/shopId" }]
+      responses: { "200": { description: token }, "403": { $ref: "#/components/responses/forbidden" } }
+  /api/orders/shop/{shopId}/summary:
+    get:
+      tags: [orders]
+      summary: Dashboard numbers
+      parameters: [{ $ref: "#/components/parameters/shopId" }]
+      responses: { "200": { $ref: "#/components/responses/ok" }, "403": { $ref: "#/components/responses/forbidden" } }
+  /api/orders/shop/{shopId}/executives:
+    get:
+      tags: [orders]
+      summary: Names for the order executive list
+      parameters: [{ $ref: "#/components/parameters/shopId" }]
+      responses: { "200": { description: names }, "403": { $ref: "#/components/responses/forbidden" } }
+  /api/orders/shop/{shopId}/export:
+    get:
+      tags: [orders]
+      summary: Up to 10000 orders for Excel, same search and filters (owner)
+      parameters: [{ $ref: "#/components/parameters/shopId" }, { name: limit, in: query, schema: { type: integer } }]
+      responses: { "200": { description: "orders, totalMatching, maxRows, cutOff" }, "400": { $ref: "#/components/responses/bad" }, "429": { $ref: "#/components/responses/tooMany" } }
+  /api/orders/shop/{shopId}/name-check:
+    get:
+      tags: [orders]
+      summary: Old names that are not real names, grouped (owner)
+      parameters: [{ $ref: "#/components/parameters/shopId" }]
+      responses: { "200": { description: "totalOrders, truncated, groups" } }
+  /api/orders/shop/{shopId}/clear-names:
+    post:
+      tags: [orders]
+      summary: Empty those names without changing updatedAt (owner)
+      parameters: [{ $ref: "#/components/parameters/shopId" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { keys: { type: array, items: { type: string } } } } } } }
+      responses: { "200": { description: "cleared, names" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/orders/shop/{shopId}/close-check:
+    get:
+      tags: [orders]
+      summary: What closing old orders would change (owner)
+      parameters:
+        - { $ref: "#/components/parameters/shopId" }
+        - { name: basis, in: query, required: true, schema: { type: string, enum: [delivery, created, updated] } }
+        - { name: before, in: query, required: true, schema: { type: string, format: date } }
+        - { name: statuses, in: query, required: true, schema: { type: string, description: Comma separated open statuses } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/orders/shop/{shopId}/close-orders:
+    post:
+      tags: [orders]
+      summary: Close them without changing updatedAt (owner)
+      parameters: [{ $ref: "#/components/parameters/shopId" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { basis: { type: string }, before: { type: string }, statuses: { type: array, items: { type: string } }, newStatus: { type: string, enum: [Delivered, Cancelled, Closed (old)] }, markPaid: { type: boolean }, expectedCount: { type: integer } } } } } }
+      responses: { "200": { description: closed }, "400": { $ref: "#/components/responses/bad" }, "409": { $ref: "#/components/responses/conflict" } }
+  /api/orders/review:
+    get:
+      tags: [orders]
+      summary: Open orders long past their delivery date (editOrders)
+      responses: { "200": { description: "enabled, days, probablyDelivered, late" } }
+  /api/orders/review-snooze:
+    post:
+      tags: [orders]
+      summary: Leave orders out of the review for 3 days (editOrders)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { ids: { type: array, items: { type: string } } } } } } }
+      responses: { "200": { description: "snoozed, days" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/orders/{id}:
+    put:
+      tags: [orders]
+      summary: Edit an order (editOrders)
+      parameters: [{ $ref: "#/components/parameters/id" }]
+      requestBody: { content: { application/json: { schema: { $ref: "#/components/schemas/OrderInput" } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" }, "403": { $ref: "#/components/responses/forbidden" }, "404": { $ref: "#/components/responses/notFound" } }
+    delete:
+      tags: [orders]
+      summary: Delete an order (deleteOrders)
+      parameters: [{ $ref: "#/components/parameters/id" }]
+      responses: { "200": { $ref: "#/components/responses/ok" }, "403": { $ref: "#/components/responses/forbidden" }, "404": { $ref: "#/components/responses/notFound" } }
+
+  # ---------- staff ----------
+  /api/staff:
+    get:
+      tags: [staff]
+      summary: Staff of the shop (owner)
+      responses: { "200": { description: staff } }
+    post:
+      tags: [staff]
+      summary: Add staff, at most 20 (owner)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string }, username: { type: string }, password: { type: string }, permissions: { $ref: "#/components/schemas/Permissions" } } } } } }
+      responses: { "201": { $ref: "#/components/responses/created" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/staff/{id}:
+    put:
+      tags: [staff]
+      summary: Change name, powers or turn off (owner)
+      parameters: [{ $ref: "#/components/parameters/id" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string }, permissions: { $ref: "#/components/schemas/Permissions" }, active: { type: boolean } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" }, "404": { $ref: "#/components/responses/notFound" } }
+    delete:
+      tags: [staff]
+      summary: Remove staff (owner)
+      parameters: [{ $ref: "#/components/parameters/id" }]
+      responses: { "200": { $ref: "#/components/responses/ok" }, "404": { $ref: "#/components/responses/notFound" } }
+  /api/staff/{id}/password:
+    put:
+      tags: [staff]
+      summary: Owner sets a staff password
+      parameters: [{ $ref: "#/components/parameters/id" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { password: { type: string } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/staff/{id}/password-request/approve:
+    post:
+      tags: [staff]
+      summary: Approve a password change for 24 hours (owner)
+      parameters: [{ $ref: "#/components/parameters/id" }]
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/staff/{id}/password-request/deny:
+    post:
+      tags: [staff]
+      summary: Deny it (owner)
+      parameters: [{ $ref: "#/components/parameters/id" }]
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/staff/me/password-request:
+    post:
+      tags: [staff]
+      summary: Staff asks to change their password
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/staff/me/password:
+    post:
+      tags: [staff]
+      summary: Staff changes password after approval
+      requestBody: { content: { application/json: { schema: { type: object, properties: { currentPassword: { type: string }, newPassword: { type: string } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" }, "403": { $ref: "#/components/responses/forbidden" } }
+
+  # ---------- products ----------
+  /api/products:
+    get:
+      tags: [products]
+      summary: Sizes, products and categories (may group old products on first use)
+      parameters: [{ name: search, in: query, schema: { type: string } }, { name: archived, in: query, schema: { type: string, enum: ["1"] } }, { name: limit, in: query, schema: { type: integer, maximum: 500 } }]
+      responses: { "200": { description: "products, families, categories, canManage, canManageCategories" }, "403": { $ref: "#/components/responses/forbidden" } }
+    post:
+      tags: [products]
+      summary: Add a size (manageProducts)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { family: { type: string }, name: { type: string }, size: { $ref: "#/components/schemas/Size" }, price: { type: number }, priceUnit: { type: string }, notes: { type: string }, category: { type: string } } } } } }
+      responses: { "201": { $ref: "#/components/responses/created" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/products/{id}:
+    put:
+      tags: [products]
+      summary: Edit or archive one size (manageProducts)
+      parameters: [{ $ref: "#/components/parameters/id" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string }, size: { $ref: "#/components/schemas/Size" }, price: { type: number }, priceUnit: { type: string }, active: { type: boolean }, notes: { type: string }, category: { type: string }, inCatalog: { type: boolean } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" }, "404": { $ref: "#/components/responses/notFound" } }
+  /api/products/families:
+    post:
+      tags: [products]
+      summary: New product with up to 50 sizes (manageProducts)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string }, category: { type: string }, notes: { type: string }, inCatalog: { type: boolean }, sizes: { type: array, items: { $ref: "#/components/schemas/ProductSize" } } } } } } }
+      responses: { "201": { $ref: "#/components/responses/created" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/products/families/{id}:
+    put:
+      tags: [products]
+      summary: Rename, notes, category, catalog, archive all sizes (manageProducts)
+      parameters: [{ $ref: "#/components/parameters/id" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string }, notes: { type: string }, category: { type: string }, inCatalog: { type: boolean }, active: { type: boolean } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" }, "404": { $ref: "#/components/responses/notFound" } }
+  /api/products/from-orders:
+    get:
+      tags: [products]
+      summary: Product suggestions from old orders (manageProducts)
+      parameters: [{ name: min, in: query, schema: { type: string, enum: ["1", "2"] } }]
+      responses: { "200": { $ref: "#/components/responses/ok" } }
+    post:
+      tags: [products]
+      summary: Add the chosen suggestions (manageProducts)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { items: { type: array, items: { type: object } } } } } } }
+      responses: { "201": { description: "created, skipped" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/products/tidy-sizes:
+    get:
+      tags: [products]
+      summary: Sizes written with the bigger number first (manageProducts)
+      responses: { "200": { description: plan } }
+    post:
+      tags: [products]
+      summary: Rename or merge the chosen ones (manageProducts)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { ids: { type: array, items: { type: string } } } } } } }
+      responses: { "200": { description: "renamed, merged" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/products/{id}/images:
+    post:
+      tags: [products]
+      summary: Add a picture (JPG, PNG, WebP as base64), at most 5 (manageProducts)
+      parameters: [{ $ref: "#/components/parameters/id" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { full: { type: string }, thumb: { type: string } } } } } }
+      responses: { "201": { $ref: "#/components/responses/created" }, "400": { $ref: "#/components/responses/bad" }, "404": { $ref: "#/components/responses/notFound" } }
+  /api/products/{id}/images/order:
+    put:
+      tags: [products]
+      summary: Reorder pictures; the first is the main one (manageProducts)
+      parameters: [{ $ref: "#/components/parameters/id" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { ids: { type: array, items: { type: string } } } } } } }
+      responses: { "200": { description: images }, "400": { $ref: "#/components/responses/bad" } }
+  /api/products/images/{imageId}:
+    get:
+      tags: [products]
+      summary: The picture itself
+      parameters: [{ $ref: "#/components/parameters/imageId" }, { $ref: "#/components/parameters/size" }]
+      responses: { "200": { description: Picture, content: { image/*: { schema: { type: string, format: binary } } } }, "404": { $ref: "#/components/responses/notFound" } }
+    delete:
+      tags: [products]
+      summary: Remove a picture (manageProducts)
+      parameters: [{ $ref: "#/components/parameters/imageId" }]
+      responses: { "200": { description: "deleted, images" }, "404": { $ref: "#/components/responses/notFound" } }
+  /api/products/categories:
+    post:
+      tags: [products]
+      summary: New category (owner)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string, maxLength: 60 } } } } } }
+      responses: { "201": { $ref: "#/components/responses/created" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/products/categories/{id}:
+    put:
+      tags: [products]
+      summary: Rename a category (owner)
+      parameters: [{ $ref: "#/components/parameters/id" }]
+      requestBody: { content: { application/json: { schema: { type: object, properties: { name: { type: string } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" }, "404": { $ref: "#/components/responses/notFound" } }
+    delete:
+      tags: [products]
+      summary: Delete a category; its products stay (owner)
+      parameters: [{ $ref: "#/components/parameters/id" }]
+      responses: { "200": { description: "deleted, productsMoved" }, "404": { $ref: "#/components/responses/notFound" } }
+  /api/products/move:
+    post:
+      tags: [products]
+      summary: Move products to a category, or to none (owner)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { ids: { type: array, items: { type: string } }, category: { type: string, nullable: true } } } } } }
+      responses: { "200": { description: moved }, "400": { $ref: "#/components/responses/bad" } }
+
+  # ---------- catalog ----------
+  /api/catalog/{token}:
+    get:
+      tags: [catalog]
+      summary: Public customer catalog
+      security: []
+      parameters: [{ $ref: "#/components/parameters/token" }]
+      responses: { "200": { description: "shop, showPrices, categories, products" }, "404": { $ref: "#/components/responses/notFound" }, "429": { $ref: "#/components/responses/tooMany" } }
+  /api/catalog/{token}/images/{imageId}:
+    get:
+      tags: [catalog]
+      summary: Picture of a product that is in the catalog
+      security: []
+      parameters: [{ $ref: "#/components/parameters/token" }, { $ref: "#/components/parameters/imageId" }, { $ref: "#/components/parameters/size" }]
+      responses: { "200": { description: Picture, content: { image/*: { schema: { type: string, format: binary } } } }, "404": { $ref: "#/components/responses/notFound" } }
+  /api/catalog-settings:
+    get:
+      tags: [catalog]
+      summary: Catalog settings (manageProducts)
+      responses: { "200": { $ref: "#/components/responses/ok" } }
+    put:
+      tags: [catalog]
+      summary: Switch on/off, prices, contact number (owner)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { enabled: { type: boolean }, showPrices: { type: boolean }, phone: { type: string } } } } } }
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/catalog-settings/new-link:
+    post:
+      tags: [catalog]
+      summary: New secret link; the old one stops working (owner)
+      responses: { "200": { $ref: "#/components/responses/ok" }, "400": { $ref: "#/components/responses/bad" } }
+  /api/catalog-settings/products:
+    post:
+      tags: [catalog]
+      summary: Show or hide products in the catalog (manageProducts)
+      requestBody: { content: { application/json: { schema: { type: object, properties: { ids: { type: array, items: { type: string } }, show: { type: boolean } } } } } }
+      responses: { "200": { description: changed }, "400": { $ref: "#/components/responses/bad" } }
+
+  # ---------- history, usage, developer ----------
+  /api/activity:
+    get:
+      tags: [activity]
+      summary: Who did what, newest first (owner)
+      parameters: [{ name: page, in: query, schema: { type: integer } }, { name: limit, in: query, schema: { type: integer, maximum: 100 } }, { name: kind, in: query, schema: { type: string, enum: [order, staff, product] } }, { name: search, in: query, schema: { type: string } }]
+      responses: { "200": { description: "items, total, page, hasMore" }, "403": { $ref: "#/components/responses/forbidden" } }
+  /api/usage:
+    post:
+      tags: [activity]
+      summary: Count something done on screen
+      requestBody: { content: { application/json: { schema: { type: object, properties: { feature: { type: string } } } } } }
+      responses: { "204": { $ref: "#/components/responses/empty" }, "429": { $ref: "#/components/responses/tooMany" } }
+  /api/developer/usage:
+    get:
+      tags: [developer]
+      summary: Feature use over 7, 30 or 90 days (developer; others get 404)
+      parameters: [{ name: days, in: query, schema: { type: integer, enum: [7, 30, 90] } }, { name: shop, in: query, schema: { type: string } }]
+      responses: { "200": { $ref: "#/components/responses/ok" }, "404": { $ref: "#/components/responses/notFound" } }
+  /api/developer/completeness:
+    get:
+      tags: [developer]
+      summary: How many orders have a phone, address, ... (developer)
+      parameters: [{ name: shop, in: query, schema: { type: string } }]
+      responses: { "200": { $ref: "#/components/responses/ok" }, "404": { $ref: "#/components/responses/notFound" } }
+  /api/developer/shops:
+    get:
+      tags: [developer]
+      summary: All shops (developer)
+      responses: { "200": { $ref: "#/components/responses/ok" }, "404": { $ref: "#/components/responses/notFound" } }

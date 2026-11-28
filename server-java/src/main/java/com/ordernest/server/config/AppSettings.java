@@ -72,6 +72,12 @@ public class AppSettings {
         return get("SMTP_PASS");
     }
 
+    /** The shop's time zone, for "which day is it". India unless set. */
+    public String timeZone() {
+        String zone = get("APP_TIMEZONE");
+        return zone.isEmpty() ? "Asia/Kolkata" : zone;
+    }
+
     private static List<String> list(String text) {
         return Arrays.stream(text.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList();
     }

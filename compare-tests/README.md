@@ -13,7 +13,8 @@ Needs Docker running, and `npm install` done once in `server/`. For Java, build 
 
 ```bash
 node compare-tests/run.js                 # Node against Node (must show 0)
-node compare-tests/run.js --b java --only foundation   # Node against Java, the parts written so far
+node compare-tests/run.js --b java --only foundation --only seeded
+                                           # Node against Java, the parts written so far
 node compare-tests/run.js --sabotage      # must report differences
 ```
 
